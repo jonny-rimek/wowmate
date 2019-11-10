@@ -60,6 +60,7 @@ export class WowmateStack extends cdk.Stack {
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(10),
+			environment: {TARGET_BUCKET_NAME: parquet.bucketName}
             //TODO: add parquet bucket name as env variable
 		})
 

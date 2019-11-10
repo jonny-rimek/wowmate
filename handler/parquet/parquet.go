@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -31,6 +32,7 @@ type Event struct {
 }
 
 func handler(e Event) error {
+	targetBucket := os.Getenv("TARGET_BUCKET_NAME")
 
 	log.Print("DEBUG: bucketname: " + e.BucketName)
 	log.Print("DEBUG: filename: " + e.Key)
@@ -123,7 +125,7 @@ func handler(e Event) error {
 	uploadFileName := fmt.Sprintf("test/test.parquet")
 
 	result, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String("sfnstack-parquet0583a65d-1aklpe9quref8"),
+		Bucket: aws.String(targetBucket),
 		Key:    &uploadFileName,
 		Body:   fr,
 	})
