@@ -27,7 +27,7 @@ export class WowmateStack extends cdk.Stack {
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 		})
 
-		trail.addS3EventSelector([upload.bucketArn], {
+		trail.addS3EventSelector([upload.bucketArn + "/"], {
 			readWriteType: cloudtrail.ReadWriteType.WRITE_ONLY,
 		})
 
