@@ -17,18 +17,23 @@ export class WowmateStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-		new cloudtrail.Trail(this, 'CloudTrail', {
+		const trail = new cloudtrail.Trail(this, 'CloudTrail', {
 			sendToCloudWatchLogs: true,
+			managementEvents: cloudtrail.ReadWriteType.WRITE_ONLY,
 		});
-
-		const db = new ddb.Table(this, 'DDB', {
-			partitionKey: { name: 'name', type: ddb.AttributeType.STRING },
-			removalPolicy: RemovalPolicy.DESTROY,
-		})
 
 		const upload = new s3.Bucket(this, 'Upload', {
 			removalPolicy: RemovalPolicy.DESTROY,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+		})
+
+		trail.addS3EventSelector([upload.bucketArn], {
+			readWriteType: cloudtrail.ReadWriteType.WRITE_ONLY,
+		})
+
+		const db = new ddb.Table(this, 'DDB', {
+			partitionKey: { name: 'name', type: ddb.AttributeType.STRING },
+			removalPolicy: RemovalPolicy.DESTROY,
 		})
 
 		const parquet = new s3.Bucket(this, 'Parquet', {
@@ -40,7 +45,6 @@ export class WowmateStack extends cdk.Stack {
 			removalPolicy: RemovalPolicy.DESTROY,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 		})
-
 
 		const size = new lambda.Function(this, 'Size', {
 			code: lambda.Code.asset("handler/size"),
