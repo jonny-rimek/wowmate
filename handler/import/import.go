@@ -1,0 +1,105 @@
+package main
+
+import (
+	"bufio"
+	"bytes"
+	"log"
+	"strings"
+
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+)
+
+//Event ..
+type Event struct {
+	BucketName string `json:"result_bucket"`
+	Key        string `json:"file_name"`
+}
+
+//CSV2 test ..
+type CSV2 struct {
+	Name string `json:"name"`
+	N1   string `json:"n1"`
+}
+
+func handler(e Event) error {
+	sess, _ := session.NewSession(&aws.Config{
+		Region: aws.String("eu-central-1")},
+	)
+
+	downloader := s3manager.NewDownloader(sess)
+
+	file2 := &aws.WriteAtBuffer{}
+
+	numBytes2, err := downloader.Download(
+		file2,
+		&s3.GetObjectInput{
+			Bucket: aws.String(e.BucketName),
+			Key:    aws.String(e.Key),
+		})
+
+	if err != nil {
+		log.Fatalf("Unable to download item %q: %v", e.Key, err)
+	}
+
+	log.Println("DEBUG: Downloaded", numBytes2, "bytes")
+
+	var records2 []CSV2
+
+	r2 := bytes.NewReader(file2.Bytes())
+	s2 := bufio.NewScanner(r2)
+
+	for s2.Scan() {
+		row2 := strings.Split(s2.Text(), ",")
+
+		if err != nil {
+			log.Fatalf("Failed to convert 2nd row to int32")
+		}
+
+		r2 := CSV2{
+			row2[0],
+			row2[1],
+		}
+
+		records2 = append(records2, r2)
+	}
+
+	log.Print("DEBUG: read CSV into structs")
+
+	svcdb := dynamodb.New(sess)
+	dbname := "SfnStack-DDBBEFDD151-15RLCDE0EUM50"
+	var wcuConsumed float64
+
+	for _, s := range records2 {
+		av, err := dynamodbattribute.MarshalMap(s)
+		if err != nil {
+			log.Println("Got error marshalling map:")
+			log.Fatalf(err.Error())
+		}
+
+		input := &dynamodb.PutItemInput{
+			Item:                   av,
+			ReturnConsumedCapacity: aws.String("TOTAL"),
+			TableName:              aws.String(dbname),
+		}
+
+		oup, err := svcdb.PutItem(input)
+		if err != nil {
+			log.Fatalf("Got error calling PutItem: %v", err)
+		}
+
+		wcuConsumed = wcuConsumed + *oup.ConsumedCapacity.CapacityUnits
+	}
+	log.Printf("Consumed WCU: %f: ", wcuConsumed)
+
+	return nil
+}
+
+func main() {
+	lambda.Start(handler)
+}
