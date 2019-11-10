@@ -9,12 +9,17 @@ import { BlockPublicAccess } from '@aws-cdk/aws-s3';
 import targets = require('@aws-cdk/aws-events-targets');
 import iam = require('@aws-cdk/aws-iam');
 import { Effect } from '@aws-cdk/aws-iam';
+import cloudtrail = require('@aws-cdk/aws-cloudtrail');
 // import events = require('@aws-cdk/aws-events');
 // import { Result } from '@aws-cdk/aws-stepfunctions';
 
 export class WowmateStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+		new cloudtrail.Trail(this, 'CloudTrail', {
+			sendToCloudWatchLogs: true,
+		});
 
 		const db = new ddb.Table(this, 'DDB', {
 			partitionKey: { name: 'name', type: ddb.AttributeType.STRING },
