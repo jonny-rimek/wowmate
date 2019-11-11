@@ -25,21 +25,21 @@ export class WowmateStack extends cdk.Stack {
 
 
 		//S3 BUCKETS
-		const upload = new s3.Bucket(this, 'Upload', {
+		const uploadBucket = new s3.Bucket(this, 'Upload', {
 			removalPolicy: RemovalPolicy.DESTROY,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 		})
 
-		trail.addS3EventSelector([upload.bucketArn + "/"], {
+		trail.addS3EventSelector([uploadBucket.bucketArn + "/"], {
 			readWriteType: cloudtrail.ReadWriteType.WRITE_ONLY,
 		})
 
-		const parquet = new s3.Bucket(this, 'Parquet', {
+		const parquetBucket = new s3.Bucket(this, 'Parquet', {
 			removalPolicy: RemovalPolicy.DESTROY,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 		})
 
-		const athena = new s3.Bucket(this, 'Athena', {
+		const athenaBucket = new s3.Bucket(this, 'Athena', {
 			removalPolicy: RemovalPolicy.DESTROY,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 		})
@@ -53,7 +53,7 @@ export class WowmateStack extends cdk.Stack {
 
 
 		//LAMBDA
-		const size = new lambda.Function(this, 'Size', {
+		const sizeFunc = new lambda.Function(this, 'Size', {
 			code: lambda.Code.asset("handler/size"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -61,14 +61,13 @@ export class WowmateStack extends cdk.Stack {
 			timeout: Duration.seconds(3),
         })
 
-		const func = new lambda.Function(this, 'test', {
+		const parquetFunc = new lambda.Function(this, 'test', {
 			code: lambda.Code.asset("handler/parquet"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(10),
-			environment: {TARGET_BUCKET_NAME: parquet.bucketName}
-            //TODO: add parquet bucket name as env variable
+			environment: {TARGET_BUCKET_NAME: parquetBucket.bucketName}
 		})
 
 		const athenaFunc = new lambda.Function(this, 'AthenaFunc', {
@@ -79,7 +78,7 @@ export class WowmateStack extends cdk.Stack {
 			timeout: Duration.seconds(3),
 		})
 
-		const check = new lambda.Function(this, 'Check', {
+		const checkFunc = new lambda.Function(this, 'Check', {
 			code: lambda.Code.asset("handler/check"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -87,63 +86,62 @@ export class WowmateStack extends cdk.Stack {
 			timeout: Duration.seconds(3),
 		})
 	
-		const imp = new lambda.Function(this, 'Import', {
+		const impFunc = new lambda.Function(this, 'Import', {
 			code: lambda.Code.asset("handler/import"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(10),
-            //TODO: add parquet bucket name as env variable
+            //TODO: add parquetBucket bucket name as env variable
 		})
 
-		const imp2 = new lambda.Function(this, 'Import2', {
+		const imp2Func = new lambda.Function(this, 'Import2', {
 			code: lambda.Code.asset("handler/import2"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(10),
-            //TODO: add parquet bucket name as env variable
+            //TODO: add parquetBucket bucket name as env variable
 		})
 
 
 		//IAM
-		upload.grantRead(size)
+		uploadBucket.grantRead(sizeFunc)
 
-		upload.grantRead(func)
-		parquet.grantPut(func)
+		uploadBucket.grantRead(parquetFunc)
+		parquetBucket.grantPut(parquetFunc)
 
-		parquet.grantRead(athenaFunc)
-		athena.grantWrite(athenaFunc)
+		parquetBucket.grantRead(athenaFunc)
+		athenaBucket.grantWrite(athenaFunc)
 
 		const athenaPolicy = new iam.PolicyStatement({
 			effect: Effect.ALLOW,
 			actions: [ 
-				'athena:*',
+				'athenaBucket:*',
 				'glue:*'
 			],
 			resources: [
 				'*'
 			],
 		})
+
 		athenaFunc.addToRolePolicy(athenaPolicy)
+		checkFunc.addToRolePolicy(athenaPolicy)
 
-		check.addToRolePolicy(athenaPolicy)
+		athenaBucket.grantRead(impFunc)
+		db.grantWriteData(impFunc)
 
-		athena.grantRead(imp)
-		db.grantWriteData(imp)
-
-		athena.grantRead(imp2)
-		db.grantWriteData(imp2)
-
+		athenaBucket.grantRead(imp2Func)
+		db.grantWriteData(imp2Func)
 
 
-		//STEP FUNCTION
+		//STEP FUNCTIO
 		const sizeJob = new sfn.Task(this, 'Size Job', {
-			task: new tasks.InvokeFunction(size),
+			task: new tasks.InvokeFunction(sizeFunc),
 		});
 
-		const parquetJob = new sfn.Task(this, 'Parquet Job', {
-			task: new tasks.InvokeFunction(func),
+		const parquetJob = new sfn.Task(this, 'PaJob', {
+			task: new tasks.InvokeFunction(parquetFunc),
 		});
 
 		const fileTooBig = new sfn.Fail(this, 'File too big', {
@@ -153,7 +151,7 @@ export class WowmateStack extends cdk.Stack {
 
 		const athenaInput = new sfn.Pass(this, 'Input for Athena', {
 			result: sfn.Result.fromArray([{
-				"result_bucket": athena.bucketName,
+				"result_bucket": athenaBucket.bucketName,
 				"query": `SELECT name, sum(n1) as sum FROM sfntest GROUP BY name;`,
 				"region": "eu-central-1",
 				"table": "sfn"
@@ -176,8 +174,8 @@ export class WowmateStack extends cdk.Stack {
 		});
 	
 		const checkJob = new sfn.Task(this, 'Check Athena Status Job', {
-			task: new tasks.InvokeFunction(check),
-		});
+			task: new tasks.InvokeFunction(checkFunc)
+		})
 		
 		checkJob.addRetry({
 			interval: Duration.seconds(2),
@@ -197,7 +195,7 @@ export class WowmateStack extends cdk.Stack {
 		});
 
 		const dynamodbJob = new sfn.Task(this, 'DynamoDB Job', {
-			task: new tasks.InvokeFunction(imp),
+			task: new tasks.InvokeFunction(impFunc),
 		});
 
 		const parallel = new sfn.Parallel(this, 'Parallel Queries');
@@ -227,8 +225,8 @@ export class WowmateStack extends cdk.Stack {
 		});
 	
 		const checkJob2 = new sfn.Task(this, 'Check Athena Status Job2', {
-			task: new tasks.InvokeFunction(check),
-		});
+			task: new tasks.InvokeFunction(checkFunc),
+		})
 		
 		checkJob2.addRetry({
 			interval: Duration.seconds(2),
@@ -236,7 +234,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const dynamodbJob2 = new sfn.Task(this, 'DynamoDB Job2', {
-			task: new tasks.InvokeFunction(imp2),
+			task: new tasks.InvokeFunction(imp2Func),
 		});
 
 		const averageQueryInput = new sfn.Pass(this, 'Input for Average', {
@@ -264,8 +262,8 @@ export class WowmateStack extends cdk.Stack {
 		});
 	
 		const checkJob3 = new sfn.Task(this, 'Check Athena Status Job3', {
-			task: new tasks.InvokeFunction(check),
-		});
+			task: new tasks.InvokeFunction(checkFunc),
+		})
 		
 		checkJob3.addRetry({
 			interval: Duration.seconds(2),
@@ -273,14 +271,14 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const dynamodbJob3 = new sfn.Task(this, 'DynamoDB Job3', {
-			task: new tasks.InvokeFunction(imp2),
+			task: new tasks.InvokeFunction(imp2Func),
 		});
 
-		//to athena stuff as state machine fragment
+		//to athenaBucket stuff as state machine fragment
 		//https://docs.aws.amazon.com/cdk/api/latest/docs/aws-stepfunctions-readme.html#state-machine-fragments
 		const sfunc = new sfn.StateMachine(this, 'StateMachine', {
 			definition: sizeJob
-			.next(new sfn.Choice(this, 'Check file size')
+			.next(new sfn.Choice(this, 'Check file sizeFunc')
 				.when(sfn.Condition.numberGreaterThan('$.file_size', 400), fileTooBig)
 				.otherwise(parquetJob
 					.next(athenaInput)
@@ -313,13 +311,13 @@ export class WowmateStack extends cdk.Stack {
 			),
 		});
 
-		upload.onCloudTrailPutObject('cwEvent', {
+		uploadBucket.onCloudTrailPutObject('cwEvent', {
 			target: new targets.SfnStateMachine(sfunc),	
-		}).addEventPattern({
+		});/*.addEventPattern({
             detail: {
                 eventName: ['CompleteMultipartUpload'],
             },
-        });
+        });*/
 
 /*
 */
