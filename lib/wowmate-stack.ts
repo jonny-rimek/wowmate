@@ -135,12 +135,12 @@ export class WowmateStack extends cdk.Stack {
 		db.grantWriteData(imp2Func)
 
 
-		//STEP FUNCTIO
+		//STEP FUNCTION
 		const sizeJob = new sfn.Task(this, 'Size Job', {
 			task: new tasks.InvokeFunction(sizeFunc),
 		});
 
-		const parquetJob = new sfn.Task(this, 'PaJob', {
+		const parquetJob = new sfn.Task(this, 'Parquet Job', {
 			task: new tasks.InvokeFunction(parquetFunc),
 		});
 
