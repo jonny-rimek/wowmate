@@ -17,11 +17,14 @@ export class WowmateStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+		//CLOUDTRAIL
 		const trail = new cloudtrail.Trail(this, 'CloudTrail', {
 			sendToCloudWatchLogs: true,
 			managementEvents: cloudtrail.ReadWriteType.WRITE_ONLY,
 		});
 
+
+		//S3 BUCKETS
 		const upload = new s3.Bucket(this, 'Upload', {
 			removalPolicy: RemovalPolicy.DESTROY,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
@@ -29,11 +32,6 @@ export class WowmateStack extends cdk.Stack {
 
 		trail.addS3EventSelector([upload.bucketArn + "/"], {
 			readWriteType: cloudtrail.ReadWriteType.WRITE_ONLY,
-		})
-
-		const db = new ddb.Table(this, 'DDB', {
-			partitionKey: { name: 'name', type: ddb.AttributeType.STRING },
-			removalPolicy: RemovalPolicy.DESTROY,
 		})
 
 		const parquet = new s3.Bucket(this, 'Parquet', {
@@ -46,6 +44,15 @@ export class WowmateStack extends cdk.Stack {
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 		})
 
+
+		//DYNAMODB
+		const db = new ddb.Table(this, 'DDB', {
+			partitionKey: { name: 'name', type: ddb.AttributeType.STRING },
+			removalPolicy: RemovalPolicy.DESTROY,
+		})
+
+
+		//LAMBDA
 		const size = new lambda.Function(this, 'Size', {
 			code: lambda.Code.asset("handler/size"),
 			handler: 'main',
@@ -98,6 +105,8 @@ export class WowmateStack extends cdk.Stack {
             //TODO: add parquet bucket name as env variable
 		})
 
+
+		//IAM
 		upload.grantRead(size)
 
 		upload.grantRead(func)
@@ -126,6 +135,9 @@ export class WowmateStack extends cdk.Stack {
 		athena.grantRead(imp2)
 		db.grantWriteData(imp2)
 
+
+
+		//STEP FUNCTION
 		const sizeJob = new sfn.Task(this, 'Size Job', {
 			task: new tasks.InvokeFunction(size),
 		});
@@ -141,7 +153,7 @@ export class WowmateStack extends cdk.Stack {
 
 		const athenaInput = new sfn.Pass(this, 'Input for Athena', {
 			result: sfn.Result.fromArray([{
-				"result_bucket": "sfnstack-athenabc8ba882-d8g4by741f1i",
+				"result_bucket": athena.bucketName,
 				"query": `SELECT name, sum(n1) as sum FROM sfntest GROUP BY name;`,
 				"region": "eu-central-1",
 				"table": "sfn"
