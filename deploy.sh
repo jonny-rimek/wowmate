@@ -1,6 +1,7 @@
 #!/bin/bash
 
-git commit -a --verbose
+git add --all
+git commit --verbose
 git push
 
 rm handler/size/main

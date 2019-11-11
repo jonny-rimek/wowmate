@@ -117,7 +117,7 @@ export class WowmateStack extends cdk.Stack {
 		const athenaPolicy = new iam.PolicyStatement({
 			effect: Effect.ALLOW,
 			actions: [ 
-				'athenaBucket:*',
+				'athena:*',
 				'glue:*'
 			],
 			resources: [
