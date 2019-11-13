@@ -114,19 +114,52 @@ export class WowmateStack extends cdk.Stack {
 		parquetBucket.grantRead(athenaFunc)
 		athenaBucket.grantWrite(athenaFunc)
 
-		const athenaPolicy = new iam.PolicyStatement({
+		//permission are from the aws docs https://docs.aws.amazon.com/athena/latest/ug/example-policies-workgroup.html
+		//they could probably be tightend a bit, especially differences between checkFunc and athenaFunc 
+		const athenaGeneralPolicy = new iam.PolicyStatement({
 			effect: Effect.ALLOW,
 			actions: [ 
-				'athena:*',
-				'glue:*'
+				"athena:ListWorkGroups",
+                "athena:GetExecutionEngine",
+                "athena:GetExecutionEngines",
+                "athena:GetNamespace",
+                "athena:GetCatalogs",
+                "athena:GetNamespaces",
+                "athena:GetTables",
+                "athena:GetTable"
 			],
 			resources: [
 				'*'
 			],
 		})
 
-		athenaFunc.addToRolePolicy(athenaPolicy)
-		checkFunc.addToRolePolicy(athenaPolicy)
+		const athenaWorkgroupPolicy = new iam.PolicyStatement({
+			effect: Effect.ALLOW,
+			actions: [ 
+				"athena:StartQueryExecution",
+                "athena:GetQueryResults",
+                "athena:DeleteNamedQuery",
+                "athena:GetNamedQuery",
+                "athena:ListQueryExecutions",
+                "athena:StopQueryExecution",
+                "athena:GetQueryResultsStream",
+                "athena:ListNamedQueries",
+                "athena:CreateNamedQuery",
+                "athena:GetQueryExecution",
+                "athena:BatchGetNamedQuery",
+                "athena:BatchGetQueryExecution", 
+                "athena:GetWorkGroup" 
+			],
+			resources: [
+				'arn:aws:athena:eu-central-1:940880032268:workgroup/primary'
+			],
+		})
+
+		athenaFunc.addToRolePolicy(athenaGeneralPolicy)
+		checkFunc.addToRolePolicy(athenaGeneralPolicy)
+
+		athenaFunc.addToRolePolicy(athenaWorkgroupPolicy)
+		checkFunc.addToRolePolicy(athenaWorkgroupPolicy)
 
 		athenaBucket.grantRead(impFunc)
 		db.grantWriteData(impFunc)
