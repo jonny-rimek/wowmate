@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -28,6 +29,7 @@ type CSV2 struct {
 }
 
 func handler(e Event) error {
+	ddbTableName := os.Getenv("DDB_NAME")
 	sess, _ := session.NewSession(&aws.Config{
 		Region: aws.String("eu-central-1")},
 	)
@@ -72,7 +74,6 @@ func handler(e Event) error {
 	log.Print("DEBUG: read CSV into structs")
 
 	svcdb := dynamodb.New(sess)
-	dbname := "SfnStack-DDBBEFDD151-15RLCDE0EUM50"
 	var wcuConsumed float64
 
 	for _, s := range records2 {
@@ -85,7 +86,7 @@ func handler(e Event) error {
 		input := &dynamodb.PutItemInput{
 			Item:                   av,
 			ReturnConsumedCapacity: aws.String("TOTAL"),
-			TableName:              aws.String(dbname),
+			TableName:              aws.String(ddbTableName),
 		}
 
 		oup, err := svcdb.PutItem(input)

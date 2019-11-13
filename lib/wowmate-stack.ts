@@ -92,7 +92,7 @@ export class WowmateStack extends cdk.Stack {
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(10),
-            //TODO: add parquetBucket bucket name as env variable
+			environment: {DDB_NAME: db.tableName}
 		})
 
 		const imp2Func = new lambda.Function(this, 'Import2', {
@@ -101,7 +101,7 @@ export class WowmateStack extends cdk.Stack {
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(10),
-            //TODO: add parquetBucket bucket name as env variable
+			environment: {DDB_NAME: db.tableName}
 		})
 
 
@@ -112,6 +112,7 @@ export class WowmateStack extends cdk.Stack {
 		parquetBucket.grantPut(parquetFunc)
 
 		parquetBucket.grantRead(athenaFunc)
+
 		athenaBucket.grantReadWrite(athenaFunc)
 		athenaBucket.grantWrite(checkFunc)
 
