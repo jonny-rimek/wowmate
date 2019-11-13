@@ -126,7 +126,8 @@ export class WowmateStack extends cdk.Stack {
                 "athena:GetCatalogs",
                 "athena:GetNamespaces",
                 "athena:GetTables",
-                "athena:GetTable"
+				"athena:GetTable",
+				"glue:GetTable"
 			],
 			resources: [
 				'*'
