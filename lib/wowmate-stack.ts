@@ -238,7 +238,7 @@ export class WowmateStack extends cdk.Stack {
 
 		const sumQueryInput = new sfn.Pass(this, 'Input for Sum', {
 			result: sfn.Result.fromArray([{
-				"result_bucket": "sfnstack-athenabc8ba882-d8g4by741f1i",
+				"result_bucket": athenaBucket.bucketName,
 				"query": `SELECT sum(n1) as sum FROM sfntest;`,
 				"region": "eu-central-1",
 				"table": "sfn"
@@ -275,7 +275,7 @@ export class WowmateStack extends cdk.Stack {
 
 		const averageQueryInput = new sfn.Pass(this, 'Input for Average', {
 			result: sfn.Result.fromArray([{
-				"result_bucket": "sfnstack-athenabc8ba882-d8g4by741f1i",
+				"result_bucket": athenaBucket.bucketName,
 				"query": `SELECT avg(n1) as avg FROM sfntest;`,
 				"region": "eu-central-1",
 				"table": "sfn"
