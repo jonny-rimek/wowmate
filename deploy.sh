@@ -32,6 +32,8 @@ echo built import2
 tsc
 echo compiled typescript to javascript
 
+cdk diff | less
+
 cdk deploy --require-approval=never
 
 aws s3 cp test.csv s3://wowmatestack-upload51c4d210-18wofa313p49y

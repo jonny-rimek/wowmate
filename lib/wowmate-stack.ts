@@ -112,7 +112,7 @@ export class WowmateStack extends cdk.Stack {
 		parquetBucket.grantPut(parquetFunc)
 
 		parquetBucket.grantRead(athenaFunc)
-		athenaBucket.grantWrite(athenaFunc)
+		athenaBucket.grantReadWrite(athenaFunc)
 
 		//permission are from the aws docs https://docs.aws.amazon.com/athena/latest/ug/example-policies-workgroup.html
 		//they could probably be tightend a bit, especially differences between checkFunc and athenaFunc 
