@@ -1,4 +1,4 @@
-module github.com/jonny-rimek/wowmate/handler/parquet
+module github.com/jonny-rimek/wowmate/lambda/parquet
 
 go 1.13
 
