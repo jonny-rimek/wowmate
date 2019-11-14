@@ -4,28 +4,28 @@ git add --all
 git commit --verbose
 git push
 
-rm handler/size/main
-go build -o handler/size/main handler/size/size.go
+rm lambda/size/main
+go build -o lambda/size/main lambda/size/size.go
 echo built size
 
-rm handler/parquet/main
-go build -o handler/parquet/main handler/parquet/parquet.go
+rm lambda/parquet/main
+go build -o lambda/parquet/main lambda/parquet/parquet.go
 echo built parquet
 
-rm handler/athena/main
-go build -o handler/athena/main handler/athena/athena.go
+rm lambda/athena/main
+go build -o lambda/athena/main lambda/athena/athena.go
 echo built athena
 
-rm handler/check/main
-go build -o handler/check/main handler/check/check.go
+rm lambda/check/main
+go build -o lambda/check/main lambda/check/check.go
 echo built check
 
-rm handler/import/main
-go build -o handler/import/main handler/import/import.go
+rm lambda/import/main
+go build -o lambda/import/main lambda/import/import.go
 echo built import
 
-rm handler/import2/main
-go build -o handler/import2/main handler/import2/import2.go
+rm lambda/import2/main
+go build -o lambda/import2/main lambda/import2/import2.go
 echo built import2
 
 
