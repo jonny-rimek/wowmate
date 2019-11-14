@@ -47,6 +47,8 @@ func handler(e Event) error {
 
 	file := &aws.WriteAtBuffer{}
 
+	//30minutes of debugging later, S3 does in fact download into memory
+	//and doesn't write to /tmp
 	numBytes, err := downloader.Download(
 		file,
 		&s3.GetObjectInput{
