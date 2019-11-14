@@ -8,8 +8,10 @@ rm lambda/size/main
 go build -o lambda/size/main lambda/size/size.go
 echo built size
 
-rm lambda/parquet/main
-go build -o lambda/parquet/main lambda/parquet/parquet.go
+cd lambda/parquet
+rm main
+go build -o main parquet.go
+cd ../..
 echo built parquet
 
 rm lambda/athena/main
