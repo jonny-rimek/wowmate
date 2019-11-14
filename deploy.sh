@@ -1,9 +1,4 @@
 #!/bin/bash
-
-git add --all
-git commit --verbose
-git push
-
 rm lambda/size/main
 go build -o lambda/size/main lambda/size/size.go
 echo built size
