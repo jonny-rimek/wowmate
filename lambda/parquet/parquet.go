@@ -6,15 +6,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/jonny-rimek/wowmate/lambda/lib/combatlog/event"
+	uuid "github.com/gofrs/uuid"
 	"github.com/jonny-rimek/wowmate/lambda/lib/combatlog/normalize"
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/parquet"
@@ -27,13 +25,14 @@ type CSV struct {
 	N1   int32  `parquet:"name=n1, type=INT32"`
 }
 
-//Event ..
-type Event struct {
+//StepfunctionEvent provides config data to the lambda
+type StepfunctionEvent struct {
 	BucketName string `json:"bucketName"`
 	Key        string `json:"key"`
 }
 
-func handler(e Event) error {
+func handler(e StepfunctionEvent) error {
+	uploadUUID := uuid.Must(uuid.NewV4()).String()
 	targetBucket := os.Getenv("TARGET_BUCKET_NAME")
 
 	log.Print("DEBUG: bucketname: " + e.BucketName)
@@ -48,7 +47,8 @@ func handler(e Event) error {
 	file := &aws.WriteAtBuffer{}
 
 	//30minutes of debugging later, S3 does in fact download into memory
-	//and doesn't write to /tmp
+	//and doesn't write to /tmp. or I could have just read the comment on
+	//WriteAtBUFFER...
 	numBytes, err := downloader.Download(
 		file,
 		&s3.GetObjectInput{
@@ -59,34 +59,20 @@ func handler(e Event) error {
 	if err != nil {
 		log.Fatalf("Unable to download item %q, %v", e.Key, err)
 	}
-
-	log.Println("DEBUG: Downloaded", numBytes, "bytes")
-
-	var records []CSV
+	log.Printf("DEBUG: Downloaded %v MB", numBytes/1024/1024)
 
 	r := bytes.NewReader(file.Bytes())
 	s := bufio.NewScanner(r)
 
-	for s.Scan() {
-		row := strings.Split(s.Text(), ",")
-
-		bigint, err := strconv.ParseInt(row[1], 10, 32)
-		d := int32(bigint)
-
-		if err != nil {
-			log.Fatalf("Failed to convert 2nd row to int32")
-		}
-
-		r := CSV{
-			row[0],
-			d,
-		}
-
-		records = append(records, r)
+	events, err := Import(s, uploadUUID) //TODO: handle errors
+	if err != nil {
+		log.Println(err.Error())
+		return err
 	}
 
-	log.Print("DEBUG: read CSV into structs")
+	log.Print("DEBUG: read combatlog to slice of Event structs")
 
+	//WRITE TO PARQUET FILE
 	fw, err := local.NewLocalFileWriter("/tmp/flat.parquet")
 	if err != nil {
 		log.Fatalf("Can't create local file: %v", err)
@@ -94,7 +80,7 @@ func handler(e Event) error {
 
 	log.Print("DEBUG: created local file")
 
-	pw, err := writer.NewParquetWriter(fw, new(CSV), 1) //4 is actually slower than 1 :o
+	pw, err := writer.NewParquetWriter(fw, new(Event), 1) //4 is actually slower than 1 :o
 	if err != nil {
 		log.Fatalf("Can't create parquet writer: %v", err)
 	}
@@ -104,8 +90,8 @@ func handler(e Event) error {
 	pw.RowGroupSize = 128 * 1024 * 1024 //128M
 	pw.CompressionType = parquet.CompressionCodec_SNAPPY
 
-	for _, r := range records {
-		if err = pw.Write(r); err != nil {
+	for _, event := range events {
+		if err = pw.Write(event); err != nil {
 			log.Println("Write error", err)
 		}
 
@@ -123,7 +109,9 @@ func handler(e Event) error {
 	if err != nil {
 		log.Fatalf("Can't open file")
 	}
+	//END
 
+	//UPLOAD TO S3
 	s3Svc := s3.New(sess)
 	uploader := s3manager.NewUploaderWithClient(s3Svc)
 	uploadFileName := fmt.Sprintf("test/test.parquet")
@@ -144,6 +132,6 @@ func handler(e Event) error {
 
 func main() {
 	normalize.Normalize()
-	event.Event()
+	//event.Event()
 	lambda.Start(handler)
 }
