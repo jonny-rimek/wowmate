@@ -65,7 +65,6 @@ func handler(e Event) error {
 	s := bufio.NewScanner(r)
 
 	for s.Scan() {
-		normalize.Normalize()
 		row := strings.Split(s.Text(), ",")
 
 		bigint, err := strconv.ParseInt(row[1], 10, 32)
@@ -141,5 +140,6 @@ func handler(e Event) error {
 }
 
 func main() {
+	normalize.Normalize()
 	lambda.Start(handler)
 }
