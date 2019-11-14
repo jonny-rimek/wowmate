@@ -14,8 +14,8 @@ import cloudtrail = require('@aws-cdk/aws-cloudtrail');
 // import { Result } from '@aws-cdk/aws-stepfunctions';
 
 export class WowmateStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
+	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+		super(scope, id, props);
 
 		//CLOUDTRAIL
 		const trail = new cloudtrail.Trail(this, 'CloudTrail', {
@@ -349,13 +349,10 @@ export class WowmateStack extends cdk.Stack {
 
 		uploadBucket.onCloudTrailPutObject('cwEvent', {
 			target: new targets.SfnStateMachine(sfunc),	
-		});/*.addEventPattern({
+		}).addEventPattern({
             detail: {
                 eventName: ['CompleteMultipartUpload'],
             },
-        });*/
-
-/*
-*/
-  }
+        });
+	}
 }

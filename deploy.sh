@@ -5,7 +5,7 @@ echo built size
 
 cd lambda/parquet
 rm main
-go build -o main parquet.go
+go build -o main .
 cd ../..
 echo built parquet
 
