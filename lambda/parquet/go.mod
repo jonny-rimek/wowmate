@@ -14,4 +14,4 @@ require (
 	golang.org/x/net v0.0.0-20191112182307-2180aed22343 // indirect
 )
 
-replace github.com/jonny-rimek/wowmate/lambda/lib/normalize => ../lib/normalize
+replace github.com/jonny-rimek/wowmate/lambda/lib/combatlog/normalize => ../lib/normalize
