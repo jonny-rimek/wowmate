@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/jonny-rimek/wowmate/lambda/lib/normalize"
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/parquet"
 	"github.com/xitongsys/parquet-go/writer"
@@ -64,6 +65,7 @@ func handler(e Event) error {
 	s := bufio.NewScanner(r)
 
 	for s.Scan() {
+		normalize.Normalize()
 		row := strings.Split(s.Text(), ",")
 
 		bigint, err := strconv.ParseInt(row[1], 10, 32)
