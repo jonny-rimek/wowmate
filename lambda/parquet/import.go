@@ -9,6 +9,80 @@ import (
 	_ "github.com/xitongsys/parquet-go/parquet" //is needed to define the parquet type in the combat struct
 )
 
+/*
+CREATE EXTERNAL TABLE IF NOT EXISTS wowmate.combatlogs (
+  `upload_uuid` string,
+  `unsupported` boolean,
+  `combatlog_uuid` string,
+  `bossfight_uuid` string,
+  `mythicplus_uuid` string,
+  `column_uuid` string,
+  `timestamp` timestamp,
+  `event_type` string,
+  `version` int,
+  `advanced_log_enabled` int,
+  `dungeon_name` string,
+  `dungeon_id` int,
+  `key_unkown_1` int,
+  `key_level` int,
+  `key_array` string,
+  `key_duration` bigint,
+  `encounter_id` int,
+  `encounter_name` string,
+  `encounter_unkown_1` int,
+  `encounter_unkown_2` int,
+  `killed` int,
+  `caster_id` string,
+  `caster_name` string,
+  `caster_type` string,
+  `source_flag` string,
+  `target_id` string,
+  `target_name` string,
+  `target_type` string,
+  `dest_flag` string,
+  `spell_id` int,
+  `spell_name` string,
+  `spell_type` string,
+  `extra_spell_id` int,
+  `extra_spell_name` string,
+  `extra_school` string,
+  `aura_type` string,
+  `another_player_id` string,
+  `d0` string,
+  `d1` bigint,
+  `d2` bigint,
+  `d3` bigint,
+  `d4` bigint,
+  `d5` bigint,
+  `d6` bigint,
+  `d7` bigint,
+  `d8` bigint,
+  `d9` string,
+  `d10` string,
+  `d11` string,
+  `d12` string,
+  `d13` string,
+  `damage_unknown_14` string,
+  `actual_amount` bigint,
+  `base_amount` bigint,
+  `overhealing` bigint,
+  `overkill` string,
+  `school` string,
+  `resisted` string,
+  `blocked` string,
+  `absorbed` bigint,
+  `critical` string,
+  `glancing` string,
+  `crushing` string,
+  `is_offhand` string
+)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe'
+WITH SERDEPROPERTIES (
+  'serialization.format' = '1'
+) LOCATION 's3://wowmatestack-parquet0583a65d-1d3o0vqspwg68/test/'
+TBLPROPERTIES ('has_encrypted_data'='false');
+*/
+
 //Event contains all events that are relevant for the combat itself.
 //It does not contain things like COMBAT_LOG_VERSION
 //
