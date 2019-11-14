@@ -54,7 +54,7 @@ export class WowmateStack extends cdk.Stack {
 
 		//LAMBDA
 		const sizeFunc = new lambda.Function(this, 'Size', {
-			code: lambda.Code.asset("handler/size"),
+			code: lambda.Code.asset("lambda/size"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -62,7 +62,7 @@ export class WowmateStack extends cdk.Stack {
         })
 
 		const parquetFunc = new lambda.Function(this, 'test', {
-			code: lambda.Code.asset("handler/parquet"),
+			code: lambda.Code.asset("lambda/parquet"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -71,7 +71,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const athenaFunc = new lambda.Function(this, 'AthenaFunc', {
-			code: lambda.Code.asset("handler/athena"),
+			code: lambda.Code.asset("lambda/athena"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -79,7 +79,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const checkFunc = new lambda.Function(this, 'Check', {
-			code: lambda.Code.asset("handler/check"),
+			code: lambda.Code.asset("lambda/check"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -87,7 +87,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 	
 		const impFunc = new lambda.Function(this, 'Import', {
-			code: lambda.Code.asset("handler/import"),
+			code: lambda.Code.asset("lambda/import"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -96,7 +96,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const imp2Func = new lambda.Function(this, 'Import2', {
-			code: lambda.Code.asset("handler/import2"),
+			code: lambda.Code.asset("lambda/import2"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
