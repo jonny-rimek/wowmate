@@ -8,6 +8,7 @@ require (
 	github.com/aws/aws-lambda-go v1.13.3
 	github.com/aws/aws-sdk-go v1.25.34
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/jonny-rimek/wowmate/lambda/lib/combatlog/event v0.0.0-00010101000000-000000000000
 	github.com/jonny-rimek/wowmate/lambda/lib/combatlog/normalize v0.0.0-00010101000000-000000000000
 	github.com/xitongsys/parquet-go v1.4.0
 	github.com/xitongsys/parquet-go-source v0.0.0-20191104003508-ecfa341356a6
@@ -15,3 +16,5 @@ require (
 )
 
 replace github.com/jonny-rimek/wowmate/lambda/lib/combatlog/normalize => ../lib/combatlog/normalize
+
+replace github.com/jonny-rimek/wowmate/lambda/lib/combatlog/event => ../lib/combatlog/event

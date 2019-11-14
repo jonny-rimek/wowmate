@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/jonny-rimek/wowmate/lambda/lib/combatlog/event"
 	"github.com/jonny-rimek/wowmate/lambda/lib/combatlog/normalize"
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/parquet"
@@ -141,5 +142,6 @@ func handler(e Event) error {
 
 func main() {
 	normalize.Normalize()
+	event.Event()
 	lambda.Start(handler)
 }
