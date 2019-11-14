@@ -16,7 +16,7 @@ type RequestParameters struct {
 	ResultBucket string `json:"result_bucket"`
 	Query        string `json:"query"`
 	Region       string `json:"region"`
-	Table        string `json:"table"`
+	Database     string `json:"database"`
 	FileName     string `json:"file_name"`
 }
 
@@ -32,7 +32,7 @@ func handler(es []RequestParameters) (RequestParameters, error) {
 	sq.SetQueryString(e.Query)
 
 	var q athena.QueryExecutionContext
-	q.SetDatabase(e.Table)
+	q.SetDatabase(e.Database)
 	sq.SetQueryExecutionContext(&q)
 
 	var rc athena.ResultConfiguration
