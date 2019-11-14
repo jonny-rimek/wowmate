@@ -9,3 +9,6 @@ cdk.out
 
 #go binaries
 main
+
+#combatlog
+*.txt
