@@ -61,7 +61,7 @@ export class WowmateStack extends cdk.Stack {
 			timeout: Duration.seconds(3),
         })
 
-		const parquetFunc = new lambda.Function(this, 'test', {
+		const parquetFunc = new lambda.Function(this, 'Parquet', {
 			code: lambda.Code.asset("lambda/parquet"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -70,7 +70,7 @@ export class WowmateStack extends cdk.Stack {
 			environment: {TARGET_BUCKET_NAME: parquetBucket.bucketName}
 		})
 
-		const athenaFunc = new lambda.Function(this, 'AthenaFunc', {
+		const athenaFunc = new lambda.Function(this, 'Athena', {
 			code: lambda.Code.asset("lambda/athena"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
