@@ -33,6 +33,6 @@ cdk diff | less
 
 cdk deploy --require-approval=never
 
-aws s3 cp ad10-disci.txt s3://wowmatestack-upload51c4d210-18wofa313p49y
+aws s3 cp WoWCombatLog.txt s3://wowmatestack-upload51c4d210-18wofa313p49y
 
 
