@@ -188,7 +188,7 @@ export class WowmateStack extends cdk.Stack {
 		const athenaInput = new sfn.Pass(this, 'Input for Athena', {
 			result: sfn.Result.fromArray([{
 				"result_bucket": athenaBucket.bucketName,
-				"query": `SELECT name, sum(n1) as sum FROM combatlogs GROUP BY name;`,
+				"query": `SELECT SUM(actual_amount) AS damage, caster_name FROM "wowmate"."combatlogs" GROUP BY caster_name ORDER BY damage DESC LIMIT 6;`,
 				"region": "eu-central-1",
 				"database": "wowmate"
 			}]),
@@ -234,81 +234,81 @@ export class WowmateStack extends cdk.Stack {
 			task: new tasks.InvokeFunction(impFunc),
 		});
 
-		const parallel = new sfn.Parallel(this, 'Parallel Queries');
+		// const parallel = new sfn.Parallel(this, 'Parallel Queries');
 
-		const sumQueryInput = new sfn.Pass(this, 'Input for Sum', {
-			result: sfn.Result.fromArray([{
-				"result_bucket": athenaBucket.bucketName,
-				"query": `SELECT sum(n1) as sum FROM combatlogs;`,
-				"region": "eu-central-1",
-				"table": "wowmate"
-			}]),
-		})
+		// const sumQueryInput = new sfn.Pass(this, 'Input for Sum', {
+		// 	result: sfn.Result.fromArray([{
+		// 		"result_bucket": athenaBucket.bucketName,
+		// 		"query": `SELECT sum(n1) as sum FROM combatlogs;`,
+		// 		"region": "eu-central-1",
+		// 		"table": "wowmate"
+		// 	}]),
+		// })
 
-		const athenaJob2 = new sfn.Task(this, 'Athena Job2', {
-			task: new tasks.InvokeFunction(athenaFunc),
-		});
+		// const athenaJob2 = new sfn.Task(this, 'Athena Job2', {
+		// 	task: new tasks.InvokeFunction(athenaFunc),
+		// });
 
-		const setWaitTimeJob2 = new sfn.Pass(this, 'Set wait time2', {
-			inputPath: '$',
-			result: sfn.Result.fromNumber(3),
-			resultPath: '$.wait_time',
-			outputPath: '$'
-		})
+		// const setWaitTimeJob2 = new sfn.Pass(this, 'Set wait time2', {
+		// 	inputPath: '$',
+		// 	result: sfn.Result.fromNumber(3),
+		// 	resultPath: '$.wait_time',
+		// 	outputPath: '$'
+		// })
 
-		const waitX2 = new sfn.Wait(this, 'Wait X Seconds2', {
-			time: sfn.WaitTime.secondsPath('$.wait_time')
-		});
+		// const waitX2 = new sfn.Wait(this, 'Wait X Seconds2', {
+		// 	time: sfn.WaitTime.secondsPath('$.wait_time')
+		// });
 	
-		const checkJob2 = new sfn.Task(this, 'Check Athena Status Job2', {
-			task: new tasks.InvokeFunction(checkFunc),
-		})
+		// const checkJob2 = new sfn.Task(this, 'Check Athena Status Job2', {
+		// 	task: new tasks.InvokeFunction(checkFunc),
+		// })
 		
-		checkJob2.addRetry({
-			interval: Duration.seconds(2),
-			maxAttempts: 10,
-		})
+		// checkJob2.addRetry({
+		// 	interval: Duration.seconds(2),
+		// 	maxAttempts: 10,
+		// })
 
-		const dynamodbJob2 = new sfn.Task(this, 'DynamoDB Job2', {
-			task: new tasks.InvokeFunction(imp2Func),
-		});
+		// const dynamodbJob2 = new sfn.Task(this, 'DynamoDB Job2', {
+		// 	task: new tasks.InvokeFunction(imp2Func),
+		// });
 
-		const averageQueryInput = new sfn.Pass(this, 'Input for Average', {
-			result: sfn.Result.fromArray([{
-				"result_bucket": athenaBucket.bucketName,
-				"query": `SELECT avg(n1) as avg FROM combatlogs;`,
-				"region": "eu-central-1",
-				"database": "wowmate"
-			}]),
-		})
+		// const averageQueryInput = new sfn.Pass(this, 'Input for Average', {
+		// 	result: sfn.Result.fromArray([{
+		// 		"result_bucket": athenaBucket.bucketName,
+		// 		"query": `SELECT avg(n1) as avg FROM combatlogs;`,
+		// 		"region": "eu-central-1",
+		// 		"database": "wowmate"
+		// 	}]),
+		// })
 
-		const athenaJob3 = new sfn.Task(this, 'Athena Job3', {
-			task: new tasks.InvokeFunction(athenaFunc),
-		});
+		// const athenaJob3 = new sfn.Task(this, 'Athena Job3', {
+		// 	task: new tasks.InvokeFunction(athenaFunc),
+		// });
 
-		const setWaitTimeJob3 = new sfn.Pass(this, 'Set wait time3', {
-			inputPath: '$',
-			result: sfn.Result.fromNumber(3),
-			resultPath: '$.wait_time',
-			outputPath: '$'
-		})
+		// const setWaitTimeJob3 = new sfn.Pass(this, 'Set wait time3', {
+		// 	inputPath: '$',
+		// 	result: sfn.Result.fromNumber(3),
+		// 	resultPath: '$.wait_time',
+		// 	outputPath: '$'
+		// })
 
-		const waitX3 = new sfn.Wait(this, 'Wait X Seconds3', {
-			time: sfn.WaitTime.secondsPath('$.wait_time')
-		});
+		// const waitX3 = new sfn.Wait(this, 'Wait X Seconds3', {
+		// 	time: sfn.WaitTime.secondsPath('$.wait_time')
+		// });
 	
-		const checkJob3 = new sfn.Task(this, 'Check Athena Status Job3', {
-			task: new tasks.InvokeFunction(checkFunc),
-		})
+		// const checkJob3 = new sfn.Task(this, 'Check Athena Status Job3', {
+		// 	task: new tasks.InvokeFunction(checkFunc),
+		// })
 		
-		checkJob3.addRetry({
-			interval: Duration.seconds(2),
-			maxAttempts: 10,
-		})
+		// checkJob3.addRetry({
+		// 	interval: Duration.seconds(2),
+		// 	maxAttempts: 10,
+		// })
 
-		const dynamodbJob3 = new sfn.Task(this, 'DynamoDB Job3', {
-			task: new tasks.InvokeFunction(imp2Func),
-		});
+		// const dynamodbJob3 = new sfn.Task(this, 'DynamoDB Job3', {
+		// 	task: new tasks.InvokeFunction(imp2Func),
+		// });
 
 		//to athenaBucket stuff as state machine fragment
 		//https://docs.aws.amazon.com/cdk/api/latest/docs/aws-stepfunctions-readme.html#state-machine-fragments
@@ -326,21 +326,21 @@ export class WowmateStack extends cdk.Stack {
 					.next(new sfn.Choice(this, 'Check if log already exists')
 						.when(sfn.Condition.stringEquals('$.duplicate', 'true'), duplicateLog)
 						.otherwise(dynamodbJob
-							.next(parallel
-								.branch(averageQueryInput
-									.next(athenaJob2)
-									.next(setWaitTimeJob2)
-									.next(waitX2)
-									.next(checkJob2)
-									.next(dynamodbJob2)									
-								).branch(sumQueryInput
-									.next(athenaJob3)
-									.next(setWaitTimeJob3)
-									.next(waitX3)
-									.next(checkJob3)
-									.next(dynamodbJob3)
-								)
-							)
+							// .next(parallel
+							// 	.branch(averageQueryInput
+							// 		.next(athenaJob2)
+							// 		.next(setWaitTimeJob2)
+							// 		.next(waitX2)
+							// 		.next(checkJob2)
+							// 		.next(dynamodbJob2)									
+							// 	).branch(sumQueryInput
+							// 		.next(athenaJob3)
+							// 		.next(setWaitTimeJob3)
+							// 		.next(waitX3)
+							// 		.next(checkJob3)
+							// 		.next(dynamodbJob3)
+							// 	)
+							// )
 						)
 					)
 				)
