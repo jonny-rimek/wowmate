@@ -23,10 +23,12 @@ type Event struct {
 }
 
 //CSV2 test ..
-//TODO: add additional columns
 type CSV2 struct {
-	Name string `json:"name"`
-	N1   string `json:"n1"`
+	BossFightUUID string `json:"boss_fight_uuid"`
+	Damage        string `json:"damage"`
+	CasterName    string `json:"caster_name"`
+	CasterID      string `json:"caster_id"`
+	EncounterID   string `json:"encounter_id"`
 }
 
 func handler(e Event) error {
@@ -60,6 +62,7 @@ func handler(e Event) error {
 	for s2.Scan() {
 		//TODO add GSI
 		//TODO skip first line
+		//TODO convert to int
 		row2 := strings.Split(s2.Text(), ",")
 
 		if err != nil {
@@ -69,6 +72,9 @@ func handler(e Event) error {
 		r2 := CSV2{
 			row2[0],
 			row2[1],
+			row2[2],
+			row2[3],
+			row2[4],
 		}
 
 		records2 = append(records2, r2)

@@ -14,7 +14,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS wowmate.combatlogs (
   `upload_uuid` string,
   `unsupported` boolean,
   `combatlog_uuid` string,
-  `bossfight_uuid` string,
+  `boss_fight_uuid` string,
   `mythicplus_uuid` string,
   `column_uuid` string,
   `timestamp` timestamp,
@@ -93,7 +93,7 @@ type Event struct {
 	UploadUUID     string `parquet:"name=upload_uuid, type=UTF8, encoding=PLAIN_DICTIONARY"`
 	Unsupported    bool   `parquet:"name=unsupported, type=BOOLEAN"` //DEBUGGING PARAM
 	CombatlogUUID  string `parquet:"name=combatlog_uuid, type=UTF8"`
-	BossfightUUID  string `parquet:"name=bossfight_uuid, type=UTF8"`
+	BossFightUUID  string `parquet:"name=boss_fight_uuid, type=UTF8"`
 	MythicplusUUID string `parquet:"name=mythicplus_uuid, type=UTF8"`
 	ColumnUUID     string `parquet:"name=column_uuid, type=UTF8"`
 	Timestamp      int64  `parquet:"name=timestamp, type=TIMESTAMP_MILLIS"` //6/30 21:46:57.014
@@ -270,7 +270,7 @@ type Event struct {
 //Import converts the combatlog to a slice of Event structs
 func Import(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event, err error) {
 	CombatlogUUID := ""
-	BossfightUUID := ""
+	BossFightUUID := ""
 	MythicplusUUID := ""
 
 	//combatEvents = make([]Event, 0, 100000) //100.000 is an arbitrary value
@@ -294,7 +294,7 @@ func Import(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event, er
 		e := &Event{
 			UploadUUID:     uploadUUID,
 			CombatlogUUID:  CombatlogUUID,
-			BossfightUUID:  BossfightUUID,
+			BossFightUUID:  BossFightUUID,
 			MythicplusUUID: MythicplusUUID,
 			ColumnUUID:     uuid.Must(uuid.NewV4()).String(),
 			Timestamp:      timestamp,
@@ -311,13 +311,13 @@ func Import(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event, er
 			e.CombatlogUUID = CombatlogUUID
 
 		case "ENCOUNTER_START":
-			BossfightUUID = uuid.Must(uuid.NewV4()).String()
-			e.BossfightUUID = BossfightUUID
+			BossFightUUID = uuid.Must(uuid.NewV4()).String()
+			e.BossFightUUID = BossFightUUID
 			err = e.importEncounterStart(params)
 
 		case "ENCOUNTER_END":
 			//I want to entry with encounter_end to have the id, just the records after should be nil again
-			BossfightUUID = ""
+			BossFightUUID = ""
 			err = e.importEncounterEnd(params)
 
 		case "CHALLENGE_MODE_START":

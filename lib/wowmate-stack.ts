@@ -47,8 +47,10 @@ export class WowmateStack extends cdk.Stack {
 
 		//DYNAMODB
 		const db = new ddb.Table(this, 'DDB', {
-			partitionKey: { name: 'name', type: ddb.AttributeType.STRING },
+			partitionKey: { name: 'boss_fight_uuid', type: ddb.AttributeType.STRING },
+			sortKey: {name: 'damage', type: ddb.AttributeType.STRING},
 			removalPolicy: RemovalPolicy.DESTROY,
+            billingMode: ddb.BillingMode.PAY_PER_REQUEST
 		})
 
 
@@ -190,16 +192,16 @@ export class WowmateStack extends cdk.Stack {
 				"result_bucket": athenaBucket.bucketName,
                 "query": `
                     SELECT cl.*, ei.encounter_id
-                    FROM (SELECT SUM(actual_amount) AS damage, caster_name, caster_id, bossfight_uuid
+                    FROM (SELECT SUM(actual_amount) AS damage, caster_name, caster_id, boss_fight_uuid
                           FROM  "wowmate"."combatlogs"
                           WHERE caster_type LIKE '0x5%' AND caster_name != 'nil' 
-                          GROUP BY caster_name, caster_id, bossfight_uuid
+                          GROUP BY caster_name, caster_id, boss_fight_uuid
                           ) AS cl
-                    JOIN (SELECT encounter_id, bossfight_uuid
+                    JOIN (SELECT encounter_id, boss_fight_uuid
                           FROM "wowmate"."combatlogs"
                           WHERE event_type = 'ENCOUNTER_START'
-                          GROUP BY encounter_id, bossfight_uuid) AS ei
-                          ON cl.bossfight_uuid = ei.bossfight_uuid
+                          GROUP BY encounter_id, boss_fight_uuid) AS ei
+                          ON cl.boss_fight_uuid = ei.boss_fight_uuid
                           
                     ORDER BY encounter_id, damage DESC
                 `,
