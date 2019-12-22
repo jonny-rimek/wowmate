@@ -188,7 +188,21 @@ export class WowmateStack extends cdk.Stack {
 		const athenaInput = new sfn.Pass(this, 'Input for Athena', {
 			result: sfn.Result.fromArray([{
 				"result_bucket": athenaBucket.bucketName,
-				"query": `SELECT SUM(actual_amount) AS damage, caster_name FROM "wowmate"."combatlogs" GROUP BY caster_name ORDER BY damage DESC LIMIT 6;`,
+                "query": `
+                    SELECT cl.*, ei.encounter_id
+                    FROM (SELECT SUM(actual_amount) AS damage, caster_name, caster_id, bossfight_uuid
+                          FROM  "wowmate"."combatlogs"
+                          WHERE caster_type LIKE '0x5%' AND caster_name != 'nil' 
+                          GROUP BY caster_name, caster_id, bossfight_uuid
+                          ) AS cl
+                    JOIN (SELECT encounter_id, bossfight_uuid
+                          FROM "wowmate"."combatlogs"
+                          WHERE event_type = 'ENCOUNTER_START'
+                          GROUP BY encounter_id, bossfight_uuid) AS ei
+                          ON cl.bossfight_uuid = ei.bossfight_uuid
+                          
+                    ORDER BY encounter_id, damage DESC
+                `,
 				"region": "eu-central-1",
 				"database": "wowmate"
 			}]),

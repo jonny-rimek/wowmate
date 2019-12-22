@@ -23,6 +23,7 @@ type Event struct {
 }
 
 //CSV2 test ..
+//TODO: add additional columns
 type CSV2 struct {
 	Name string `json:"name"`
 	N1   string `json:"n1"`
@@ -57,6 +58,8 @@ func handler(e Event) error {
 	s2 := bufio.NewScanner(r2)
 
 	for s2.Scan() {
+		//TODO add GSI
+		//TODO skip first line
 		row2 := strings.Split(s2.Text(), ",")
 
 		if err != nil {
