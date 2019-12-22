@@ -29,7 +29,7 @@ echo built import2
 tsc
 echo compiled typescript to javascript
 
-cdk diff | less
+cdk diff
 
 cdk deploy --require-approval=never
 

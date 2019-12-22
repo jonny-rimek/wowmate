@@ -48,7 +48,7 @@ export class WowmateStack extends cdk.Stack {
 		//DYNAMODB
 		const db = new ddb.Table(this, 'DDB', {
 			partitionKey: { name: 'boss_fight_uuid', type: ddb.AttributeType.STRING },
-			sortKey: {name: 'damage', type: ddb.AttributeType.STRING},
+			sortKey: {name: 'damage', type: ddb.AttributeType.NUMBER},
 			removalPolicy: RemovalPolicy.DESTROY,
             billingMode: ddb.BillingMode.PAY_PER_REQUEST
 		})
@@ -191,7 +191,7 @@ export class WowmateStack extends cdk.Stack {
 			result: sfn.Result.fromArray([{
 				"result_bucket": athenaBucket.bucketName,
                 "query": `
-                    SELECT cl.*, ei.encounter_id
+                    SELECT cl.boss_fight_uuid, cl.damage, cl.caster_name, cl.caster_id, ei.encounter_id
                     FROM (SELECT SUM(actual_amount) AS damage, caster_name, caster_id, boss_fight_uuid
                           FROM  "wowmate"."combatlogs"
                           WHERE caster_type LIKE '0x5%' AND caster_name != 'nil' 

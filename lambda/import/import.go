@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -22,13 +23,13 @@ type Event struct {
 	Key        string `json:"file_name"`
 }
 
-//CSV2 test ..
-type CSV2 struct {
+//CSV test ..
+type CSV struct {
 	BossFightUUID string `json:"boss_fight_uuid"`
-	Damage        string `json:"damage"`
+	Damage        int64  `json:"damage"`
 	CasterName    string `json:"caster_name"`
 	CasterID      string `json:"caster_id"`
-	EncounterID   string `json:"encounter_id"`
+	EncounterID   int    `json:"encounter_id"`
 }
 
 func handler(e Event) error {
@@ -39,10 +40,10 @@ func handler(e Event) error {
 
 	downloader := s3manager.NewDownloader(sess)
 
-	file2 := &aws.WriteAtBuffer{}
+	file := &aws.WriteAtBuffer{}
 
-	numBytes2, err := downloader.Download(
-		file2,
+	numBytes, err := downloader.Download(
+		file,
 		&s3.GetObjectInput{
 			Bucket: aws.String(e.BucketName),
 			Key:    aws.String(e.Key),
@@ -52,32 +53,37 @@ func handler(e Event) error {
 		log.Fatalf("Unable to download item %q: %v", e.Key, err)
 	}
 
-	log.Println("DEBUG: Downloaded", numBytes2, "bytes")
+	log.Println("DEBUG: Downloaded", numBytes, "bytes")
 
-	var records2 []CSV2
+	var records []CSV
 
-	r2 := bytes.NewReader(file2.Bytes())
-	s2 := bufio.NewScanner(r2)
+	reader := bytes.NewReader(file.Bytes())
+	scanner := bufio.NewScanner(reader)
 
-	for s2.Scan() {
+	scanner.Scan() //skips the first line, which is the header of the csv
+	for scanner.Scan() {
 		//TODO add GSI
-		//TODO skip first line
-		//TODO convert to int
-		row2 := strings.Split(s2.Text(), ",")
+		row := strings.Split(scanner.Text(), ",")
 
+		damage, err := strconv.ParseInt(trimQuotes(row[1]), 10, 64)
 		if err != nil {
-			log.Fatalf("Failed to convert 2nd row to int32")
+			log.Fatalf("Failed to convert damage column to int64")
 		}
 
-		r2 := CSV2{
-			row2[0],
-			row2[1],
-			row2[2],
-			row2[3],
-			row2[4],
+		encounterID, err := strconv.Atoi(trimQuotes(row[4]))
+		if err != nil {
+			log.Fatalf("Failed to convert damage column to int64")
 		}
 
-		records2 = append(records2, r2)
+		r := CSV{
+			trimQuotes(row[0]),
+			damage,
+			trimQuotes(row[2]),
+			trimQuotes(row[3]),
+			encounterID,
+		}
+
+		records = append(records, r)
 	}
 
 	log.Print("DEBUG: read CSV into structs")
@@ -85,7 +91,7 @@ func handler(e Event) error {
 	svcdb := dynamodb.New(sess)
 	var wcuConsumed float64
 
-	for _, s := range records2 {
+	for _, s := range records {
 		av, err := dynamodbattribute.MarshalMap(s)
 		if err != nil {
 			log.Println("Got error marshalling map:")
@@ -108,6 +114,12 @@ func handler(e Event) error {
 	log.Printf("Consumed WCU: %f: ", wcuConsumed)
 
 	return nil
+}
+
+func trimQuotes(input string) (output string) {
+	output = strings.TrimSuffix(input, "\"")
+	output = strings.TrimPrefix(output, "\"")
+	return output
 }
 
 func main() {
