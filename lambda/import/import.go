@@ -28,7 +28,7 @@ type CSV struct {
 	BossFightUUID string `json:"pk"`
 	Damage        int64  `json:"sk"`
 	CasterName    string `json:"caster_name"`
-	CasterID      string `json:"caster_id"`
+	CasterID      string `json:"gsi2pk"`
 	EncounterID   int    `json:"gsi1pk"`
 }
 

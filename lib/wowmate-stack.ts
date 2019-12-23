@@ -59,6 +59,11 @@ export class WowmateStack extends cdk.Stack {
 			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
 		})
 
+		db.addGlobalSecondaryIndex({
+			indexName: 'GSI2',
+			partitionKey: {name: 'gsi2pk', type: ddb.AttributeType.STRING},
+			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
+		})
 
 		//LAMBDA
 		const sizeFunc = new lambda.Function(this, 'Size', {
