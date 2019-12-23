@@ -47,10 +47,16 @@ export class WowmateStack extends cdk.Stack {
 
 		//DYNAMODB
 		const db = new ddb.Table(this, 'DDB', {
-			partitionKey: { name: 'boss_fight_uuid', type: ddb.AttributeType.STRING },
-			sortKey: {name: 'damage', type: ddb.AttributeType.NUMBER},
+			partitionKey: { name: 'pk', type: ddb.AttributeType.STRING },
+			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER},
 			removalPolicy: RemovalPolicy.DESTROY,
             billingMode: ddb.BillingMode.PAY_PER_REQUEST
+		})
+
+		db.addGlobalSecondaryIndex({
+			indexName: 'GSI1',
+			partitionKey: {name: 'gsi1pk', type: ddb.AttributeType.NUMBER},
+			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
 		})
 
 

@@ -23,13 +23,13 @@ type Event struct {
 	Key        string `json:"file_name"`
 }
 
-//CSV test ..
+//CSV ..
 type CSV struct {
-	BossFightUUID string `json:"boss_fight_uuid"`
-	Damage        int64  `json:"damage"`
+	BossFightUUID string `json:"pk"`
+	Damage        int64  `json:"sk"`
 	CasterName    string `json:"caster_name"`
 	CasterID      string `json:"caster_id"`
-	EncounterID   int    `json:"encounter_id"`
+	EncounterID   int    `json:"gsi1pk"`
 }
 
 func handler(e Event) error {
