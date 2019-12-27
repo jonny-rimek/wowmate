@@ -18,13 +18,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-//Event ..
+//Event is the data from StepFunctions
 type Event struct {
 	BucketName string `json:"result_bucket"`
 	Key        string `json:"file_name"`
 }
 
-//CSV ..
+//CSV is the query output from Athena
 type CSV struct {
 	BossFightUUID string `json:"pk"`
 	Damage        int64  `json:"sk"`
@@ -34,61 +34,29 @@ type CSV struct {
 }
 
 func handler(e Event) error {
-	ddbTableName := os.Getenv("DDB_NAME")
 	sess, _ := session.NewSession(&aws.Config{
 		Region: aws.String("eu-central-1")},
 	)
-
-	downloader := s3manager.NewDownloader(sess)
-
-	file := &aws.WriteAtBuffer{}
-
-	numBytes, err := downloader.Download(
-		file,
-		&s3.GetObjectInput{
-			Bucket: aws.String(e.BucketName),
-			Key:    aws.String(e.Key),
-		})
-
+	//the file from s3 is read directly into memory
+	file, err := downloadFileFromS3(e.BucketName, e.Key, sess)
 	if err != nil {
-		log.Fatalf("Unable to download item %q: %v", e.Key, err)
+		return err
 	}
 
-	log.Println("DEBUG: Downloaded", numBytes, "bytes")
-
-	var records []CSV
-
-	reader := bytes.NewReader(file.Bytes())
-	scanner := bufio.NewScanner(reader)
-
-	scanner.Scan() //skips the first line, which is the header of the csv
-	for scanner.Scan() {
-		row := strings.Split(scanner.Text(), ",")
-
-		damage, err := strconv.ParseInt(trimQuotes(row[1]), 10, 64)
-		if err != nil {
-			log.Fatalf("Failed to convert damage column to int64")
-		}
-
-		encounterID, err := strconv.Atoi(trimQuotes(row[4]))
-		if err != nil {
-			log.Fatalf("Failed to convert damage column to int64")
-		}
-
-		r := CSV{
-			trimQuotes(row[0]),
-			damage,
-			trimQuotes(row[2]),
-			trimQuotes(row[3]),
-			encounterID,
-		}
-
-		records = append(records, r)
+	records, err := parseCSV(file)
+	if err != nil {
+		return err
 	}
 
-	log.Print("DEBUG: read CSV into structs")
+	err = writeBatchDynamoDB(records, sess)
+//TODO: add logrus and log level, read log level from env
 
+	return nil
+}
+
+func writeBatchDynamoDB(records []CSV, sess *session.Session) error {
 	svcdb := dynamodb.New(sess)
+	ddbTableName := os.Getenv("DDB_NAME")
 
 	writesRequets := []*dynamodb.WriteRequest{}
 
@@ -96,7 +64,7 @@ func handler(e Event) error {
 		av, err := dynamodbattribute.MarshalMap(s)
 		if err != nil {
 			log.Println("Got error marshalling map:")
-			log.Fatalf(err.Error())
+			return err
 		}
 
 		wr := &dynamodb.WriteRequest{
@@ -143,8 +111,68 @@ func handler(e Event) error {
 	log.Printf("Consumed WCU: %v: ", *result.ConsumedCapacity[0].CapacityUnits)
 	//TODO: check unprocessed items of resuilt
 	//TODO: check size of input, if > 25 loop
-
 	return nil
+	
+}
+
+func parseCSV(file []byte) ([]CSV, error){
+	var records []CSV
+
+	reader := bytes.NewReader(file)
+	scanner := bufio.NewScanner(reader)
+
+	scanner.Scan() //skips the first line, which is the header of the csv
+	for scanner.Scan() {
+		row := strings.Split(scanner.Text(), ",")
+
+		damage, err := strconv.ParseInt(trimQuotes(row[1]), 10, 64)
+		if err != nil {
+			log.Println("Failed to convert damage column to int64")
+			return nil, err
+		}
+
+		encounterID, err := strconv.Atoi(trimQuotes(row[4]))
+		if err != nil {
+			log.Println("Failed to convert damage column to int64")
+			return nil, err
+		}
+
+		r := CSV{
+			trimQuotes(row[0]),
+			damage,
+			trimQuotes(row[2]),
+			trimQuotes(row[3]),
+			encounterID,
+		}
+
+		records = append(records, r)
+	}
+
+	log.Print("DEBUG: read CSV into structs")
+
+	return records, nil
+}
+
+func downloadFileFromS3(bucket string, key string, sess *session.Session) ([]byte, error) {
+	downloader := s3manager.NewDownloader(sess)
+
+	file := &aws.WriteAtBuffer{}
+
+	numBytes, err := downloader.Download(
+		file,
+		&s3.GetObjectInput{
+			Bucket: aws.String(bucket),
+			Key:    aws.String(key),
+		})
+
+	if err != nil {
+		log.Printf("Unable to download item %v from bucket %v: %v", key, bucket, err)
+		return nil, err
+	}
+
+	log.Printf("DEBUG: Downloaded %v bytes %v/%v", numBytes, bucket, key)
+
+	return file.Bytes(), nil
 }
 
 func trimQuotes(input string) (output string) {
