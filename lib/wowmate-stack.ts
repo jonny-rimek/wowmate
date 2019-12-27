@@ -10,42 +10,13 @@ import targets = require('@aws-cdk/aws-events-targets');
 import iam = require('@aws-cdk/aws-iam');
 import { Effect } from '@aws-cdk/aws-iam';
 import cloudtrail = require('@aws-cdk/aws-cloudtrail');
+import apigateway = require('@aws-cdk/aws-apigateway');
 // import events = require('@aws-cdk/aws-events');
 // import { Result } from '@aws-cdk/aws-stepfunctions';
 
 export class WowmateStack extends cdk.Stack {
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id, props);
-
-		
-
-		//CLOUDTRAIL
-		const trail = new cloudtrail.Trail(this, 'CloudTrail', {
-			sendToCloudWatchLogs: true,
-			managementEvents: cloudtrail.ReadWriteType.WRITE_ONLY,
-		});
-
-
-		//S3 BUCKETS
-		const uploadBucket = new s3.Bucket(this, 'Upload', {
-			removalPolicy: RemovalPolicy.DESTROY,
-			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-		})
-
-		trail.addS3EventSelector([uploadBucket.bucketArn + "/"], {
-			readWriteType: cloudtrail.ReadWriteType.WRITE_ONLY,
-		})
-
-		const parquetBucket = new s3.Bucket(this, 'Parquet', {
-			removalPolicy: RemovalPolicy.DESTROY,
-			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-		})
-
-		const athenaBucket = new s3.Bucket(this, 'Athena', {
-			removalPolicy: RemovalPolicy.DESTROY,
-			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-		})
-
 
 		//DYNAMODB
 		const db = new ddb.Table(this, 'DDB', {
@@ -67,17 +38,66 @@ export class WowmateStack extends cdk.Stack {
 			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
 		})
 
-		//LAMBDA
-		const sizeFunc = new lambda.Function(this, 'Size', {
-			code: lambda.Code.asset("lambda/size"),
+		//API
+		const bossFightDamageFunc = new lambda.Function(this, 'BossFightDamage', {
+			code: lambda.Code.asset("api-service/boss-fight-damage"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(3),
-        })
+			environment: {DDB_NAME: db.tableName}
+		})
+
+		db.grantReadData(bossFightDamageFunc)
+		
+		const api = new apigateway.LambdaRestApi(this, 'api', {
+			handler: bossFightDamageFunc,
+			proxy: false,
+		});
+
+		const basePath = api.root.addResource('api');
+		const bossFightPath = basePath.addResource('boss-fight');
+		const damagePath = bossFightPath.addResource('damage');
+		const encounterId = damagePath.addResource('{boss-fight-uuid}');
+		encounterId.addMethod('GET')
+
+		//CLOUDTRAIL
+		const trail = new cloudtrail.Trail(this, 'CloudTrail', {
+			sendToCloudWatchLogs: true,
+			managementEvents: cloudtrail.ReadWriteType.WRITE_ONLY,
+		});
+
+		//S3 BUCKETS
+		const uploadBucket = new s3.Bucket(this, 'Upload', {
+			removalPolicy: RemovalPolicy.DESTROY,
+			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+		})
+
+		trail.addS3EventSelector([uploadBucket.bucketArn + "/"], {
+			readWriteType: cloudtrail.ReadWriteType.WRITE_ONLY,
+		})
+
+		const parquetBucket = new s3.Bucket(this, 'Parquet', {
+			removalPolicy: RemovalPolicy.DESTROY,
+			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+		})
+
+		const athenaBucket = new s3.Bucket(this, 'Athena', {
+			removalPolicy: RemovalPolicy.DESTROY,
+			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+		})
+
+		//LAMBDA
+		const sizeFunc = new lambda.Function(this, 'Size', {
+			code: lambda.Code.asset("upload-service/size"),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: Duration.seconds(3),
+		})
 
 		const parquetFunc = new lambda.Function(this, 'ParquetFunc', {
-			code: lambda.Code.asset("lambda/parquet"),
+			code: lambda.Code.asset("upload-service/parquet"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -86,7 +106,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const athenaFunc = new lambda.Function(this, 'AthenaFunc', {
-			code: lambda.Code.asset("lambda/athena"),
+			code: lambda.Code.asset("upload-service/athena"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -94,7 +114,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const checkFunc = new lambda.Function(this, 'Check', {
-			code: lambda.Code.asset("lambda/check"),
+			code: lambda.Code.asset("upload-service/check"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -102,7 +122,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 	
 		const impFunc = new lambda.Function(this, 'Import', {
-			code: lambda.Code.asset("lambda/import"),
+			code: lambda.Code.asset("upload-service/import"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -111,14 +131,13 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const imp2Func = new lambda.Function(this, 'Import2', {
-			code: lambda.Code.asset("lambda/import2"),
+			code: lambda.Code.asset("upload-service/import2"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(10),
 			environment: {DDB_NAME: db.tableName}
 		})
-
 
 		//IAM
 		uploadBucket.grantRead(sizeFunc)

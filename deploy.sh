@@ -1,4 +1,9 @@
 #!/bin/bash
+
+rm api-service/boss-fight-damage/main
+go build -o api-service/boss-fight-damage/main api-service/boss-fight-damage/boss-fight-damage.go
+echo built boss-fight-damage
+
 rm upload-service/size/main
 go build -o upload-service/size/main upload-service/size/size.go
 echo built size
