@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"bufio"
 	"bytes"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -34,9 +35,7 @@ type CSV struct {
 }
 
 func handler(e Event) error {
-	sess, _ := session.NewSession(&aws.Config{
-		Region: aws.String("eu-central-1")},
-	)
+	sess, _ := session.NewSession(/* &aws.Config{Region: aws.String("eu-central-1")} */)
 	//the file from s3 is read directly into memory
 	file, err := downloadFileFromS3(e.BucketName, e.Key, sess)
 	if err != nil {
@@ -63,8 +62,7 @@ func writeBatchDynamoDB(records []CSV, sess *session.Session) error {
 	for _, s := range records {
 		av, err := dynamodbattribute.MarshalMap(s)
 		if err != nil {
-			log.Println("Got error marshalling map:")
-			return err
+			return fmt.Errorf("got error marshalling csv struct into dynamoDB element: %v", err)
 		}
 
 		wr := &dynamodb.WriteRequest{
@@ -89,24 +87,21 @@ func writeBatchDynamoDB(records []CSV, sess *session.Session) error {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				log.Println(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+				return fmt.Errorf("%v: %v", dynamodb.ErrCodeProvisionedThroughputExceededException, err)
 			case dynamodb.ErrCodeResourceNotFoundException:
-				log.Println(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+				return fmt.Errorf("%v: %v", dynamodb.ErrCodeResourceNotFoundException, err)
 			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
-				log.Println(dynamodb.ErrCodeItemCollectionSizeLimitExceededException, aerr.Error())
+				return fmt.Errorf("%v: %v", dynamodb.ErrCodeItemCollectionSizeLimitExceededException, err)
 			case dynamodb.ErrCodeRequestLimitExceeded:
-				log.Println(dynamodb.ErrCodeRequestLimitExceeded, aerr.Error())
+				return fmt.Errorf("%v: %v", dynamodb.ErrCodeRequestLimitExceeded, err)
 			case dynamodb.ErrCodeInternalServerError:
-				log.Println(dynamodb.ErrCodeInternalServerError, aerr.Error())
+				return fmt.Errorf("%v: %v", dynamodb.ErrCodeInternalServerError, err)
 			default:
-				log.Println(aerr.Error())
+				return fmt.Errorf("%v: %v", aerr.Error(), err)
 			}
 		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			log.Println(err.Error())
+			return fmt.Errorf("unlisted error with dynamodb: %v", err)
 		}
-		return err
 	}
 	log.Printf("Consumed WCU: %v: ", *result.ConsumedCapacity[0].CapacityUnits)
 	//TODO: check unprocessed items of resuilt
@@ -127,14 +122,12 @@ func parseCSV(file []byte) ([]CSV, error){
 
 		damage, err := strconv.ParseInt(trimQuotes(row[1]), 10, 64)
 		if err != nil {
-			log.Println("Failed to convert damage column to int64")
-			return nil, err
+			return nil, fmt.Errorf("Failed to convert damage column to int64: %v", err)
 		}
 
 		encounterID, err := strconv.Atoi(trimQuotes(row[4]))
 		if err != nil {
-			log.Println("Failed to convert damage column to int64")
-			return nil, err
+			return nil, fmt.Errorf("Failed to convert encounter id column to int: %v", err)
 		}
 
 		r := CSV{
@@ -164,10 +157,8 @@ func downloadFileFromS3(bucket string, key string, sess *session.Session) ([]byt
 			Bucket: aws.String(bucket),
 			Key:    aws.String(key),
 		})
-
 	if err != nil {
-		log.Printf("Unable to download item %v from bucket %v: %v", key, bucket, err)
-		return nil, err
+		return nil, fmt.Errorf("Unable to download item %v from bucket %v: %v", key, bucket, err)
 	}
 
 	log.Printf("DEBUG: Downloaded %v bytes %v/%v", numBytes, bucket, key)
