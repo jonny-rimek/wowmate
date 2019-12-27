@@ -1,28 +1,28 @@
 #!/bin/bash
-rm lambda/size/main
-go build -o lambda/size/main lambda/size/size.go
+rm upload-service/size/main
+go build -o upload-service/size/main upload-service/size/size.go
 echo built size
 
-cd lambda/parquet
+cd upload-service/parquet
 rm main
 go build -o main .
 cd ../..
 echo built parquet
 
-rm lambda/athena/main
-go build -o lambda/athena/main lambda/athena/athena.go
+rm upload-service/athena/main
+go build -o upload-service/athena/main upload-service/athena/athena.go
 echo built athena
 
-rm lambda/check/main
-go build -o lambda/check/main lambda/check/check.go
+rm upload-service/check/main
+go build -o upload-service/check/main upload-service/check/check.go
 echo built check
 
-rm lambda/import/main
-go build -o lambda/import/main lambda/import/import.go
+rm upload-service/import/main
+go build -o upload-service/import/main upload-service/import/import.go
 echo built import
 
-rm lambda/import2/main
-go build -o lambda/import2/main lambda/import2/import2.go
+rm upload-service/import2/main
+go build -o upload-service/import2/main upload-service/import2/import2.go
 echo built import2
 
 

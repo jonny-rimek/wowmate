@@ -17,6 +17,8 @@ export class WowmateStack extends cdk.Stack {
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id, props);
 
+		
+
 		//CLOUDTRAIL
 		const trail = new cloudtrail.Trail(this, 'CloudTrail', {
 			sendToCloudWatchLogs: true,
