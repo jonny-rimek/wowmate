@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"bufio"
 	"bytes"
 	"log"
@@ -62,7 +63,6 @@ func handler(e Event) error {
 
 	scanner.Scan() //skips the first line, which is the header of the csv
 	for scanner.Scan() {
-		//TODO add GSI
 		row := strings.Split(scanner.Text(), ",")
 
 		damage, err := strconv.ParseInt(trimQuotes(row[1]), 10, 64)
@@ -89,7 +89,8 @@ func handler(e Event) error {
 	log.Print("DEBUG: read CSV into structs")
 
 	svcdb := dynamodb.New(sess)
-	var wcuConsumed float64
+
+	writesRequets := []*dynamodb.WriteRequest{}
 
 	for _, s := range records {
 		av, err := dynamodbattribute.MarshalMap(s)
@@ -98,20 +99,50 @@ func handler(e Event) error {
 			log.Fatalf(err.Error())
 		}
 
-		input := &dynamodb.PutItemInput{
-			Item:                   av,
-			ReturnConsumedCapacity: aws.String("TOTAL"),
-			TableName:              aws.String(ddbTableName),
+		wr := &dynamodb.WriteRequest{
+			PutRequest: &dynamodb.PutRequest{
+				Item: av,
+			},
 		}
 
-		oup, err := svcdb.PutItem(input)
-		if err != nil {
-			log.Fatalf("Got error calling PutItem: %v", err)
-		}
+		writesRequets = append(writesRequets, wr)
 
-		wcuConsumed = wcuConsumed + *oup.ConsumedCapacity.CapacityUnits
 	}
-	log.Printf("Consumed WCU: %f: ", wcuConsumed)
+	input:= &dynamodb.BatchWriteItemInput{
+		RequestItems: map[string][]*dynamodb.WriteRequest{
+			ddbTableName: writesRequets,
+		},
+		ReturnConsumedCapacity: aws.String("TOTAL"),
+		
+	}
+
+	result, err := svcdb.BatchWriteItem(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				log.Println(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+			case dynamodb.ErrCodeResourceNotFoundException:
+				log.Println(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
+				log.Println(dynamodb.ErrCodeItemCollectionSizeLimitExceededException, aerr.Error())
+			case dynamodb.ErrCodeRequestLimitExceeded:
+				log.Println(dynamodb.ErrCodeRequestLimitExceeded, aerr.Error())
+			case dynamodb.ErrCodeInternalServerError:
+				log.Println(dynamodb.ErrCodeInternalServerError, aerr.Error())
+			default:
+				log.Println(aerr.Error())
+			}
+		} else {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			log.Println(err.Error())
+		}
+		return err
+	}
+	log.Printf("Consumed WCU: %v: ", *result.ConsumedCapacity[0].CapacityUnits)
+	//TODO: check unprocessed items of resuilt
+	//TODO: check size of input, if > 25 loop
 
 	return nil
 }
