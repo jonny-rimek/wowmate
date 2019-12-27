@@ -11,12 +11,24 @@ import iam = require('@aws-cdk/aws-iam');
 import { Effect } from '@aws-cdk/aws-iam';
 import cloudtrail = require('@aws-cdk/aws-cloudtrail');
 import apigateway = require('@aws-cdk/aws-apigateway');
+import s3deploy = require('@aws-cdk/aws-s3-deployment');
 // import events = require('@aws-cdk/aws-events');
 // import { Result } from '@aws-cdk/aws-stepfunctions';
 
 export class WowmateStack extends cdk.Stack {
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id, props);
+
+		//FRONTEND
+		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
+		websiteIndexDocument: 'index.html',
+		publicReadAccess: true
+		});
+
+		new s3deploy.BucketDeployment(this, 'DeployWebsite', {
+		sources: [s3deploy.Source.asset('./frontend/dist')],
+		destinationBucket: frontendBucket,
+		});
 
 		//DYNAMODB
 		const db = new ddb.Table(this, 'DDB', {
