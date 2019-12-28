@@ -30,6 +30,16 @@ export class WowmateStack extends cdk.Stack {
 		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
 			originConfigs: [
 				{
+					originPath: '/prod',
+					customOriginSource: {
+						domainName: '6yjj4kfg93.execute-api.eu-central-1.amazonaws.com',
+					},
+					behaviors: [{
+						pathPattern: '/api/*',
+						compress: true,
+					}]
+				},
+				{
 					s3OriginSource: {
 						s3BucketSource: frontendBucket
 					},
@@ -60,9 +70,9 @@ export class WowmateStack extends cdk.Stack {
 		});
 
 		new s3deploy.BucketDeployment(this, 'DeployWebsite', {
-		sources: [s3deploy.Source.asset('./frontend/dist')],
-		destinationBucket: frontendBucket,
-		distribution,
+			sources: [s3deploy.Source.asset('./frontend/dist')],
+			destinationBucket: frontendBucket,
+			distribution,
 		});
 
 		//DYNAMODB

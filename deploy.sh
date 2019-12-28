@@ -31,7 +31,7 @@ go build -o upload-service/import2/main upload-service/import2/import2.go
 echo built import2
 
 cd frontend
-npm build
+npm run build
 echo built frontend
 cd ..
 
