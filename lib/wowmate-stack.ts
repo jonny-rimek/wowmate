@@ -13,6 +13,7 @@ import cloudtrail = require('@aws-cdk/aws-cloudtrail');
 import apigateway = require('@aws-cdk/aws-apigateway');
 import s3deploy = require('@aws-cdk/aws-s3-deployment');
 import cloudfront = require('@aws-cdk/aws-cloudfront');
+import { SSLMethod, SecurityPolicyProtocol } from '@aws-cdk/aws-cloudfront';
 // import events = require('@aws-cdk/aws-events');
 // import { Result } from '@aws-cdk/aws-stepfunctions';
 
@@ -27,14 +28,35 @@ export class WowmateStack extends cdk.Stack {
 		});
 
 		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
-		originConfigs: [
-			{
-			s3OriginSource: {
-				s3BucketSource: frontendBucket
-			},
-			behaviors : [ {isDefaultBehavior: true}]
+			originConfigs: [
+				{
+					s3OriginSource: {
+						s3BucketSource: frontendBucket
+					},
+					behaviors : [ {
+						isDefaultBehavior: true,
+						compress: true,
+					}]
+				}
+			],
+			errorConfigurations: [
+				{
+					errorCode: 403,
+					responseCode: 200,
+					responsePagePath: '/index.html'
+				},
+				{
+					errorCode: 404,
+					responseCode: 200,
+					responsePagePath: '/index.html'
+				},
+			],
+			aliasConfiguration: {
+				names: ['wmate.net'],
+				acmCertRef: 'arn:aws:acm:us-east-1:940880032268:certificate/613f33d4-230b-49d9-8e06-be177f135e0d',
+				sslMethod: SSLMethod.SNI,
+				securityPolicy: SecurityPolicyProtocol.TLS_V1_2_2018,
 			}
-		]
 		});
 
 		new s3deploy.BucketDeployment(this, 'DeployWebsite', {
@@ -78,6 +100,7 @@ export class WowmateStack extends cdk.Stack {
 		const api = new apigateway.LambdaRestApi(this, 'api', {
 			handler: bossFightDamageFunc,
 			proxy: false,
+			endpointTypes: [apigateway.EndpointType.REGIONAL],
 		});
 
 		const basePath = api.root.addResource('api');

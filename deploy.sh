@@ -30,6 +30,10 @@ rm upload-service/import2/main
 go build -o upload-service/import2/main upload-service/import2/import2.go
 echo built import2
 
+cd frontend
+npm build
+echo built frontend
+cd ..
 
 tsc
 echo compiled typescript to javascript
