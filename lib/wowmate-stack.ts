@@ -12,6 +12,7 @@ import { Effect } from '@aws-cdk/aws-iam';
 import cloudtrail = require('@aws-cdk/aws-cloudtrail');
 import apigateway = require('@aws-cdk/aws-apigateway');
 import s3deploy = require('@aws-cdk/aws-s3-deployment');
+import cloudfront = require('@aws-cdk/aws-cloudfront');
 // import events = require('@aws-cdk/aws-events');
 // import { Result } from '@aws-cdk/aws-stepfunctions';
 
@@ -25,9 +26,21 @@ export class WowmateStack extends cdk.Stack {
 		publicReadAccess: true
 		});
 
+		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
+		originConfigs: [
+			{
+			s3OriginSource: {
+				s3BucketSource: frontendBucket
+			},
+			behaviors : [ {isDefaultBehavior: true}]
+			}
+		]
+		});
+
 		new s3deploy.BucketDeployment(this, 'DeployWebsite', {
 		sources: [s3deploy.Source.asset('./frontend/dist')],
 		destinationBucket: frontendBucket,
+		distribution,
 		});
 
 		//DYNAMODB
