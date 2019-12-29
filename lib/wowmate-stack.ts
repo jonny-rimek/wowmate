@@ -15,7 +15,7 @@ import s3deploy = require('@aws-cdk/aws-s3-deployment');
 import cloudfront = require('@aws-cdk/aws-cloudfront');
 import route53= require('@aws-cdk/aws-route53');
 import acm = require('@aws-cdk/aws-certificatemanager');
-import { SSLMethod, SecurityPolicyProtocol } from '@aws-cdk/aws-cloudfront';
+import { SSLMethod, SecurityPolicyProtocol, OriginAccessIdentity } from '@aws-cdk/aws-cloudfront';
 // import events = require('@aws-cdk/aws-events');
 // import { Result } from '@aws-cdk/aws-stepfunctions';
 
@@ -88,16 +88,17 @@ export class WowmateStack extends cdk.Stack {
 
 		//FRONTEND
 		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
-		websiteIndexDocument: 'index.html',
-		publicReadAccess: true
+			websiteIndexDocument: 'index.html',
+			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+			// publicReadAccess: true
 		});
+
+		const originAccessIdentity = new cloudfront.OriginAccessIdentity(this, 'OAI');
 
 		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
 			originConfigs: [
 				{
-					// originPath: '/prod',
 					customOriginSource: {
-						// domainName: '6yjj4kfg93.execute-api.eu-central-1.amazonaws.com',
 						domainName: 'api.wmate.net',
 					},
 					behaviors: [{
@@ -107,7 +108,8 @@ export class WowmateStack extends cdk.Stack {
 				},
 				{
 					s3OriginSource: {
-						s3BucketSource: frontendBucket
+						s3BucketSource: frontendBucket,
+						originAccessIdentity: originAccessIdentity,
 					},
 					behaviors : [ {
 						isDefaultBehavior: true,
