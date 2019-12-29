@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"log"
@@ -15,7 +16,7 @@ import (
 	"context"
 )
 
-//DamageSummary is the query output from Athena
+//DamageSummary format of the dynamodb data
 type DamageSummary struct {
 	BossFightUUID string `json:"pk"`
 	Damage        int64  `json:"sk"`
@@ -45,22 +46,18 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				log.Println(dynamodb.ErrCodeProvisionedThroughputExceededException, aerr.Error())
+				return APIGwError(429, aerr)
 			case dynamodb.ErrCodeResourceNotFoundException:
-				log.Println(dynamodb.ErrCodeResourceNotFoundException, aerr.Error())
+				return APIGwError(404, aerr)
 			case dynamodb.ErrCodeInternalServerError:
-				log.Println(dynamodb.ErrCodeInternalServerError, aerr.Error())
+				return APIGwError(500, aerr)
 			default:
-				log.Println(aerr.Error())
+				return APIGwError(500, aerr)
 			}
 		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			log.Println(err.Error())
+			 return APIGwError(500, err)
 		}
-		// return awsh.ServerError(err)
 	}
-
 	log.Printf("Consumed RCU: %f", *result.ConsumedCapacity.CapacityUnits)
 
 	summaries := []DamageSummary{}
@@ -69,19 +66,26 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		s := DamageSummary{}
 		err = dynamodbattribute.UnmarshalMap(item, &s)
 		if err != nil {
-			log.Printf("Failed to unmarshal Record, %v", err)
-			// return awsh.ServerError(err)
+			 err = fmt.Errorf("Failed to unmarshal Record, %v", err)
+			 return APIGwError(500, err)
 		}
 		summaries = append(summaries, s)
 	}
 
 	js, err := json.Marshal(summaries)
 
-
 	return events.APIGatewayProxyResponse{
 			StatusCode: http.StatusOK,
 			Body: string(js),
 		}, nil
+}
+
+//APIGwError is a helper function for APIGatewayProxyResponse
+func APIGwError(status int, err error) (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		StatusCode: status,
+		Body:       http.StatusText(status),
+	}, err
 }
 
 func main() {

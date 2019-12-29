@@ -1,8 +1,12 @@
 #!/bin/bash
 
-rm api-service/boss-fight-damage/main
-go build -o api-service/boss-fight-damage/main api-service/boss-fight-damage/boss-fight-damage.go
-echo built boss-fight-damage
+rm api-service/damage-boss-fight-uuid/main
+go build -o api-service/damage-boss-fight-uuid/main api-service/damage-boss-fight-uuid/damage-boss-fight-uuid.go
+echo built damage-boss-fight-uuid
+
+rm api-service/damage-encounter-id/main
+go build -o api-service/damage-encounter-id/main api-service/damage-encounter-id/damage-encounter-id.go
+echo built damage-encounter-id
 
 rm upload-service/size/main
 go build -o upload-service/size/main upload-service/size/size.go
@@ -10,7 +14,7 @@ echo built size
 
 cd upload-service/parquet
 rm main
-go build -o main .
+go build -o main . #this is needed when there is more than one file in the dir
 cd ../..
 echo built parquet
 
@@ -42,6 +46,6 @@ cdk diff
 
 cdk deploy --require-approval=never
 
-aws s3 cp WoWCombatLog.txt s3://wowmatestack-upload51c4d210-18wofa313p49y
+# aws s3 cp WoWCombatLog.txt s3://wowmatestack-upload51c4d210-18wofa313p49y
 
 

@@ -44,23 +44,12 @@ export class WowmateStack extends cdk.Stack {
 			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
 		})
 
-		// const hostedZone = route53.HostedZone.fromLookup(this, 'HostedZone', {
-		// 	domainName: 'wmate.net',
-		// 	privateZone: false,
-		// });
-
-		// const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
-		// 	domainName: 'api.wmate.net',
-		// 	hostedZone,
-		// });
-
-		// const certificate = acm.fromCertificateArn(this, 'Certificate', arn);
-		// certificate.fromCertificateArn
+		//unfortunately route53 is somewhat of a pain with CDK so I created the alias and the ACM cert manually
 		const cert = acm.Certificate.fromCertificateArn(this, 'Certificate', 'arn:aws:acm:eu-central-1:940880032268:certificate/4159a4aa-6055-48ff-baa8-0b8379cdb494');
 
 		//API
-		const bossFightDamageFunc = new lambda.Function(this, 'BossFightDamage', {
-			code: lambda.Code.asset("api-service/boss-fight-damage"),
+		const damageBossFightUuidFunc = new lambda.Function(this, 'DamageBossFightUuid', {
+			code: lambda.Code.asset('api-service/damage-boss-fight-uuid'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -68,10 +57,20 @@ export class WowmateStack extends cdk.Stack {
 			environment: {DDB_NAME: db.tableName}
 		})
 
-		db.grantReadData(bossFightDamageFunc)
+		const damageEncounterIdFunc = new lambda.Function(this, 'DamageEncounterId', {
+			code: lambda.Code.asset('api-service/damage-encounter-id'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: Duration.seconds(3),
+			environment: {DDB_NAME: db.tableName}
+		})
+
+		db.grantReadData(damageBossFightUuidFunc)
+		db.grantReadData(damageEncounterIdFunc)
 		
 		const api = new apigateway.LambdaRestApi(this, 'api', {
-			handler: bossFightDamageFunc,
+			handler: damageBossFightUuidFunc,
 			proxy: false,
 			endpointTypes: [apigateway.EndpointType.REGIONAL],
 			domainName: {
@@ -81,16 +80,20 @@ export class WowmateStack extends cdk.Stack {
 		});
 
 		const basePath = api.root.addResource('api');
-		const bossFightPath = basePath.addResource('boss-fight');
-		const damagePath = bossFightPath.addResource('damage');
-		const encounterId = damagePath.addResource('{boss-fight-uuid}');
-		encounterId.addMethod('GET')
+		const damagePath = basePath.addResource('damage');
+		const bossFightPath = damagePath.addResource('boss-fight');
+		const bossFightUuidParam = bossFightPath.addResource('{boss-fight-uuid}');
+		bossFightUuidParam.addMethod('GET')
+
+		const encounterIdPath = damagePath.addResource('encounter');
+		const encounterIdParam = encounterIdPath.addResource('{encounter-id}');
+		const damageEncounterIdIntegration = new apigateway.LambdaIntegration(damageEncounterIdFunc);
+		encounterIdParam.addMethod('GET', damageEncounterIdIntegration)
 
 		//FRONTEND
 		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
 			websiteIndexDocument: 'index.html',
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-			// publicReadAccess: true
 		});
 
 		const originAccessIdentity = new cloudfront.OriginAccessIdentity(this, 'OAI');
@@ -182,7 +185,7 @@ export class WowmateStack extends cdk.Stack {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: Duration.seconds(10),
+			timeout: Duration.seconds(720),
 			environment: {TARGET_BUCKET_NAME: parquetBucket.bucketName}
 		})
 
