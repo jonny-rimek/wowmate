@@ -13,6 +13,8 @@ import cloudtrail = require('@aws-cdk/aws-cloudtrail');
 import apigateway = require('@aws-cdk/aws-apigateway');
 import s3deploy = require('@aws-cdk/aws-s3-deployment');
 import cloudfront = require('@aws-cdk/aws-cloudfront');
+import route53= require('@aws-cdk/aws-route53');
+import acm = require('@aws-cdk/aws-certificatemanager');
 import { SSLMethod, SecurityPolicyProtocol } from '@aws-cdk/aws-cloudfront';
 // import events = require('@aws-cdk/aws-events');
 // import { Result } from '@aws-cdk/aws-stepfunctions';
@@ -20,6 +22,69 @@ import { SSLMethod, SecurityPolicyProtocol } from '@aws-cdk/aws-cloudfront';
 export class WowmateStack extends cdk.Stack {
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id, props);
+
+
+		//DYNAMODB
+		const db = new ddb.Table(this, 'DDB', {
+			partitionKey: { name: 'pk', type: ddb.AttributeType.STRING },
+			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER},
+			removalPolicy: RemovalPolicy.DESTROY,
+            billingMode: ddb.BillingMode.PAY_PER_REQUEST
+		})
+
+		db.addGlobalSecondaryIndex({
+			indexName: 'GSI1',
+			partitionKey: {name: 'gsi1pk', type: ddb.AttributeType.NUMBER},
+			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
+		})
+
+		db.addGlobalSecondaryIndex({
+			indexName: 'GSI2',
+			partitionKey: {name: 'gsi2pk', type: ddb.AttributeType.STRING},
+			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
+		})
+
+		// const hostedZone = route53.HostedZone.fromLookup(this, 'HostedZone', {
+		// 	domainName: 'wmate.net',
+		// 	privateZone: false,
+		// });
+
+		// const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
+		// 	domainName: 'api.wmate.net',
+		// 	hostedZone,
+		// });
+
+		// const certificate = acm.fromCertificateArn(this, 'Certificate', arn);
+		// certificate.fromCertificateArn
+		const cert = acm.Certificate.fromCertificateArn(this, 'Certificate', 'arn:aws:acm:eu-central-1:940880032268:certificate/4159a4aa-6055-48ff-baa8-0b8379cdb494');
+
+		//API
+		const bossFightDamageFunc = new lambda.Function(this, 'BossFightDamage', {
+			code: lambda.Code.asset("api-service/boss-fight-damage"),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: Duration.seconds(3),
+			environment: {DDB_NAME: db.tableName}
+		})
+
+		db.grantReadData(bossFightDamageFunc)
+		
+		const api = new apigateway.LambdaRestApi(this, 'api', {
+			handler: bossFightDamageFunc,
+			proxy: false,
+			endpointTypes: [apigateway.EndpointType.REGIONAL],
+			domainName: {
+				domainName: 'api.wmate.net',
+				certificate: cert,
+			}
+		});
+
+		const basePath = api.root.addResource('api');
+		const bossFightPath = basePath.addResource('boss-fight');
+		const damagePath = bossFightPath.addResource('damage');
+		const encounterId = damagePath.addResource('{boss-fight-uuid}');
+		encounterId.addMethod('GET')
 
 		//FRONTEND
 		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
@@ -30,9 +95,10 @@ export class WowmateStack extends cdk.Stack {
 		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
 			originConfigs: [
 				{
-					originPath: '/prod',
+					// originPath: '/prod',
 					customOriginSource: {
-						domainName: '6yjj4kfg93.execute-api.eu-central-1.amazonaws.com',
+						// domainName: '6yjj4kfg93.execute-api.eu-central-1.amazonaws.com',
+						domainName: 'api.wmate.net',
 					},
 					behaviors: [{
 						pathPattern: '/api/*',
@@ -74,51 +140,6 @@ export class WowmateStack extends cdk.Stack {
 			destinationBucket: frontendBucket,
 			distribution,
 		});
-
-		//DYNAMODB
-		const db = new ddb.Table(this, 'DDB', {
-			partitionKey: { name: 'pk', type: ddb.AttributeType.STRING },
-			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER},
-			removalPolicy: RemovalPolicy.DESTROY,
-            billingMode: ddb.BillingMode.PAY_PER_REQUEST
-		})
-
-		db.addGlobalSecondaryIndex({
-			indexName: 'GSI1',
-			partitionKey: {name: 'gsi1pk', type: ddb.AttributeType.NUMBER},
-			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
-		})
-
-		db.addGlobalSecondaryIndex({
-			indexName: 'GSI2',
-			partitionKey: {name: 'gsi2pk', type: ddb.AttributeType.STRING},
-			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
-		})
-
-		//API
-		const bossFightDamageFunc = new lambda.Function(this, 'BossFightDamage', {
-			code: lambda.Code.asset("api-service/boss-fight-damage"),
-			handler: 'main',
-			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 3008,
-			timeout: Duration.seconds(3),
-			environment: {DDB_NAME: db.tableName}
-		})
-
-		db.grantReadData(bossFightDamageFunc)
-		
-		const api = new apigateway.LambdaRestApi(this, 'api', {
-			handler: bossFightDamageFunc,
-			proxy: false,
-			endpointTypes: [apigateway.EndpointType.REGIONAL],
-		});
-
-		const basePath = api.root.addResource('api');
-		const bossFightPath = basePath.addResource('boss-fight');
-		const damagePath = bossFightPath.addResource('damage');
-		const encounterId = damagePath.addResource('{boss-fight-uuid}');
-		encounterId.addMethod('GET')
-
 		//CLOUDTRAIL
 		const trail = new cloudtrail.Trail(this, 'CloudTrail', {
 			sendToCloudWatchLogs: true,
