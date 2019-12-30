@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/Sirupsen/logrus"
 	"bufio"
 	"bytes"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -37,7 +37,7 @@ type CSV struct {
 func handler(e Event) error {
 	sess, _ := session.NewSession()
 	//the file from s3 is read directly into memory
-	file, err := downloadFileFromS3(e.BucketName, e.Key, sess)
+	file, bytes, err := downloadFileFromS3(e.BucketName, e.Key, sess)
 	if err != nil {
 		return err
 	}
@@ -46,30 +46,48 @@ func handler(e Event) error {
 	if err != nil {
 		return err
 	}
-	writeRequests, err := createDynamoDBWriteRequest(records)
-	var writes []*dynamodb.WriteRequest
 
-	//TODO: extra function and sum WCU consumed
-	log.Println("DEBUG: starting to loop through write request array")
-	for _, value := range writeRequests {
-		writes = append(writes, value)
-		if len(writes) == 25 {
-			log.Println("DEBUG: writing batch to dynamodb")
-			err = writeBatchDynamoDB(writes, sess)
-			if err != nil {
-				log.Println(err)
-				return err
-			}
-			writes = nil
-		}
-	}
-	err = writeBatchDynamoDB(writes, sess)
+	wcu, err := writeDynamoDB(records, sess)
 	if err != nil {
 		return err
 	}
-//TODO: add logrus and log level, read log level from env
+
+	logrus.WithFields(logrus.Fields{
+		"bucket":e.BucketName, 
+		"key":e.Key,
+		"downloaded in KB":bytes/1024,
+		"wcu":wcu,
+	}).Info()
 
 	return nil
+}
+
+func writeDynamoDB(records []CSV, sess *session.Session) (float64, error) {
+	writeRequests, err := createDynamoDBWriteRequest(records)
+	var writes []*dynamodb.WriteRequest
+
+	var consumedWCU float64
+	for _, value := range writeRequests {
+		writes = append(writes, value)
+		if len(writes) == 25 {
+			logrus.Debug("writing batch to dynamodb")
+			wcu, err := writeBatchDynamoDB(writes, sess)
+			if err != nil {
+				return consumedWCU, err
+			}
+			consumedWCU += wcu
+			writes = nil
+		}
+	}
+	//WISHLIST: if the size was exactly 25 this will still execute with 
+	//an empty array, not sure how it will behave
+	wcu, err := writeBatchDynamoDB(writes, sess)
+	if err != nil {
+		return consumedWCU, err
+	}
+	consumedWCU += wcu
+
+	return consumedWCU, nil
 }
 
 func createDynamoDBWriteRequest(records []CSV) ([]*dynamodb.WriteRequest, error) {
@@ -91,7 +109,7 @@ func createDynamoDBWriteRequest(records []CSV) ([]*dynamodb.WriteRequest, error)
 	return writesRequets, nil
 }
 
-func writeBatchDynamoDB(writeRequests[]*dynamodb.WriteRequest, sess *session.Session) error {
+func writeBatchDynamoDB(writeRequests[]*dynamodb.WriteRequest, sess *session.Session) (float64, error) {
 	svcdb := dynamodb.New(sess)
 	ddbTableName := os.Getenv("DDB_NAME")
 
@@ -107,27 +125,30 @@ func writeBatchDynamoDB(writeRequests[]*dynamodb.WriteRequest, sess *session.Ses
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				return fmt.Errorf("%v -- %v", dynamodb.ErrCodeProvisionedThroughputExceededException, err)
+				return 0, fmt.Errorf("%v -- %v", dynamodb.ErrCodeProvisionedThroughputExceededException, err)
 			case dynamodb.ErrCodeResourceNotFoundException:
-				return fmt.Errorf("%v -- %v", dynamodb.ErrCodeResourceNotFoundException, err)
+				return 0, fmt.Errorf("%v -- %v", dynamodb.ErrCodeResourceNotFoundException, err)
 			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
-				return fmt.Errorf("%v -- %v", dynamodb.ErrCodeItemCollectionSizeLimitExceededException, err)
+				return 0, fmt.Errorf("%v -- %v", dynamodb.ErrCodeItemCollectionSizeLimitExceededException, err)
 			case dynamodb.ErrCodeRequestLimitExceeded:
-				return fmt.Errorf("%v -- %v", dynamodb.ErrCodeRequestLimitExceeded, err)
+				return 0, fmt.Errorf("%v -- %v", dynamodb.ErrCodeRequestLimitExceeded, err)
 			case dynamodb.ErrCodeInternalServerError:
-				return fmt.Errorf("%v -- %v", dynamodb.ErrCodeInternalServerError, err)
+				return 0, fmt.Errorf("%v -- %v", dynamodb.ErrCodeInternalServerError, err)
 			case dynamodb.ErrCodeTransactionCanceledException:
-				return err
+				return 0, err
 			default:
-				return fmt.Errorf("default error: %v", err)
+				return 0, fmt.Errorf("default error: %v", err)
 			}
 		} else {
-			return fmt.Errorf("non aws error: %v", err)
+			return 0, fmt.Errorf("non aws error: %v", err)
 		}
 	}
-	log.Printf("Consumed WCU: %v", *result.ConsumedCapacity[0].CapacityUnits)
-	//TODO: check unprocessed items of resuilt
-	return nil
+	//WISHLIST: check unprocessed items of result
+	//when does this occur, if I get an error I believe non in the batch got written to DDB
+	if len(result.UnprocessedItems) > 0 {
+		return 0, fmt.Errorf("handle unprocessed items")
+	}
+	return *result.ConsumedCapacity[0].CapacityUnits, nil
 }
 
 func parseCSV(file []byte) ([]CSV, error){
@@ -161,37 +182,42 @@ func parseCSV(file []byte) ([]CSV, error){
 		records = append(records, r)
 	}
 
-	log.Println("DEBUG: read CSV into structs")
+	logrus.Debug("read CSV into structs")
 
 	return records, nil
 }
 
-func downloadFileFromS3(bucket string, key string, sess *session.Session) ([]byte, error) {
+func downloadFileFromS3(bucket string, key string, sess *session.Session) ([]byte, int64, error) {
 	downloader := s3manager.NewDownloader(sess)
 
 	file := &aws.WriteAtBuffer{}
 
-	numBytes, err := downloader.Download(
+	bytes, err := downloader.Download(
 		file,
 		&s3.GetObjectInput{
 			Bucket: aws.String(bucket),
 			Key:    aws.String(key),
 		})
 	if err != nil {
-		return nil, fmt.Errorf("Unable to download item %v from bucket %v: %v", key, bucket, err)
+		return nil, bytes, fmt.Errorf("Unable to download item %v from bucket %v: %v", key, bucket, err)
 	}
-
-	log.Printf("DEBUG: Downloaded %v bytes %v/%v", numBytes, bucket, key)
-
-	return file.Bytes(), nil
+	return file.Bytes(), bytes, nil
 }
 
-func trimQuotes(input string) (output string) {
-	output = strings.TrimSuffix(input, "\"")
+func trimQuotes(input string) string {
+	output := strings.TrimSuffix(input, "\"")
 	output = strings.TrimPrefix(output, "\"")
 	return output
 }
 
 func main() {
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "prod" {
+		logrus.SetLevel(logrus.InfoLevel)
+	} else {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+
 	lambda.Start(handler)
 }
