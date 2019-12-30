@@ -67,7 +67,7 @@ func handler(e StepfunctionEvent) error {
 	r := bytes.NewReader(file.Bytes())
 	s := bufio.NewScanner(r)
 
-	events, err := Import(s, uploadUUID) //TODO: handle errors
+	events, err := Import(s, uploadUUID) //IMPROVE: handle errors
 	if err != nil {
 		log.Println(err.Error())
 		return err
@@ -76,6 +76,7 @@ func handler(e StepfunctionEvent) error {
 	log.Print("DEBUG: read combatlog to slice of Event structs")
 
 	//WRITE TO PARQUET FILE
+	//TODO: don't hardcode name, atleast on upload to s3
 	fw, err := local.NewLocalFileWriter("/tmp/flat.parquet")
 	if err != nil {
 		log.Fatalf("Can't create local file: %v", err)
@@ -117,7 +118,7 @@ func handler(e StepfunctionEvent) error {
 	//UPLOAD TO S3
 	s3Svc := s3.New(sess)
 	uploader := s3manager.NewUploaderWithClient(s3Svc)
-	uploadFileName := fmt.Sprintf("test/test.parquet")
+	uploadFileName := fmt.Sprintf("test/test-diff.parquet")
 
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(targetBucket),
@@ -129,7 +130,9 @@ func handler(e StepfunctionEvent) error {
 	}
 
 	log.Printf("DEBUG: Upload finished! location: %s", result.Location)
-	//TODO: FIXME: delete file
+	
+	os.Remove("/tmp/flat.parquet")
+	log.Printf("DEBUG: file deleted")
 
 	return nil
 }
