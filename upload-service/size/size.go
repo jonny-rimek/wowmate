@@ -43,14 +43,14 @@ func handler(e Event) (Response, error) {
 
 	svc := s3.New(sess)
 
-	output, err := svc.GetObject(
-		&s3.GetObjectInput{
+	// output, err := svc.GetObject(
+	output, err := svc.HeadObject(
+		&s3.HeadObjectInput{
 			Bucket: aws.String(e.Detail.RequestParameters.BucketName),
 			Key:    aws.String(e.Detail.RequestParameters.Key),
 		})
-
 	if err != nil {
-		log.Fatalf("Unable to download item %q, %v", e.Detail.RequestParameters.Key, err)
+		log.Fatalf("Unable to to send head request to item %q, %v", e.Detail.RequestParameters.Key, err)
 	}
 
 	var response Response

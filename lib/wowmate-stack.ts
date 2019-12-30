@@ -177,7 +177,7 @@ export class WowmateStack extends cdk.Stack {
 			code: lambda.Code.asset("upload-service/size"),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 3008,
+			memorySize: 128,
 			timeout: Duration.seconds(3),
 		})
 
