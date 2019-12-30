@@ -27,8 +27,9 @@ type Event struct {
 
 //CSV is the query output from Athena
 type CSV struct {
-	CasterID      string `json:"pk"`
+	PK            string `json:"pk"`
 	Damage        int64  `json:"sk"`
+	CasterID      string `json:"gsi3pk"`
 	CasterName    string `json:"caster_name"`
 	BossFightUUID string `json:"gsi2pk"`
 	EncounterID   int    `json:"gsi1pk"`
@@ -37,6 +38,10 @@ type CSV struct {
 func handler(e Event) error {
 	sess, _ := session.NewSession()
 	//the file from s3 is read directly into memory
+	var bytes int64
+	var wcu float64
+	defer writeCanonicalLog(e.BucketName, e.Key, bytes, 0)
+
 	file, bytes, err := downloadFileFromS3(e.BucketName, e.Key, sess)
 	if err != nil {
 		return err
@@ -47,19 +52,23 @@ func handler(e Event) error {
 		return err
 	}
 
-	wcu, err := writeDynamoDB(records, sess)
+	//make pk caster_id+boss-fight-uuid
+	wcu, err = writeDynamoDB(records, sess)
 	if err != nil {
 		return err
 	}
 
+	writeCanonicalLog(e.BucketName, e.Key, bytes, wcu)
+	return nil
+}
+
+func writeCanonicalLog(bucketName string, objectKey string, bytes int64, wcu float64){
 	logrus.WithFields(logrus.Fields{
-		"bucket":e.BucketName, 
-		"key":e.Key,
-		"downloaded in KB":bytes/1024,
+		"bucket":bucketName, 
+		"key":objectKey,
+		"downloaded KB":bytes/1024,
 		"wcu":wcu,
 	}).Info()
-
-	return nil
 }
 
 func writeDynamoDB(records []CSV, sess *session.Session) (float64, error) {
@@ -172,8 +181,9 @@ func parseCSV(file []byte) ([]CSV, error){
 		}
 
 		r := CSV{
-			trimQuotes(row[0]),
+			fmt.Sprintf("%v#%v",trimQuotes(row[0]), trimQuotes(row[3])),
 			damage,
+			trimQuotes(row[0]),
 			trimQuotes(row[2]),
 			trimQuotes(row[3]),
 			encounterID,

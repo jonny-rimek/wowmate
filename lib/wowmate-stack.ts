@@ -23,7 +23,6 @@ export class WowmateStack extends cdk.Stack {
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id, props);
 
-
 		//DYNAMODB
 		const db = new ddb.Table(this, 'DDB', {
 			partitionKey: { name: 'pk', type: ddb.AttributeType.STRING },
@@ -41,6 +40,12 @@ export class WowmateStack extends cdk.Stack {
 		db.addGlobalSecondaryIndex({
 			indexName: 'GSI2',
 			partitionKey: {name: 'gsi2pk', type: ddb.AttributeType.STRING},
+			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
+		})
+
+		db.addGlobalSecondaryIndex({
+			indexName: 'GSI3',
+			partitionKey: {name: 'gsi3pk', type: ddb.AttributeType.STRING},
 			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
 		})
 
@@ -174,7 +179,7 @@ export class WowmateStack extends cdk.Stack {
 
 		//LAMBDA
 		const sizeFunc = new lambda.Function(this, 'Size', {
-			code: lambda.Code.asset("upload-service/size"),
+			code: lambda.Code.asset('upload-service/size'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 128,
@@ -182,7 +187,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const parquetFunc = new lambda.Function(this, 'ParquetFunc', {
-			code: lambda.Code.asset("upload-service/parquet"),
+			code: lambda.Code.asset('upload-service/parquet'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -191,7 +196,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const athenaFunc = new lambda.Function(this, 'AthenaFunc', {
-			code: lambda.Code.asset("upload-service/athena"),
+			code: lambda.Code.asset('upload-service/athena'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -199,7 +204,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const checkFunc = new lambda.Function(this, 'Check', {
-			code: lambda.Code.asset("upload-service/check"),
+			code: lambda.Code.asset('upload-service/check'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -207,16 +212,19 @@ export class WowmateStack extends cdk.Stack {
 		})
 	
 		const impFunc = new lambda.Function(this, 'Import', {
-			code: lambda.Code.asset("upload-service/import"),
+			code: lambda.Code.asset('upload-service/import'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(10),
-			environment: {DDB_NAME: db.tableName}
+			environment: {
+				DDB_NAME: db.tableName,
+				LOG_LEVEL: 'prod',
+			}
 		})
 
 		const imp2Func = new lambda.Function(this, 'Import2', {
-			code: lambda.Code.asset("upload-service/import2"),
+			code: lambda.Code.asset('upload-service/import2'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -448,7 +456,8 @@ export class WowmateStack extends cdk.Stack {
 		const sfunc = new sfn.StateMachine(this, 'StateMachine', {
 			definition: sizeJob
 			.next(new sfn.Choice(this, 'Check file sizeFunc')
-				.when(sfn.Condition.numberGreaterThan('$.file_size', 400), fileTooBig)
+				//NOTE: I know I can handle 144MB, but 203MB already fails with out of memory fatal error
+				.when(sfn.Condition.numberGreaterThan('$.file_size', 144), fileTooBig)
 				.otherwise(parquetJob
 					.next(athenaInput)
 					.next(athenaJob)

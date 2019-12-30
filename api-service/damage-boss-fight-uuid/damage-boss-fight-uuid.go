@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Sirupsen/logrus"
 	"fmt"
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -26,6 +27,7 @@ type DamageSummary struct {
 }
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	//TODO: log req.PathParameters
 	bossFightUUID:= req.PathParameters["boss-fight-uuid"]
 	ddbTableName := os.Getenv("DDB_NAME")
 	svc := dynamodb.New(session.New())
@@ -36,9 +38,10 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 				S: aws.String(bossFightUUID),
 			},
 		},
-		KeyConditionExpression: aws.String("pk = :v1"),
+		KeyConditionExpression: aws.String("gsi2pk = :v1"),
 		TableName:              aws.String(ddbTableName),
 		ReturnConsumedCapacity: aws.String("TOTAL"),
+		IndexName:              aws.String("GSI2"),
 	}
 
 	result, err := svc.QueryWithContext(ctx, input)
@@ -48,7 +51,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
 				return APIGwError(429, aerr)
 			case dynamodb.ErrCodeResourceNotFoundException:
-				return APIGwError(404, aerr)
+				return APIGwError(500, aerr)
 			case dynamodb.ErrCodeInternalServerError:
 				return APIGwError(500, aerr)
 			default:
@@ -59,9 +62,11 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		}
 	}
 	log.Printf("Consumed RCU: %f", *result.ConsumedCapacity.CapacityUnits)
-
+	if len(result.Items) == 0 {
+		logrus.Error("no records returned from DynamoDB")
+		return APIGwError(404, nil)
+	}
 	summaries := []DamageSummary{}
-
 	for _, item := range result.Items {
 		s := DamageSummary{}
 		err = dynamodbattribute.UnmarshalMap(item, &s)
