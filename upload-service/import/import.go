@@ -27,15 +27,15 @@ type Event struct {
 
 //CSV is the query output from Athena
 type CSV struct {
-	BossFightUUID string `json:"pk"`
+	CasterID      string `json:"pk"`
 	Damage        int64  `json:"sk"`
 	CasterName    string `json:"caster_name"`
-	CasterID      string `json:"gsi2pk"`
+	BossFightUUID string `json:"gsi2pk"`
 	EncounterID   int    `json:"gsi1pk"`
 }
 
 func handler(e Event) error {
-	sess, _ := session.NewSession(/* &aws.Config{Region: aws.String("eu-central-1")} */)
+	sess, _ := session.NewSession()
 	//the file from s3 is read directly into memory
 	file, err := downloadFileFromS3(e.BucketName, e.Key, sess)
 	if err != nil {
@@ -46,8 +46,24 @@ func handler(e Event) error {
 	if err != nil {
 		return err
 	}
+	writeRequests, err := createDynamoDBWriteRequest(records)
+	var writes []*dynamodb.WriteRequest
 
-	err = writeBatchDynamoDB(records, sess)
+	//TODO: extra function and sum WCU consumed
+	log.Println("DEBUG: starting to loop through write request array")
+	for _, value := range writeRequests {
+		writes = append(writes, value)
+		if len(writes) == 25 {
+			log.Println("DEBUG: writing batch to dynamodb")
+			err = writeBatchDynamoDB(writes, sess)
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+			writes = nil
+		}
+	}
+	err = writeBatchDynamoDB(writes, sess)
 	if err != nil {
 		return err
 	}
@@ -56,16 +72,13 @@ func handler(e Event) error {
 	return nil
 }
 
-func writeBatchDynamoDB(records []CSV, sess *session.Session) error {
-	svcdb := dynamodb.New(sess)
-	ddbTableName := os.Getenv("DDB_NAME")
-
+func createDynamoDBWriteRequest(records []CSV) ([]*dynamodb.WriteRequest, error) {
 	writesRequets := []*dynamodb.WriteRequest{}
 
 	for _, s := range records {
 		av, err := dynamodbattribute.MarshalMap(s)
 		if err != nil {
-			return fmt.Errorf("got error marshalling csv struct into dynamoDB element: %v", err)
+			return nil, fmt.Errorf("got error marshalling csv struct into dynamoDB element: %v", err)
 		}
 
 		wr := &dynamodb.WriteRequest{
@@ -74,14 +87,19 @@ func writeBatchDynamoDB(records []CSV, sess *session.Session) error {
 			},
 		}
 		writesRequets = append(writesRequets, wr)
-
 	}
+	return writesRequets, nil
+}
+
+func writeBatchDynamoDB(writeRequests[]*dynamodb.WriteRequest, sess *session.Session) error {
+	svcdb := dynamodb.New(sess)
+	ddbTableName := os.Getenv("DDB_NAME")
+
 	input:= &dynamodb.BatchWriteItemInput{
 		RequestItems: map[string][]*dynamodb.WriteRequest{
-			ddbTableName: writesRequets,
+			ddbTableName: writeRequests,
 		},
 		ReturnConsumedCapacity: aws.String("TOTAL"),
-		
 	}
 
 	result, err := svcdb.BatchWriteItem(input)
@@ -109,7 +127,6 @@ func writeBatchDynamoDB(records []CSV, sess *session.Session) error {
 	}
 	log.Printf("Consumed WCU: %v", *result.ConsumedCapacity[0].CapacityUnits)
 	//TODO: check unprocessed items of resuilt
-	//TODO: check size of input, if > 25 loop
 	return nil
 }
 
@@ -144,7 +161,7 @@ func parseCSV(file []byte) ([]CSV, error){
 		records = append(records, r)
 	}
 
-	log.Print("DEBUG: read CSV into structs")
+	log.Println("DEBUG: read CSV into structs")
 
 	return records, nil
 }

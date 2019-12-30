@@ -308,7 +308,7 @@ export class WowmateStack extends cdk.Stack {
 			result: sfn.Result.fromArray([{
 				"result_bucket": athenaBucket.bucketName,
                 "query": `
-                    SELECT cl.boss_fight_uuid, cl.damage, cl.caster_name, cl.caster_id, ei.encounter_id
+                    SELECT cl.caster_id, cl.damage, cl.caster_name, cl.boss_fight_uuid, ei.encounter_id
                     FROM (SELECT SUM(actual_amount) AS damage, caster_name, caster_id, boss_fight_uuid
                           FROM  "wowmate"."combatlogs"
                           WHERE caster_type LIKE '0x5%' AND caster_name != 'nil' 
