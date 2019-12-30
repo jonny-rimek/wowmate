@@ -48,6 +48,9 @@ func handler(e Event) error {
 	}
 
 	err = writeBatchDynamoDB(records, sess)
+	if err != nil {
+		return err
+	}
 //TODO: add logrus and log level, read log level from env
 
 	return nil
@@ -70,7 +73,6 @@ func writeBatchDynamoDB(records []CSV, sess *session.Session) error {
 				Item: av,
 			},
 		}
-
 		writesRequets = append(writesRequets, wr)
 
 	}
@@ -87,27 +89,28 @@ func writeBatchDynamoDB(records []CSV, sess *session.Session) error {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				return fmt.Errorf("%v: %v", dynamodb.ErrCodeProvisionedThroughputExceededException, err)
+				return fmt.Errorf("%v -- %v", dynamodb.ErrCodeProvisionedThroughputExceededException, err)
 			case dynamodb.ErrCodeResourceNotFoundException:
-				return fmt.Errorf("%v: %v", dynamodb.ErrCodeResourceNotFoundException, err)
+				return fmt.Errorf("%v -- %v", dynamodb.ErrCodeResourceNotFoundException, err)
 			case dynamodb.ErrCodeItemCollectionSizeLimitExceededException:
-				return fmt.Errorf("%v: %v", dynamodb.ErrCodeItemCollectionSizeLimitExceededException, err)
+				return fmt.Errorf("%v -- %v", dynamodb.ErrCodeItemCollectionSizeLimitExceededException, err)
 			case dynamodb.ErrCodeRequestLimitExceeded:
-				return fmt.Errorf("%v: %v", dynamodb.ErrCodeRequestLimitExceeded, err)
+				return fmt.Errorf("%v -- %v", dynamodb.ErrCodeRequestLimitExceeded, err)
 			case dynamodb.ErrCodeInternalServerError:
-				return fmt.Errorf("%v: %v", dynamodb.ErrCodeInternalServerError, err)
+				return fmt.Errorf("%v -- %v", dynamodb.ErrCodeInternalServerError, err)
+			case dynamodb.ErrCodeTransactionCanceledException:
+				return err
 			default:
-				return fmt.Errorf("%v: %v", aerr.Error(), err)
+				return fmt.Errorf("default error: %v", err)
 			}
 		} else {
-			return fmt.Errorf("unlisted error with dynamodb: %v", err)
+			return fmt.Errorf("non aws error: %v", err)
 		}
 	}
-	log.Printf("Consumed WCU: %v: ", *result.ConsumedCapacity[0].CapacityUnits)
+	log.Printf("Consumed WCU: %v", *result.ConsumedCapacity[0].CapacityUnits)
 	//TODO: check unprocessed items of resuilt
 	//TODO: check size of input, if > 25 loop
 	return nil
-	
 }
 
 func parseCSV(file []byte) ([]CSV, error){

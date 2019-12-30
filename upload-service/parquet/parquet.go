@@ -61,6 +61,9 @@ func handler(e StepfunctionEvent) error {
 	}
 	log.Printf("DEBUG: Downloaded %v MB", numBytes/1024/1024)
 
+	//FIXME: fatal error: runtime: out of memory 
+	//REPORT RequestId: 489701bd-42c0-431c-bb6c-e5603b581720	Duration: 140806.08 ms	Billed Duration: 140900 ms	Memory Size: 3008 MB	Max Memory Used: 1730 MB	
+
 	r := bytes.NewReader(file.Bytes())
 	s := bufio.NewScanner(r)
 
@@ -126,6 +129,7 @@ func handler(e StepfunctionEvent) error {
 	}
 
 	log.Printf("DEBUG: Upload finished! location: %s", result.Location)
+	//TODO: FIXME: delete file
 
 	return nil
 }

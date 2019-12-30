@@ -145,6 +145,7 @@ export class WowmateStack extends cdk.Stack {
 			destinationBucket: frontendBucket,
 			distribution,
 		});
+
 		//CLOUDTRAIL
 		const trail = new cloudtrail.Trail(this, 'CloudTrail', {
 			sendToCloudWatchLogs: true,
