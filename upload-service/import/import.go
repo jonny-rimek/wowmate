@@ -36,30 +36,36 @@ type CSV struct {
 }
 
 func handler(e Event) error {
+	bytes, wcu, err := handle(e)
+	writeCanonicalLog(e.BucketName, e.Key, bytes, wcu)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func handle(e Event) (int64, float64, error) {
 	sess, _ := session.NewSession()
-	//the file from s3 is read directly into memory
 	var bytes int64
 	var wcu float64
-	defer writeCanonicalLog(e.BucketName, e.Key, bytes, 0)
 
 	file, bytes, err := downloadFileFromS3(e.BucketName, e.Key, sess)
 	if err != nil {
-		return err
+		return bytes, 0, err
 	}
 
 	records, err := parseCSV(file)
 	if err != nil {
-		return err
+		return bytes, 0, err
 	}
 
-	//make pk caster_id+boss-fight-uuid
 	wcu, err = writeDynamoDB(records, sess)
 	if err != nil {
-		return err
+		return bytes, wcu, err
 	}
 
-	writeCanonicalLog(e.BucketName, e.Key, bytes, wcu)
-	return nil
+	return bytes, wcu, nil
+
 }
 
 func writeCanonicalLog(bucketName string, objectKey string, bytes int64, wcu float64){
@@ -88,7 +94,7 @@ func writeDynamoDB(records []CSV, sess *session.Session) (float64, error) {
 			writes = nil
 		}
 	}
-	//WISHLIST: if the size was exactly 25 this will still execute with 
+	//NOTE: if the size was exactly 25 this will still execute with 
 	//an empty array, not sure how it will behave
 	wcu, err := writeBatchDynamoDB(writes, sess)
 	if err != nil {
@@ -152,8 +158,9 @@ func writeBatchDynamoDB(writeRequests[]*dynamodb.WriteRequest, sess *session.Ses
 			return 0, fmt.Errorf("non aws error: %v", err)
 		}
 	}
-	//WISHLIST: check unprocessed items of result
-	//when does this occur, if I get an error I believe non in the batch got written to DDB
+	//NOTE: unprocessed items of result are never check, if it is not empty the lambda will
+	//		fail and thus alert me, when the case arrises
+	//		when does this occur, if I get an error I believe non in the batch got written to DDB
 	if len(result.UnprocessedItems) > 0 {
 		return 0, fmt.Errorf("handle unprocessed items")
 	}
