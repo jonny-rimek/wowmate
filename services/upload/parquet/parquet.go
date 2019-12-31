@@ -18,12 +18,6 @@ import (
 	"github.com/xitongsys/parquet-go/writer"
 )
 
-//CSV ..
-type CSV struct {
-	Name string `parquet:"name=name, type=UTF8, encoding=PLAIN_DICTIONARY"`
-	N1   int32  `parquet:"name=n1, type=INT32"`
-}
-
 //StepfunctionEvent provides config data to the lambda
 type StepfunctionEvent struct {
 	BucketName string `json:"bucketName"`
@@ -59,9 +53,7 @@ func handler(e StepfunctionEvent) error {
 		log.Fatalf("Unable to download item %q, %v", e.Key, err)
 	}
 	log.Printf("DEBUG: Downloaded %v MB", numBytes/1024/1024)
-
-	//FIXME: fatal error: runtime: out of memory 
-	//REPORT RequestId: 489701bd-42c0-431c-bb6c-e5603b581720	Duration: 140806.08 ms	Billed Duration: 140900 ms	Memory Size: 3008 MB	Max Memory Used: 1730 MB	
+	//TODO: add un gzip'ing
 
 	r := bytes.NewReader(file.Bytes())
 	s := bufio.NewScanner(r)
