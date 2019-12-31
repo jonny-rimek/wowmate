@@ -13,8 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	uuid "github.com/gofrs/uuid"
-	//TODO: update path, lambda folder doesn't exist any more
-	"github.com/jonny-rimek/wowmate/lambda/lib/combatlog/normalize"
+	// "github.com/jonny-rimek/wowmate/golib/combatlog/normalize"
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/parquet"
 	"github.com/xitongsys/parquet-go/writer"
@@ -139,7 +138,7 @@ func handler(e StepfunctionEvent) error {
 }
 
 func main() {
-	normalize.Normalize()
+	// normalize.Normalize()
 	//event.Event()
 	lambda.Start(handler)
 }

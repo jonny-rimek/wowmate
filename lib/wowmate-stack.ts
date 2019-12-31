@@ -54,7 +54,7 @@ export class WowmateStack extends cdk.Stack {
 
 		//API
 		const damageBossFightUuidFunc = new lambda.Function(this, 'DamageBossFightUuid', {
-			code: lambda.Code.asset('api-service/damage-boss-fight-uuid'),
+			code: lambda.Code.asset('services/api/damage-boss-fight-uuid'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -63,7 +63,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const damageEncounterIdFunc = new lambda.Function(this, 'DamageEncounterId', {
-			code: lambda.Code.asset('api-service/damage-encounter-id'),
+			code: lambda.Code.asset('services/api/damage-encounter-id'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -146,7 +146,7 @@ export class WowmateStack extends cdk.Stack {
 		});
 
 		new s3deploy.BucketDeployment(this, 'DeployWebsite', {
-			sources: [s3deploy.Source.asset('./frontend/dist')],
+			sources: [s3deploy.Source.asset('services/./frontend/dist')],
 			destinationBucket: frontendBucket,
 			distribution,
 		});
@@ -179,7 +179,7 @@ export class WowmateStack extends cdk.Stack {
 
 		//LAMBDA
 		const sizeFunc = new lambda.Function(this, 'Size', {
-			code: lambda.Code.asset('upload-service/size'),
+			code: lambda.Code.asset('services/upload/size'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 128,
@@ -187,7 +187,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const parquetFunc = new lambda.Function(this, 'ParquetFunc', {
-			code: lambda.Code.asset('upload-service/parquet'),
+			code: lambda.Code.asset('services/upload/parquet'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -196,7 +196,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const athenaFunc = new lambda.Function(this, 'AthenaFunc', {
-			code: lambda.Code.asset('upload-service/athena'),
+			code: lambda.Code.asset('services/upload/athena'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -204,7 +204,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const checkFunc = new lambda.Function(this, 'Check', {
-			code: lambda.Code.asset('upload-service/check'),
+			code: lambda.Code.asset('services/upload/check'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -212,7 +212,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 	
 		const impFunc = new lambda.Function(this, 'Import', {
-			code: lambda.Code.asset('upload-service/import'),
+			code: lambda.Code.asset('services/upload/import'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -224,7 +224,7 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const imp2Func = new lambda.Function(this, 'Import2', {
-			code: lambda.Code.asset('upload-service/import2'),
+			code: lambda.Code.asset('services/upload/import2'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
