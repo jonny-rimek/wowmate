@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"fmt"
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -15,17 +15,8 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"context"
+	"github.com/jonny-rimek/wowmate/services/golib/ddb"
 )
-
-//DamageSummary format of the dynamodb data
-//FIXME: update for new ddb schema - add gsi3pk
-type DamageSummary struct {
-	BossFightUUID string `json:"pk"`
-	Damage        int64  `json:"sk"`
-	CasterName    string `json:"caster_name"`
-	CasterID      string `json:"gsi2pk"`
-	EncounterID   int    `json:"gsi1pk"`
-}
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	//TODO: log req.PathParameters
@@ -67,9 +58,9 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		logrus.Error("no records returned from DynamoDB")
 		return APIGwError(404, nil)
 	}
-	summaries := []DamageSummary{}
+	summaries := []ddb.DamageSummary{}
 	for _, item := range result.Items {
-		s := DamageSummary{}
+		s := ddb.DamageSummary{}
 		err = dynamodbattribute.UnmarshalMap(item, &s)
 		if err != nil {
 			 err = fmt.Errorf("Failed to unmarshal Record, %v", err)
