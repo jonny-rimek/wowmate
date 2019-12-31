@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"bufio"
 	"bytes"
 	"os"
@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/jonny-rimek/wowmate/services/golib/ddb"
 )
 
 //Event is the data from StepFunctions
@@ -38,10 +39,7 @@ type CSV struct {
 func handler(e Event) error {
 	bytes, wcu, err := handle(e)
 	writeCanonicalLog(e.BucketName, e.Key, bytes, wcu)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func handle(e Event) (int64, float64, error) {
@@ -60,24 +58,19 @@ func handle(e Event) (int64, float64, error) {
 	}
 
 	wcu, err = writeDynamoDB(records, sess)
-	if err != nil {
-		return bytes, wcu, err
-	}
-
-	return bytes, wcu, nil
-
+	return bytes, wcu, err
 }
 
 func writeCanonicalLog(bucketName string, objectKey string, bytes int64, wcu float64){
 	logrus.WithFields(logrus.Fields{
-		"bucket":bucketName, 
-		"key":objectKey,
-		"downloaded KB":bytes/1024,
-		"wcu":wcu,
+		"bucket":        bucketName, 
+		"key":           objectKey,
+		"downloaded KB": bytes/1024,
+		"wcu":           wcu,
 	}).Info()
 }
 
-func writeDynamoDB(records []CSV, sess *session.Session) (float64, error) {
+func writeDynamoDB(records []ddb.DamageSummary, sess *session.Session) (float64, error) {
 	writeRequests, err := createDynamoDBWriteRequest(records)
 	var writes []*dynamodb.WriteRequest
 
@@ -105,7 +98,7 @@ func writeDynamoDB(records []CSV, sess *session.Session) (float64, error) {
 	return consumedWCU, nil
 }
 
-func createDynamoDBWriteRequest(records []CSV) ([]*dynamodb.WriteRequest, error) {
+func createDynamoDBWriteRequest(records []ddb.DamageSummary) ([]*dynamodb.WriteRequest, error) {
 	writesRequets := []*dynamodb.WriteRequest{}
 
 	for _, s := range records {
@@ -167,8 +160,8 @@ func writeBatchDynamoDB(writeRequests[]*dynamodb.WriteRequest, sess *session.Ses
 	return *result.ConsumedCapacity[0].CapacityUnits, nil
 }
 
-func parseCSV(file []byte) ([]CSV, error){
-	var records []CSV
+func parseCSV(file []byte) ([]ddb.DamageSummary, error){
+	var records []ddb.DamageSummary
 
 	reader := bytes.NewReader(file)
 	scanner := bufio.NewScanner(reader)
@@ -177,23 +170,23 @@ func parseCSV(file []byte) ([]CSV, error){
 	for scanner.Scan() {
 		row := strings.Split(scanner.Text(), ",")
 
-		damage, err := strconv.ParseInt(trimQuotes(row[1]), 10, 64)
+		damage, err := strconv.ParseInt(trimQuotes(row[0]), 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert damage column to int64: %v", err)
 		}
 
-		encounterID, err := strconv.Atoi(trimQuotes(row[4]))
+		encounterID, err := strconv.Atoi(trimQuotes(row[1]))
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert encounter id column to int: %v", err)
 		}
 
-		r := CSV{
-			fmt.Sprintf("%v#%v",trimQuotes(row[0]), trimQuotes(row[3])),
-			damage,
-			trimQuotes(row[0]),
-			trimQuotes(row[2]),
-			trimQuotes(row[3]),
-			encounterID,
+		r := ddb.DamageSummary{
+			PK:            fmt.Sprintf("%v#%v",trimQuotes(row[0]), trimQuotes(row[3])),
+			Damage:        damage,
+			EncounterID:   encounterID,
+			BossFightUUID: trimQuotes(row[2]), //boss fight uuid
+			CasterID:      trimQuotes(row[3]), //caster id
+			CasterName:    trimQuotes(row[4]), //caster name
 		}
 
 		records = append(records, r)

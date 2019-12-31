@@ -18,6 +18,7 @@ import (
 )
 
 //DamageSummary format of the dynamodb data
+//FIXME: update for new ddb schema - add gsi3pk
 type DamageSummary struct {
 	BossFightUUID string `json:"pk"`
 	Damage        int64  `json:"sk"`

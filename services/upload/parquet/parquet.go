@@ -13,7 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	uuid "github.com/gofrs/uuid"
-	// "github.com/jonny-rimek/wowmate/golib/combatlog/normalize"
 	"github.com/xitongsys/parquet-go-source/local"
 	"github.com/xitongsys/parquet-go/parquet"
 	"github.com/xitongsys/parquet-go/writer"
@@ -138,7 +137,5 @@ func handler(e StepfunctionEvent) error {
 }
 
 func main() {
-	// normalize.Normalize()
-	//event.Event()
 	lambda.Start(handler)
 }
