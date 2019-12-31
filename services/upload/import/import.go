@@ -15,8 +15,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/jonny-rimek/wowmate/services/golib"
 )
 
@@ -28,7 +26,12 @@ type Event struct {
 
 func handler(e Event) error {
 	bytes, wcu, err := handle(e)
-	writeCanonicalLog(e.BucketName, e.Key, bytes, wcu)
+	golib.CanonicalLog(map[string]interface{}{
+		"bucket":        e.BucketName, 
+		"key":           e.Key,
+		"downloaded KB": bytes/1024,
+		"wcu":           wcu,
+	})
 	return err
 }
 
@@ -37,7 +40,7 @@ func handle(e Event) (int64, float64, error) {
 	var bytes int64
 	var wcu float64
 
-	file, bytes, err := downloadFileFromS3(e.BucketName, e.Key, sess)
+	file, bytes, err := golib.DownloadFileFromS3(e.BucketName, e.Key, sess)
 	if err != nil {
 		return bytes, 0, err
 	}
@@ -49,15 +52,6 @@ func handle(e Event) (int64, float64, error) {
 
 	wcu, err = writeDynamoDB(records, sess)
 	return bytes, wcu, err
-}
-
-func writeCanonicalLog(bucketName string, objectKey string, bytes int64, wcu float64){
-	logrus.WithFields(logrus.Fields{
-		"bucket":        bucketName, 
-		"key":           objectKey,
-		"downloaded KB": bytes/1024,
-		"wcu":           wcu,
-	}).Info()
 }
 
 func writeDynamoDB(records []golib.DamageSummary, sess *session.Session) (float64, error) {
@@ -185,23 +179,6 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error){
 	logrus.Debug("read CSV into structs")
 
 	return records, nil
-}
-
-func downloadFileFromS3(bucket string, key string, sess *session.Session) ([]byte, int64, error) {
-	downloader := s3manager.NewDownloader(sess)
-
-	file := &aws.WriteAtBuffer{}
-
-	bytes, err := downloader.Download(
-		file,
-		&s3.GetObjectInput{
-			Bucket: aws.String(bucket),
-			Key:    aws.String(key),
-		})
-	if err != nil {
-		return nil, bytes, fmt.Errorf("Unable to download item %v from bucket %v: %v", key, bucket, err)
-	}
-	return file.Bytes(), bytes, nil
 }
 
 func trimQuotes(input string) string {
