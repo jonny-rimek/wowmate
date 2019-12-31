@@ -17,23 +17,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/jonny-rimek/wowmate/services/golib/ddb"
+	"github.com/jonny-rimek/wowmate/services/golib"
 )
 
 //Event is the data from StepFunctions
 type Event struct {
 	BucketName string `json:"result_bucket"`
 	Key        string `json:"file_name"`
-}
-
-//CSV is the query output from Athena
-type CSV struct {
-	PK            string `json:"pk"`
-	Damage        int64  `json:"sk"`
-	CasterID      string `json:"gsi3pk"`
-	CasterName    string `json:"caster_name"`
-	BossFightUUID string `json:"gsi2pk"`
-	EncounterID   int    `json:"gsi1pk"`
 }
 
 func handler(e Event) error {
@@ -70,7 +60,7 @@ func writeCanonicalLog(bucketName string, objectKey string, bytes int64, wcu flo
 	}).Info()
 }
 
-func writeDynamoDB(records []ddb.DamageSummary, sess *session.Session) (float64, error) {
+func writeDynamoDB(records []golib.DamageSummary, sess *session.Session) (float64, error) {
 	writeRequests, err := createDynamoDBWriteRequest(records)
 	var writes []*dynamodb.WriteRequest
 
@@ -98,7 +88,7 @@ func writeDynamoDB(records []ddb.DamageSummary, sess *session.Session) (float64,
 	return consumedWCU, nil
 }
 
-func createDynamoDBWriteRequest(records []ddb.DamageSummary) ([]*dynamodb.WriteRequest, error) {
+func createDynamoDBWriteRequest(records []golib.DamageSummary) ([]*dynamodb.WriteRequest, error) {
 	writesRequets := []*dynamodb.WriteRequest{}
 
 	for _, s := range records {
@@ -160,8 +150,8 @@ func writeBatchDynamoDB(writeRequests[]*dynamodb.WriteRequest, sess *session.Ses
 	return *result.ConsumedCapacity[0].CapacityUnits, nil
 }
 
-func parseCSV(file []byte) ([]ddb.DamageSummary, error){
-	var records []ddb.DamageSummary
+func parseCSV(file []byte) ([]golib.DamageSummary, error){
+	var records []golib.DamageSummary
 
 	reader := bytes.NewReader(file)
 	scanner := bufio.NewScanner(reader)
@@ -180,7 +170,7 @@ func parseCSV(file []byte) ([]ddb.DamageSummary, error){
 			return nil, fmt.Errorf("Failed to convert encounter id column to int: %v", err)
 		}
 
-		r := ddb.DamageSummary{
+		r := golib.DamageSummary{
 			PK:            fmt.Sprintf("%v#%v",trimQuotes(row[0]), trimQuotes(row[3])),
 			Damage:        damage,
 			EncounterID:   encounterID,

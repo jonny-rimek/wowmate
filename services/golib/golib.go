@@ -1,4 +1,4 @@
-package ddb
+package golib
 
 //DamageSummary is the DynamoDB schema for all damage summaries
 type DamageSummary struct {

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"encoding/json"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"log"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -15,74 +14,95 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"context"
-	"github.com/jonny-rimek/wowmate/services/golib/ddb"
+	"github.com/jonny-rimek/wowmate/services/golib"
 )
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	//TODO: log req.PathParameters
-	bossFightUUID:= req.PathParameters["boss-fight-uuid"]
-	ddbTableName := os.Getenv("DDB_NAME")
-	svc := dynamodb.New(session.New())
-
 	input := &dynamodb.QueryInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":v1": {
-				S: aws.String(bossFightUUID),
+				S: aws.String(req.PathParameters["boss-fight-uuid"]),
 			},
 		},
 		KeyConditionExpression: aws.String("gsi2pk = :v1"),
-		TableName:              aws.String(ddbTableName),
+		TableName:              aws.String(os.Getenv("DDB_NAME")),
 		ReturnConsumedCapacity: aws.String("TOTAL"),
 		IndexName:              aws.String("GSI2"),
 	}
 
-	result, err := svc.QueryWithContext(ctx, input)
+	rcu, apiGwRes, err := ddbQuery(ctx, input)
+	CanonicalLog(logrus.Fields{
+		"boss-fight-uuid":  req.PathParameters["boss-fight-uuid"], 
+		"rcu":              rcu,
+		"http-status-code": apiGwRes.StatusCode,
+	})
+	return apiGwRes, err
+}
+
+//CanonicalLog IMPROVE:_
+func CanonicalLog(msg map[string]interface{}){
+	logrus.WithFields(msg).Info()
+}
+
+func ddbQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, events.APIGatewayProxyResponse, error) {
+	svc := dynamodb.New(session.New())
+	result, err := svc.QueryWithContext(ctx, queryInput)
+	rcu := *result.ConsumedCapacity.CapacityUnits
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				return APIGwError(429, aerr)
+				return rcu, APIGwError(429), err
 			case dynamodb.ErrCodeResourceNotFoundException:
-				return APIGwError(500, aerr)
+				return rcu, APIGwError(500), err
 			case dynamodb.ErrCodeInternalServerError:
-				return APIGwError(500, aerr)
+				return rcu, APIGwError(500), err
 			default:
-				return APIGwError(500, aerr)
+				return rcu, APIGwError(500), err
 			}
 		} else {
-			 return APIGwError(500, err)
+			return rcu, APIGwError(500), err
 		}
 	}
-	log.Printf("Consumed RCU: %f", *result.ConsumedCapacity.CapacityUnits)
+
 	if len(result.Items) == 0 {
 		logrus.Error("no records returned from DynamoDB")
-		return APIGwError(404, nil)
+		return rcu, APIGwError(404), nil
 	}
-	summaries := []ddb.DamageSummary{}
+
+	summaries := []golib.DamageSummary{}
 	for _, item := range result.Items {
-		s := ddb.DamageSummary{}
+		s := golib.DamageSummary{}
 		err = dynamodbattribute.UnmarshalMap(item, &s)
 		if err != nil {
 			 err = fmt.Errorf("Failed to unmarshal Record, %v", err)
-			 return APIGwError(500, err)
+			 return rcu, APIGwError(500), err
 		}
 		summaries = append(summaries, s)
 	}
 
 	js, err := json.Marshal(summaries)
+	if err != nil {
+		return rcu, APIGwError(500), fmt.Errorf("failed to marshal data to JSON: %v", err)
+	}
 
+	return rcu, APIGwOK(js), nil
+}
+
+//APIGwOK TODO: add comments
+func APIGwOK(body []byte) (events.APIGatewayProxyResponse) {
 	return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusOK,
-			Body: string(js),
-		}, nil
+		StatusCode: http.StatusOK,
+		Body: string(body),
+	}
 }
 
 //APIGwError is a helper function for APIGatewayProxyResponse
-func APIGwError(status int, err error) (events.APIGatewayProxyResponse, error) {
+func APIGwError(status int) (events.APIGatewayProxyResponse) {
 	return events.APIGatewayProxyResponse{
 		StatusCode: status,
 		Body:       http.StatusText(status),
-	}, err
+	}
 }
 
 func main() {
