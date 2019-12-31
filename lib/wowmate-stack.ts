@@ -223,15 +223,6 @@ export class WowmateStack extends cdk.Stack {
 			}
 		})
 
-		const imp2Func = new lambda.Function(this, 'Import2', {
-			code: lambda.Code.asset('services/upload/import2'),
-			handler: 'main',
-			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 3008,
-			timeout: Duration.seconds(10),
-			environment: {DDB_NAME: db.tableName}
-		})
-
 		//IAM
 		uploadBucket.grantRead(sizeFunc)
 
@@ -293,10 +284,6 @@ export class WowmateStack extends cdk.Stack {
 
 		athenaBucket.grantRead(impFunc)
 		db.grantWriteData(impFunc)
-
-		athenaBucket.grantRead(imp2Func)
-		db.grantWriteData(imp2Func)
-
 
 		//STEP FUNCTION
 		const sizeJob = new sfn.Task(this, 'Size Job', {
