@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"bufio"
 	"bytes"
 	"fmt"
@@ -35,6 +36,8 @@ func handler(e StepfunctionEvent) error {
 		Region: aws.String("eu-central-1")},
 	)
 
+	//NOTE: downloading the file is what takes up most of the time
+	//		gzip before upload
 	downloader := s3manager.NewDownloader(sess)
 
 	file := &aws.WriteAtBuffer{}
@@ -48,25 +51,25 @@ func handler(e StepfunctionEvent) error {
 			Bucket: aws.String(e.BucketName),
 			Key:    aws.String(e.Key),
 		})
-
 	if err != nil {
 		log.Fatalf("Unable to download item %q, %v", e.Key, err)
 	}
 	log.Printf("DEBUG: Downloaded %v MB", numBytes/1024/1024)
-	//TODO: add un gzip'ing
 
 	r := bytes.NewReader(file.Bytes())
-	s := bufio.NewScanner(r)
+	uncompressed, err := gzip.NewReader(r)
+	if err != nil {
+		return err
+	}
+	s := bufio.NewScanner(uncompressed)
 
 	events, err := Import(s, uploadUUID) //IMPROVE: handle errors
 	if err != nil {
-		log.Println(err.Error())
 		return err
 	}
 
 	log.Print("DEBUG: read combatlog to slice of Event structs")
 
-	//WRITE TO PARQUET FILE
 	//TODO: don't hardcode name, atleast on upload to s3
 	fw, err := local.NewLocalFileWriter("/tmp/flat.parquet")
 	if err != nil {
@@ -98,7 +101,9 @@ func handler(e StepfunctionEvent) error {
 		log.Fatalf("WriteStop error: %v", err)
 	}
 	log.Println("DEBUG: Converting to parquet finished")
+
 	fw.Close()
+	uncompressed.Close()
 
 	fr, err := local.NewLocalFileReader("/tmp/flat.parquet")
 	if err != nil {
