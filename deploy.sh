@@ -1,36 +1,49 @@
 #!/bin/bash
 cd ~/dev/wowmate/services/api/damage-boss-fight-uuid
 rm main
+# go mod tidy
 go build -ldflags "-s -w" -o main . 
 echo built damage-boss-fight-uuid
 
 cd ../damage-encounter-id
 rm main
+# go mod tidy
 go build -ldflags "-s -w" -o main . 
 echo built damage-encounter-id
 
+cd ../damage-caster-id
+rm main
+# go mod tidy
+go build -ldflags "-s -w" -o main . 
+echo built damage-caster-id
+
 cd ../../upload/size
 rm main
+#TODO: go mod tidy 
 go build -ldflags "-s -w" -o main . 
 echo built size
 
 cd ../parquet
 rm main
+# go mod tidy
 go build -ldflags "-s -w" -o main . 
 echo built parquet
 
 cd ../athena
 rm main
+#TODO: go mod tidy
 go build -ldflags "-s -w" -o main . 
 echo built athena
 
 cd ../check
 rm main
+#TODO: go mod tidy
 go build -ldflags "-s -w" -o main . 
 echo built check
 
 cd ../import
 rm main
+# go mod tidy
 go build -ldflags "-s -w" -o main .
 echo built import
 

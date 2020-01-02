@@ -35,8 +35,8 @@ func CanonicalLog(msg map[string]interface{}) {
 //DDBQuery IMPROVE:
 func DDBQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, events.APIGatewayProxyResponse, error) {
 	svc := dynamodb.New(session.New())
+	var rcu float64
 	result, err := svc.QueryWithContext(ctx, queryInput)
-	rcu := *result.ConsumedCapacity.CapacityUnits
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
@@ -54,6 +54,7 @@ func DDBQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, ev
 		}
 	}
 
+	rcu = *result.ConsumedCapacity.CapacityUnits
 	if len(result.Items) == 0 {
 		logrus.Error("no records returned from DynamoDB")
 		return rcu, APIGwError(404), nil

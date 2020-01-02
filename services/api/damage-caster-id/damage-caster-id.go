@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"os"
@@ -14,18 +15,18 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 	input := &dynamodb.QueryInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":v1": {
-				N: aws.String(req.PathParameters["encounter-id"]),
+				S: aws.String(req.PathParameters["caster-id"]),
 			},
 		},
-		KeyConditionExpression: aws.String("gsi1pk = :v1"),
+		KeyConditionExpression: aws.String("gsi3pk = :v1"),
 		TableName:              aws.String(os.Getenv("DDB_NAME")),
 		ReturnConsumedCapacity: aws.String("TOTAL"),
-		IndexName:              aws.String("GSI1"),
+		IndexName:              aws.String("GSI3"),
 	}
 
 	rcu, apiGwRes, err := golib.DDBQuery(ctx, input)
 	golib.CanonicalLog(map[string]interface{}{
-		"encounter-id":     req.PathParameters["encounter-id"], 
+		"caster-id":     req.PathParameters["caster-id"], 
 		"rcu":              rcu,
 		"http-status-code": apiGwRes.StatusCode,
 	})
@@ -33,5 +34,6 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 }
 
 func main() {
+	log.Println("tet1")
 	lambda.Start(handler)
 }
