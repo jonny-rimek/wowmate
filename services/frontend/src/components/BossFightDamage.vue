@@ -1,7 +1,6 @@
 <template>
-	<div class="">
-		Encounter:
-
+  <div class="">
+	  Bossfight:
 		<table>
 			<tr>
 				<th>Player</th>
@@ -19,14 +18,14 @@
 import axios from 'axios';
 
 export default {
-	name: 'EncounterTopDamage',
+	name: 'BossFightDamageDamage',
 	data() {
 		return {
 			items: null
 		}
 	},
 	mounted() {
-		axios.get('https://api.wmate.net/api/damage/encounter/' + this.$route.params.encounter_id).then(response => (this.items = response.data ))
+		axios.get('https://api.wmate.net/api/damage/boss-fight/' + this.$route.params.boss_fight_uuid).then(response => (this.items = response.data ))
 	}
 }
 </script>

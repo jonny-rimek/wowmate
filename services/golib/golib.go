@@ -53,6 +53,8 @@ func DDBQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, ev
 			return rcu, APIGwError(500), err
 		}
 	}
+	//IMPROVE: check result.LastEvaluatedKey if it is not nil return it
+	//			to enable pagination
 
 	rcu = *result.ConsumedCapacity.CapacityUnits
 	if len(result.Items) == 0 {

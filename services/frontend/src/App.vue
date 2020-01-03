@@ -11,13 +11,9 @@
 					<div>
 						<a href="/raid/tep">The Eternal palace</a>
 					</div>
-					<div>
-						<a href="/encounter/2298">Commander Shivra</a>
-					</div>
-					<router-link :to="{name: 'EncounterTopDamage', params: { encounterId: '2298'}}">Commander Shivra</router-link>
-					<div>
-						<a href="/encounter/2289">Blackwater Behemoth</a>
-					</div>
+					<router-link :to="{name: 'EncounterTopDamage', params: { encounter_id: '2298'}}">Commander Shivra</router-link>
+					<p></p>
+					<router-link :to="{name: 'EncounterTopDamage', params: { encounter_id: '2289'}}">Blackwater Behemoth</router-link>
 					<div>
 						<a href="/encounter/2305">Radiance of Azashara</a>
 					</div>
