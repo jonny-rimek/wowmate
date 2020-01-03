@@ -14,6 +14,7 @@
 					<div>
 						<a href="/encounter/2298">Commander Shivra</a>
 					</div>
+					<router-link :to="{name: 'EncounterTopDamage', params: { encounterId: '2298'}}">Commander Shivra</router-link>
 					<div>
 						<a href="/encounter/2289">Blackwater Behemoth</a>
 					</div>
@@ -37,15 +38,16 @@
 					</div>
 				</div>
 			</div>
-			<h1 class="text-5xl font-bold text-purple-500">test.</h1>
+			<router-view></router-view>
 		</div>
 	</div>
 </template>
 
 <script>
 export default {
-  name: 'app',
-  components: {}
+	name: 'app',
+	components: {
+	}
 }
 </script>
 
