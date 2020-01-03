@@ -1,8 +1,5 @@
-module upload-client
-
-require (
-	github.com/leaanthony/mewn v0.10.7
-	github.com/wailsapp/wails v0.19.0
-)
+module github.com/jonny-rimek/wowmate/services/client
 
 go 1.13
+
+require github.com/therecipe/qt v0.0.0-20200103041036-2b818d970888
