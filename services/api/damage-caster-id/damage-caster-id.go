@@ -22,6 +22,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		TableName:              aws.String(os.Getenv("DDB_NAME")),
 		ReturnConsumedCapacity: aws.String("TOTAL"),
 		IndexName:              aws.String("GSI3"),
+		Limit:                  aws.Int64(50),
 	}
 
 	rcu, apiGwRes, err := golib.DDBQuery(ctx, input)
