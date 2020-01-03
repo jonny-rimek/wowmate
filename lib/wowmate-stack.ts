@@ -459,8 +459,8 @@ export class WowmateStack extends cdk.Stack {
 		const sfunc = new sfn.StateMachine(this, 'StateMachine', {
 			definition: sizeJob
 			.next(new sfn.Choice(this, 'Check file sizeFunc')
-				//NOTE: I know I can handle 144MB, but 203MB already fails with out of memory fatal error
-				.when(sfn.Condition.numberGreaterThan('$.file_size', 144), fileTooBig)
+				//NOTE: I know I can handle 11MB(gzipped), but 21MB already fails with out of memory fatal error
+				.when(sfn.Condition.numberGreaterThan('$.file_size', 16), fileTooBig)
 				.otherwise(parquetJob
 					.next(athenaInput)
 					.next(athenaJob)

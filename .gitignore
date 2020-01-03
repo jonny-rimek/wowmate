@@ -12,3 +12,4 @@ main
 
 #combatlog
 *.txt
+*.txt.gz
