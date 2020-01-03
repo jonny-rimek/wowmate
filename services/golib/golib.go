@@ -81,16 +81,24 @@ func DDBQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, ev
 
 //APIGwOK TODO: add comments
 func APIGwOK(body []byte) events.APIGatewayProxyResponse {
+	h := make(map[string]string)
+	h["Access-Control-Allow-Origin"] = "*"
+
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
+		Headers: h,
 		Body:       string(body),
 	}
 }
 
 //APIGwError is a helper function for APIGatewayProxyResponse
 func APIGwError(status int) events.APIGatewayProxyResponse {
+	h := make(map[string]string)
+	h["Access-Control-Allow-Origin"] = "*"
+
 	return events.APIGatewayProxyResponse{
 		StatusCode: status,
+		Headers: h,
 		Body:       http.StatusText(status),
 	}
 }
