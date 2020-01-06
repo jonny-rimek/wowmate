@@ -1,19 +1,19 @@
 #!/bin/bash
 cd ~/dev/wowmate/services/api/damage-boss-fight-uuid
 rm main
-# go mod tidy
+go mod tidy
 go build -ldflags "-s -w" -o main . 
 echo built damage-boss-fight-uuid
 
 cd ../damage-encounter-id
 rm main
-# go mod tidy
+go mod tidy
 go build -ldflags "-s -w" -o main . 
 echo built damage-encounter-id
 
 cd ../damage-caster-id
 rm main
-# go mod tidy
+go mod tidy
 go build -ldflags "-s -w" -o main . 
 echo built damage-caster-id
 
@@ -25,7 +25,7 @@ echo built size
 
 cd ../parquet
 rm main
-# go mod tidy
+go mod tidy
 go build -ldflags "-s -w" -o main . 
 echo built parquet
 
@@ -43,7 +43,7 @@ echo built check
 
 cd ../import
 rm main
-# go mod tidy
+go mod tidy
 go build -ldflags "-s -w" -o main .
 echo built import
 

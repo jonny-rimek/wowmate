@@ -22,6 +22,7 @@ func main() {
 	// give it a QVBoxLayout
 	// and make it the central widget of the window
 	widget := widgets.NewQWidget(nil, 0)
+	// widget := widgets.NewQFileDialog(nil, 0)
 	widget.SetLayout(widgets.NewQVBoxLayout())
 	window.SetCentralWidget(widget)
 
