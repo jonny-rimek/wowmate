@@ -17,10 +17,10 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 				S: aws.String(req.PathParameters["boss-fight-uuid"]),
 			},
 		},
-		KeyConditionExpression: aws.String("gsi2pk = :v1"),
+		KeyConditionExpression: aws.String("pk = :v1"),
 		TableName:              aws.String(os.Getenv("DDB_NAME")),
 		ReturnConsumedCapacity: aws.String("TOTAL"),
-		IndexName:              aws.String("GSI2"),
+		IndexName:              aws.String("GSI1"),
 		Limit:                  aws.Int64(50),
 		ScanIndexForward:       aws.Bool(false),
 	}

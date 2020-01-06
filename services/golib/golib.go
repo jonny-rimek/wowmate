@@ -19,11 +19,10 @@ import (
 
 //DamageSummary is the DynamoDB schema for all damage summaries
 type DamageSummary struct {
-	PK            string `json:"pk"`
-	Damage        int64  `json:"sk"`
-	EncounterID   int    `json:"gsi1pk"`
-	BossFightUUID string `json:"gsi2pk"`
-	CasterID      string `json:"gsi3pk"`
+	BossFightUUID string `json:"pk"`
+	CasterID      string `json:"sk"`
+	EncounterID   int    `json:"gsi3pk"`
+	Damage        int64  `json:"gsi123sk"`
 	CasterName    string `json:"caster_name"`
 }
 
@@ -88,7 +87,7 @@ func APIGwOK(body []byte) events.APIGatewayProxyResponse {
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
-		Headers: h,
+		Headers:    h,
 		Body:       string(body),
 	}
 }
@@ -100,7 +99,7 @@ func APIGwError(status int) events.APIGatewayProxyResponse {
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: status,
-		Headers: h,
+		Headers:    h,
 		Body:       http.StatusText(status),
 	}
 }

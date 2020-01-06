@@ -26,27 +26,27 @@ export class WowmateStack extends cdk.Stack {
 		//DYNAMODB
 		const db = new ddb.Table(this, 'DDB', {
 			partitionKey: { name: 'pk', type: ddb.AttributeType.STRING },
-			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER},
+			sortKey: {name: 'sk', type: ddb.AttributeType.STRING},
 			removalPolicy: RemovalPolicy.DESTROY,
             billingMode: ddb.BillingMode.PAY_PER_REQUEST
 		})
 
 		db.addGlobalSecondaryIndex({
 			indexName: 'GSI1',
-			partitionKey: {name: 'gsi1pk', type: ddb.AttributeType.NUMBER},
-			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
+			partitionKey: {name: 'pk', type: ddb.AttributeType.STRING},
+			sortKey: {name: 'gsi123sk', type: ddb.AttributeType.NUMBER}
 		})
 
 		db.addGlobalSecondaryIndex({
 			indexName: 'GSI2',
-			partitionKey: {name: 'gsi2pk', type: ddb.AttributeType.STRING},
-			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
+			partitionKey: {name: 'sk', type: ddb.AttributeType.STRING},
+			sortKey: {name: 'gsi123sk', type: ddb.AttributeType.NUMBER}
 		})
 
 		db.addGlobalSecondaryIndex({
 			indexName: 'GSI3',
-			partitionKey: {name: 'gsi3pk', type: ddb.AttributeType.STRING},
-			sortKey: {name: 'sk', type: ddb.AttributeType.NUMBER}
+			partitionKey: {name: 'gsi3pk', type: ddb.AttributeType.NUMBER},
+			sortKey: {name: 'gsi123sk', type: ddb.AttributeType.NUMBER}
 		})
 
 		//unfortunately route53 is somewhat of a pain with CDK so I created the alias and the ACM cert manually

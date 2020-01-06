@@ -18,10 +18,10 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 				S: aws.String(req.PathParameters["caster-id"]),
 			},
 		},
-		KeyConditionExpression: aws.String("gsi3pk = :v1"),
+		KeyConditionExpression: aws.String("sk = :v1"),
 		TableName:              aws.String(os.Getenv("DDB_NAME")),
 		ReturnConsumedCapacity: aws.String("TOTAL"),
-		IndexName:              aws.String("GSI3"),
+		IndexName:              aws.String("GSI2"),
 		Limit:                  aws.Int64(50),
 		ScanIndexForward:       aws.Bool(false),
 	}

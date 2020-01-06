@@ -1,5 +1,10 @@
 #!/bin/bash
-cd ~/dev/wowmate/services/api/damage-boss-fight-uuid
+cd ~/dev/wowmate/services/golib
+go mod tidy
+gofmt -w -s .
+echo gofmt and tidy golib
+
+cd ../api/damage-boss-fight-uuid
 rm main
 go mod tidy
 gofmt -w -s .

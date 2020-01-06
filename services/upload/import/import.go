@@ -165,11 +165,10 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		}
 
 		r := golib.DamageSummary{
-			PK:            fmt.Sprintf("%v#%v", trimQuotes(row[3]), trimQuotes(row[2])),
-			Damage:        damage,
-			EncounterID:   encounterID,
 			BossFightUUID: trimQuotes(row[2]), //boss fight uuid
 			CasterID:      trimQuotes(row[3]), //caster id
+			EncounterID:   encounterID,
+			Damage:        damage,
 			CasterName:    trimQuotes(row[4]), //caster name
 		}
 
