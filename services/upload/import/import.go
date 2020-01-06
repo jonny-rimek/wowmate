@@ -1,17 +1,17 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
 	"bufio"
 	"bytes"
+	"fmt"
+	"github.com/sirupsen/logrus"
 	"os"
 	"strconv"
 	"strings"
-	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -27,9 +27,9 @@ type Event struct {
 func handler(e Event) error {
 	bytes, wcu, err := handle(e)
 	golib.CanonicalLog(map[string]interface{}{
-		"bucket":        e.BucketName, 
+		"bucket":        e.BucketName,
 		"key":           e.Key,
-		"downloaded KB": bytes/1024,
+		"downloaded KB": bytes / 1024,
 		"wcu":           wcu,
 	})
 	return err
@@ -71,7 +71,7 @@ func writeDynamoDB(records []golib.DamageSummary, sess *session.Session) (float6
 			writes = nil
 		}
 	}
-	//NOTE: if the size was exactly 25 this will still execute with 
+	//NOTE: if the size was exactly 25 this will still execute with
 	//an empty array, not sure how it will behave
 	wcu, err := writeBatchDynamoDB(writes, sess)
 	if err != nil {
@@ -101,11 +101,11 @@ func createDynamoDBWriteRequest(records []golib.DamageSummary) ([]*dynamodb.Writ
 	return writesRequets, nil
 }
 
-func writeBatchDynamoDB(writeRequests[]*dynamodb.WriteRequest, sess *session.Session) (float64, error) {
+func writeBatchDynamoDB(writeRequests []*dynamodb.WriteRequest, sess *session.Session) (float64, error) {
 	svcdb := dynamodb.New(sess)
 	ddbTableName := os.Getenv("DDB_NAME")
 
-	input:= &dynamodb.BatchWriteItemInput{
+	input := &dynamodb.BatchWriteItemInput{
 		RequestItems: map[string][]*dynamodb.WriteRequest{
 			ddbTableName: writeRequests,
 		},
@@ -144,7 +144,7 @@ func writeBatchDynamoDB(writeRequests[]*dynamodb.WriteRequest, sess *session.Ses
 	return *result.ConsumedCapacity[0].CapacityUnits, nil
 }
 
-func parseCSV(file []byte) ([]golib.DamageSummary, error){
+func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 	var records []golib.DamageSummary
 
 	reader := bytes.NewReader(file)
@@ -165,7 +165,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error){
 		}
 
 		r := golib.DamageSummary{
-			PK:            fmt.Sprintf("%v#%v",trimQuotes(row[3]), trimQuotes(row[2])),
+			PK:            fmt.Sprintf("%v#%v", trimQuotes(row[3]), trimQuotes(row[2])),
 			Damage:        damage,
 			EncounterID:   encounterID,
 			BossFightUUID: trimQuotes(row[2]), //boss fight uuid

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"compress/gzip"
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"fmt"
 	"log"
 	"os"
@@ -126,7 +126,7 @@ func handler(e StepfunctionEvent) error {
 	}
 
 	log.Printf("DEBUG: Upload finished! location: %s", result.Location)
-	
+
 	os.Remove("/tmp/flat.parquet")
 	log.Printf("DEBUG: file deleted")
 

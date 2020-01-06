@@ -1,14 +1,14 @@
 package main
 
 import (
-	"log"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"os"
+	"context"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"context"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/jonny-rimek/wowmate/services/golib"
+	"log"
+	"os"
 )
 
 func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -28,7 +28,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 
 	rcu, apiGwRes, err := golib.DDBQuery(ctx, input)
 	golib.CanonicalLog(map[string]interface{}{
-		"caster-id":     req.PathParameters["caster-id"], 
+		"caster-id":        req.PathParameters["caster-id"],
 		"rcu":              rcu,
 		"http-status-code": apiGwRes.StatusCode,
 	})
