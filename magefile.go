@@ -13,42 +13,64 @@ import (
 
 var Default = Build
 
-// Default target to run when none is specified
-// If not set, running mage will list available targets
-// var Default = Build
-
-// A build step that requires additional params, or platform specific steps for example
 func Build() error {
+	// mg.SerialDeps(Go, BuildFrontend)
+	if err := Go(); err != nil {
+		return err
+	}
+	if err := Frontend(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Go() error {
 	s, err := sh.Output("go", "list", "./...")
 	if err != nil {
 		return err
 	}
 	pkgs := strings.Split(s, "\n")
 	for i := range pkgs {
-		pkgs[i] = strings.TrimPrefix(pkgs[i], "_")
-		BuildGo(pkgs[i])
+		filepath := strings.TrimPrefix(pkgs[i], "_")
+		os.Chdir(filepath)
+		os.Remove("main")
+		
+		//for some reason go list ./... finds files in cdk.out
+		if strings.Contains(filepath, "cdk.out") == true {
+			continue;
+		}
+		if err := GoTidy(); err != nil {
+			return err
+		}
+		if err := Gofmt(); err != nil {
+			return err
+		}
+		if err := GoBuild(); err != nil {
+			return err
+		}
+		fmt.Printf("built %v\n", filepath)
 	}
 	return nil
 }
 
-func BuildGo(filepath string) error {
-	os.Chdir(filepath)
-	os.Remove("main")
-	if err := sh.Run("go", "mod", "tidy"); err != nil {
-		return err
-	}
-	if err := sh.Run("gofmt", "-w", "-s", "."); err != nil {
-		return err
-	}
-	ldflags := "-s -w"
-	if err := sh.Run("go", "build", "-ldflags", ldflags, "-o", "main", "."); err != nil {
-		return err
-	}
-	fmt.Printf("built %v\n", filepath)
-	return nil
+func GoTidy() error {
+	return sh.Run("go", "mod", "tidy")
 }
 
-func BuildFrontend() error {
-	os.Chdir("services/golib")
+func Gofmt() error {
+	return sh.Run("gofmt", "-w", "-s", ".")
+}
+
+func GoBuild() error {
+	return sh.Run("go", "build", "-ldflags", "-s -w", "-o", "main", ".")
+}
+
+func Frontend() error {
+	os.Chdir("/home/jimbo/dev/wowmate/services/frontend")
+	if err := sh.Run("npm", "install"); err != nil {
+		return err
+	}
+
 	return sh.Run("npm", "run", "build")
 }
