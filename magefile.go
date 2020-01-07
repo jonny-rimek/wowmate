@@ -7,23 +7,14 @@ import (
 	"os"
 	"strings"
 
-	// "github.com/magefile/mage/mg"
+	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
 var Default = Build
 
 func Build() error {
-	// mg.SerialDeps(Go, BuildFrontend)
-	if err := Go(); err != nil {
-		return err
-	}
-	if err := Frontend(); err != nil {
-		return err
-	}
-	if err := CDK(); err != nil {
-		return err
-	}
+	mg.SerialDeps(Go, Frontend)
 
 	return nil
 }
@@ -37,19 +28,18 @@ func Go() error {
 	for i := range pkgs {
 		filepath := strings.TrimPrefix(pkgs[i], "_")
 		os.Chdir(filepath)
-		os.Remove("main")
 		
 		//for some reason go list ./... finds files in cdk.out
 		if strings.Contains(filepath, "cdk.out") == true {
 			continue;
 		}
-		if err := GoTidy(); err != nil {
+		if err := goTidy(); err != nil {
 			return err
 		}
-		if err := Gofmt(); err != nil {
+		if err := gofmt(); err != nil {
 			return err
 		}
-		if err := GoBuild(); err != nil {
+		if err := goBuild(); err != nil {
 			return err
 		}
 		fmt.Printf("built %v\n", filepath)
@@ -57,15 +47,16 @@ func Go() error {
 	return nil
 }
 
-func GoTidy() error {
+func goTidy() error {
 	return sh.Run("go", "mod", "tidy")
 }
 
-func Gofmt() error {
+func gofmt() error {
 	return sh.Run("gofmt", "-w", "-s", ".")
 }
 
-func GoBuild() error {
+func goBuild() error {
+	os.Remove("main")
 	return sh.Run("go", "build", "-ldflags", "-s -w", "-o", "main", ".")
 }
 
@@ -78,7 +69,8 @@ func Frontend() error {
 	return sh.Run("npm", "run", "build")
 }
 
-func CDK() error {
+func Deploy() error {
+	mg.SerialDeps(Go, Frontend)
 	os.Chdir("/home/jimbo/dev/wowmate")
 	if err := sh.Run("npm", "install"); err != nil {
 		return err
