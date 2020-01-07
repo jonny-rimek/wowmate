@@ -21,6 +21,9 @@ func Build() error {
 	if err := Frontend(); err != nil {
 		return err
 	}
+	if err := CDK(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -73,4 +76,16 @@ func Frontend() error {
 	}
 
 	return sh.Run("npm", "run", "build")
+}
+
+func CDK() error {
+	os.Chdir("/home/jimbo/dev/wowmate")
+	if err := sh.Run("npm", "install"); err != nil {
+		return err
+	}
+	if err := sh.Run("tsc"); err != nil {
+		return err
+	}
+
+	return sh.Run("cdk", "deploy", "--require-approval=never")
 }
