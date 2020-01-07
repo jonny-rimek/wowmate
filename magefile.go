@@ -3,12 +3,12 @@
 package main
 
 import (
-	"github.com/magefile/mage/sh"
 	"fmt"
 	"os"
-	"os/exec"
+	"strings"
 
-	"github.com/magefile/mage/mg" // mg contains helpful utility functions, like Deps
+	// "github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 )
 
 var Default = Build
@@ -19,30 +19,36 @@ var Default = Build
 
 // A build step that requires additional params, or platform specific steps for example
 func Build() error {
-	fmt.Println("Building...")
-	os.Chdir("services/golib")
-	if err := sh.Run("go", "mod", "tidy"); err != nil {
-        return err
+	s, err := sh.Output("go", "list", "./...")
+	if err != nil {
+		return err
 	}
-	return sh.Run("gofmt", "-w", "-s", ".")
+	pkgs := strings.Split(s, "\n")
+	for i := range pkgs {
+		pkgs[i] = strings.TrimPrefix(pkgs[i], "_")
+		BuildGo(pkgs[i])
+	}
+	return nil
 }
 
-// A custom install step if you need your bin someplace other than go/bin
-func Install() error {
-	mg.Deps(Build)
-	fmt.Println("Installing...")
-	return os.Rename("./MyApp", "/usr/bin/MyApp")
+func BuildGo(filepath string) error {
+	os.Chdir(filepath)
+	os.Remove("main")
+	if err := sh.Run("go", "mod", "tidy"); err != nil {
+		return err
+	}
+	if err := sh.Run("gofmt", "-w", "-s", "."); err != nil {
+		return err
+	}
+	ldflags := "-s -w"
+	if err := sh.Run("go", "build", "-ldflags", ldflags, "-o", "main", "."); err != nil {
+		return err
+	}
+	fmt.Printf("built %v\n", filepath)
+	return nil
 }
 
-// Manage your deps, or running package managers.
-func InstallDeps() error {
-	fmt.Println("Installing Deps...")
-	cmd := exec.Command("go", "get", "github.com/stretchr/piglatin")
-	return cmd.Run()
-}
-
-// Clean up after yourself
-func Clean() {
-	fmt.Println("Cleaning...")
-	os.RemoveAll("MyApp")
+func BuildFrontend() error {
+	os.Chdir("services/golib")
+	return sh.Run("npm", "run", "build")
 }
