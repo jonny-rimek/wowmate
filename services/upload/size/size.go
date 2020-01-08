@@ -21,20 +21,22 @@ type Detail struct {
 	RequestParameters RequestParameters `json:"requestParameters"`
 }
 
-//Event ..
+//Event struct is needed to represent the S3 event structure
 type Event struct {
 	Detail Detail `json:"detail"`
 }
 
-//Response IMPROVE:
+//Response is the object the next step in Stepfunctions expects
 type Response struct {
 	FileSize   int    `json:"file_size"`
 	BucketName string `json:"bucketName"`
 	Key        string `json:"key"`
 }
+//TODO: add event bridge as a step between s3 and sfn
 
 func handler(e Event) (Response, error) {
 
+	//TODO: add conanical log
 	log.Print("DEBUG: bucketname: " + e.Detail.RequestParameters.BucketName)
 	log.Print("DEBUG: filename: " + e.Detail.RequestParameters.Key)
 
@@ -44,7 +46,6 @@ func handler(e Event) (Response, error) {
 
 	svc := s3.New(sess)
 
-	// output, err := svc.GetObject(
 	output, err := svc.HeadObject(
 		&s3.HeadObjectInput{
 			Bucket: aws.String(e.Detail.RequestParameters.BucketName),

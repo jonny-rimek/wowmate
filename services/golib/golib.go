@@ -27,12 +27,13 @@ type DamageSummary struct {
 	CasterName    string `json:"caster_name"`
 }
 
-//CanonicalLog IMPROVE:_
+//CanonicalLog writes a structured message to stdout if the log level is atleast INFO
 func CanonicalLog(msg map[string]interface{}) {
 	logrus.WithFields(msg).Info()
 }
 
-//DDBQuery IMPROVE:
+//DDBQuery runs a DynamoDB query and returns an APIGateway Response
+//IMPROVE: the APIGateway stuff and the marshalling into a struct should be moved to a seperate function
 func DDBQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, events.APIGatewayProxyResponse, error) {
 	svc := dynamodb.New(session.New())
 	var rcu float64
@@ -41,7 +42,8 @@ func DDBQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, ev
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				return rcu, APIGwError(429), err
+				logrus.Error(dynamodb.ErrCodeProvisionedThroughputExceededException)
+				return rcu, APIGwError(429), nil
 			case dynamodb.ErrCodeResourceNotFoundException:
 				return rcu, APIGwError(500), err
 			case dynamodb.ErrCodeInternalServerError:
@@ -81,7 +83,7 @@ func DDBQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, ev
 	return rcu, APIGwOK(js), nil
 }
 
-//APIGwOK TODO: add comments
+//APIGwOK return http status code 200 plus the body
 func APIGwOK(body []byte) events.APIGatewayProxyResponse {
 	h := make(map[string]string)
 	h["Access-Control-Allow-Origin"] = "*"
@@ -105,7 +107,7 @@ func APIGwError(status int) events.APIGatewayProxyResponse {
 	}
 }
 
-//DownloadFileFromS3 IMPROVE:
+//DownloadFileFromS3 writes a file from S3 to memory
 func DownloadFileFromS3(bucket string, key string, sess *session.Session) ([]byte, int64, error) {
 	downloader := s3manager.NewDownloader(sess)
 

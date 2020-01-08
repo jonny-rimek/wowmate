@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-//TODO: create helper that allows one line conversion to 32bit int
-
 //Atoi32 converts a string directly to a int32, baseline golang parses string always into int64 and have to be converted
 //to int32. You can however transform a string easily to int, which is somehow the same, but the parquet package expects int32
 //specifically

@@ -21,6 +21,7 @@ import (
 )
 
 //StepfunctionEvent provides config data to the lambda
+//IMPROVE: refactor to use up to date logging approach
 type StepfunctionEvent struct {
 	BucketName string `json:"bucketName"`
 	Key        string `json:"key"`
@@ -37,8 +38,6 @@ func handler(e StepfunctionEvent) error {
 		Region: aws.String("eu-central-1")},
 	)
 
-	//NOTE: downloading the file is what takes up most of the time
-	//		gzip before upload
 	downloader := s3manager.NewDownloader(sess)
 
 	file := &aws.WriteAtBuffer{}
@@ -64,7 +63,7 @@ func handler(e StepfunctionEvent) error {
 	}
 	s := bufio.NewScanner(uncompressed)
 
-	events, err := Import(s, uploadUUID) //IMPROVE: handle errors
+	events, err := Import(s, uploadUUID) 
 	if err != nil {
 		return err
 	}
