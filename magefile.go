@@ -13,6 +13,13 @@ import (
 
 var Default = Build
 
+var Aliases = map[string]interface{} {
+	"d": Deploy,
+	"b": Build,
+	"g": Go,
+	"f": Frontend,
+}
+
 func Build() error {
 	mg.SerialDeps(Go, Frontend)
 
@@ -70,7 +77,7 @@ func Frontend() error {
 }
 
 func Deploy() error {
-	mg.SerialDeps(Go, Frontend)
+	// mg.SerialDeps(Go, Frontend)
 	os.Chdir("/home/jimbo/dev/wowmate")
 	if err := sh.Run("npm", "install"); err != nil {
 		return err

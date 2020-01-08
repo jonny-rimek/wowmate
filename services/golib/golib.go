@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
@@ -120,4 +121,15 @@ func DownloadFileFromS3(bucket string, key string, sess *session.Session) ([]byt
 		return nil, bytes, fmt.Errorf("Unable to download item %v from bucket %v: %v", key, bucket, err)
 	}
 	return file.Bytes(), bytes, nil
+}
+
+//InitLogging sets up the logging for every lambda and should be called before the handler
+func InitLogging() {
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "prod" {
+		logrus.SetLevel(logrus.InfoLevel)
+	} else {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+	logrus.SetFormatter(&logrus.JSONFormatter{})
 }

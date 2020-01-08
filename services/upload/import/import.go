@@ -187,13 +187,6 @@ func trimQuotes(input string) string {
 }
 
 func main() {
-	logLevel := os.Getenv("LOG_LEVEL")
-	if logLevel == "prod" {
-		logrus.SetLevel(logrus.InfoLevel)
-	} else {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-
+	golib.InitLogging()
 	lambda.Start(handler)
 }
