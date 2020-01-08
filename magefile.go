@@ -20,15 +20,20 @@ var Aliases = map[string]interface{} {
 	"f": Frontend,
 }
 
+var WorkingDir string
+
 func Build() error {
-	//TODO: fix directory problem
-	//		run pwd at the beginning to get current path and use that
+	WorkingDir, _ = sh.Output("pwd")
+
 	mg.SerialDeps(Go, Frontend)
 
 	return nil
 }
 
 func Go() error {
+	if WorkingDir != "" {
+		os.Chdir(WorkingDir)
+	}
 	s, err := sh.Output("go", "list", "./...")
 	if err != nil {
 		return err
@@ -70,20 +75,20 @@ func goBuild() error {
 }
 
 func Frontend() error {
-	os.Chdir("/home/jimbo/dev/wowmate/services/frontend")
-	if err := sh.Run("npm", "install"); err != nil {
-		return err
+	if WorkingDir != "" {
+		os.Chdir(WorkingDir)
 	}
-
+	os.Chdir("services/frontend")
+	// if err := sh.Run("npm", "install"); err != nil {
+	// 	return err
+	// }
 	return sh.Run("npm", "run", "build")
 }
 
 func Deploy() error {
-	// mg.SerialDeps(Go, Frontend)
-	os.Chdir("/home/jimbo/dev/wowmate")
-	if err := sh.Run("npm", "install"); err != nil {
-		return err
-	}
+	// if err := sh.Run("npm", "install"); err != nil {
+	// 	return err
+	// }
 	if err := sh.Run("tsc"); err != nil {
 		return err
 	}
