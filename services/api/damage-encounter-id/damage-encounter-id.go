@@ -35,5 +35,6 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 }
 
 func main() {
+	golib.InitLogging()
 	lambda.Start(handler)
 }

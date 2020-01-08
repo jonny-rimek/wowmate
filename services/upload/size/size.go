@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/jonny-rimek/wowmate/services/golib"
 )
 
 //RequestParameters test ..
@@ -156,5 +157,6 @@ func handler(e Event) (Response, error) {
 }
 
 func main() {
+	golib.InitLogging()
 	lambda.Start(handler)
 }

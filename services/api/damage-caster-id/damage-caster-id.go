@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/jonny-rimek/wowmate/services/golib"
-	"log"
 	"os"
 )
 
@@ -36,6 +35,6 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 }
 
 func main() {
-	log.Println("tet1")
+	golib.InitLogging()
 	lambda.Start(handler)
 }
