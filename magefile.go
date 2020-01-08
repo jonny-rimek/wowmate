@@ -21,6 +21,8 @@ var Aliases = map[string]interface{} {
 }
 
 func Build() error {
+	//TODO: fix directory problem
+	//		run pwd at the beginning to get current path and use that
 	mg.SerialDeps(Go, Frontend)
 
 	return nil
