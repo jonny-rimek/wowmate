@@ -112,24 +112,15 @@ func handler(e StepfunctionEvent) error {
 	//END
 
 	//UPLOAD TO S3
-	s3Svc := s3.New(sess)
-	uploader := s3manager.NewUploaderWithClient(s3Svc)
 	uploadFileName := fmt.Sprintf("test/test-diff.parquet")
 
-	result, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(targetBucket),
-		Key:    &uploadFileName,
-		Body:   fr,
-	})
+	golib.UploadFileToS3(fr, targetBucket, uploadFileName, sess)
+
+	err = os.Remove("/tmp/flat.parquet")
 	if err != nil {
-		log.Println("Failed to upload to S3: " + err.Error())
+		log.Println("ERROR: failed to delete file")
 	}
-
-	log.Printf("DEBUG: Upload finished! location: %s", result.Location)
-
-	os.Remove("/tmp/flat.parquet")
 	log.Printf("DEBUG: file deleted")
-
 	return nil
 }
 

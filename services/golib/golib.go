@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"io"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
@@ -55,7 +56,7 @@ func DDBQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, ev
 			return rcu, APIGwError(500), err
 		}
 	}
-	//IMPROVE: check result.LastEvaluatedKey if it is not nil return it
+	//WISHLIST: check result.LastEvaluatedKey if it is not nil return it
 	//			to enable pagination
 
 	rcu = *result.ConsumedCapacity.CapacityUnits
@@ -123,6 +124,26 @@ func DownloadFileFromS3(bucket string, key string, sess *session.Session) ([]byt
 		return nil, bytes, fmt.Errorf("Unable to download item %v from bucket %v: %v", key, bucket, err)
 	}
 	return file.Bytes(), bytes, nil
+}
+
+//UploadFileToS3 writes files to S3 and cleans up the local storage
+func UploadFileToS3(fileContent io.Reader, bucket string, key string, sess *session.Session) error {
+	s3Svc := s3.New(sess)
+
+	uploader := s3manager.NewUploaderWithClient(s3Svc)
+	result, err := uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String(bucket),
+		Key:    &key,
+		Body:   fileContent,
+	})
+	if err != nil {
+		logrus.Error("Failed to upload to S3: " + err.Error())
+		return err
+	}
+
+	logrus.Debug("Upload finished! location: " + result.Location)
+
+	return nil
 }
 
 //InitLogging sets up the logging for every lambda and should be called before the handler
