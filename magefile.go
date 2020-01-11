@@ -15,6 +15,7 @@ var Default = Build
 
 var Aliases = map[string]interface{} {
 	"d": Deploy,
+	"di": Diff,
 	"b": Build,
 	"g": Go,
 	"f": Frontend,
@@ -94,4 +95,15 @@ func Deploy() error {
 	}
 
 	return sh.Run("cdk", "deploy", "--require-approval=never")
+}
+
+func Diff() error {
+	// if err := sh.Run("npm", "install"); err != nil {
+	// 	return err
+	// }
+	if err := sh.Run("tsc"); err != nil {
+		return err
+	}
+
+	return sh.Run("cdk", "diff")
 }

@@ -16,6 +16,7 @@ import cloudfront = require('@aws-cdk/aws-cloudfront');
 import route53= require('@aws-cdk/aws-route53');
 import acm = require('@aws-cdk/aws-certificatemanager');
 import { SSLMethod, SecurityPolicyProtocol, OriginAccessIdentity } from '@aws-cdk/aws-cloudfront';
+import { StateMachineType } from '@aws-cdk/aws-stepfunctions';
 // import events = require('@aws-cdk/aws-events');
 // import { Result } from '@aws-cdk/aws-stepfunctions';
 
@@ -490,6 +491,10 @@ export class WowmateStack extends cdk.Stack {
 					)
 				)
 			),
+			// IMPROVE: use express functions
+			// caveats, need to activate extra logging
+			// which is not supported with cdk yet
+			// stateMachineType: StateMachineType.EXPRESS,
 		});
 
 		uploadBucket.onCloudTrailPutObject('cwEvent', {
