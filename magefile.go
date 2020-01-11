@@ -30,6 +30,13 @@ func Build() error {
 
 	return nil
 }
+/* 
+TODO: add a scaffold lambda function
+		- [ ] create folder and go file with the same name
+		- [ ] go mod init
+		- [ ] go mod edit -replace=github.com/alexedwards/argon2id=/home/alex/code/argon2i
+		- [ ] 
+ */
 
 func Go() error {
 	if WorkingDir != "" {
