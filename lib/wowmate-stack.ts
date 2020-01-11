@@ -503,6 +503,16 @@ export class WowmateStack extends cdk.Stack {
             detail: {
                 eventName: ['CompleteMultipartUpload'],
             },
-        });
+		});
+		
+		//Client S3 upload IAM
+		const role = new iam.Role(this, 'ClientRole', {
+			assumedBy: new iam.AccountPrincipal('940880032268'),
+		})
+
+		role.addToPolicy(new iam.PolicyStatement({
+			resources: [uploadBucket.bucketArn],
+			actions: ['s3:PutObject'],
+		}))
 	}
 }

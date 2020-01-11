@@ -70,7 +70,6 @@ func handler(e StepfunctionEvent) error {
 
 	log.Print("DEBUG: read combatlog to slice of Event structs")
 
-	//TODO: don't hardcode name, atleast on upload to s3
 	fw, err := local.NewLocalFileWriter("/tmp/flat.parquet")
 	if err != nil {
 		log.Fatalf("Can't create local file: %v", err)
@@ -112,15 +111,21 @@ func handler(e StepfunctionEvent) error {
 	//END
 
 	//UPLOAD TO S3
+	//TODO: use some combatlog uuid as filename
 	uploadFileName := fmt.Sprintf("test/test-diff.parquet")
 
-	golib.UploadFileToS3(fr, targetBucket, uploadFileName, sess)
+	err = golib.UploadFileToS3(fr, targetBucket, uploadFileName, sess)
+	if err != nil {
+		return err
+	}
 
 	err = os.Remove("/tmp/flat.parquet")
 	if err != nil {
 		log.Println("ERROR: failed to delete file")
+		return err
 	}
 	log.Printf("DEBUG: file deleted")
+
 	return nil
 }
 

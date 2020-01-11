@@ -35,7 +35,7 @@ TODO: add a scaffold lambda function
 		- [ ] create folder and go file with the same name
 		- [ ] go mod init
 		- [ ] go mod edit -replace=github.com/alexedwards/argon2id=/home/alex/code/argon2i
-		- [ ] 
+		- [ ] add biler plate go code to mail file, including golib.InitLogging()
  */
 
 func Go() error {
