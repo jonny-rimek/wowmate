@@ -113,60 +113,60 @@ export class WowmateStack extends cdk.Stack {
 		CasterIdParam.addMethod('GET', damageCasterIdIntegration)
 
 		//FRONTEND
-		// const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
-		// 	websiteIndexDocument: 'index.html',
-		// 	blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-		// });
+		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
+			websiteIndexDocument: 'index.html',
+			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+		});
 
-		// const originAccessIdentity = new cloudfront.OriginAccessIdentity(this, 'OAI');
+		const originAccessIdentity = new cloudfront.OriginAccessIdentity(this, 'OAI');
 
-		// const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
-		// 	originConfigs: [
-		// 		{
-		// 			customOriginSource: {
-		// 				domainName: 'api.wmate.net',
-		// 			},
-		// 			behaviors: [{
-		// 				pathPattern: '/api/*',
-		// 				compress: true,
-		// 			}]
-		// 		},
-		// 		{
-		// 			s3OriginSource: {
-		// 				s3BucketSource: frontendBucket,
-		// 				originAccessIdentity: originAccessIdentity,
-		// 			},
-		// 			behaviors : [ {
-		// 				isDefaultBehavior: true,
-		// 				compress: true,
-		// 			}]
-		// 		}
-		// 	],
-		// 	errorConfigurations: [
-		// 		{
-		// 			errorCode: 403,
-		// 			responseCode: 200,
-		// 			responsePagePath: '/index.html'
-		// 		},
-		// 		{
-		// 			errorCode: 404,
-		// 			responseCode: 200,
-		// 			responsePagePath: '/index.html'
-		// 		},
-		// 	],
-		// 	aliasConfiguration: {
-		// 		names: ['wmate.net'],
-		// 		acmCertRef: 'arn:aws:acm:us-east-1:940880032268:certificate/613f33d4-230b-49d9-8e06-be177f135e0d',
-		// 		sslMethod: SSLMethod.SNI,
-		// 		securityPolicy: SecurityPolicyProtocol.TLS_V1_2_2018,
-		// 	}
-		// });
+		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
+			originConfigs: [
+				{
+					customOriginSource: {
+						domainName: 'api.wmate.net',
+					},
+					behaviors: [{
+						pathPattern: '/api/*',
+						compress: true,
+					}]
+				},
+				{
+					s3OriginSource: {
+						s3BucketSource: frontendBucket,
+						originAccessIdentity: originAccessIdentity,
+					},
+					behaviors : [ {
+						isDefaultBehavior: true,
+						compress: true,
+					}]
+				}
+			],
+			errorConfigurations: [
+				{
+					errorCode: 403,
+					responseCode: 200,
+					responsePagePath: '/index.html'
+				},
+				{
+					errorCode: 404,
+					responseCode: 200,
+					responsePagePath: '/index.html'
+				},
+			],
+			aliasConfiguration: {
+				names: ['wmate.net'],
+				acmCertRef: 'arn:aws:acm:us-east-1:940880032268:certificate/613f33d4-230b-49d9-8e06-be177f135e0d',
+				sslMethod: SSLMethod.SNI,
+				securityPolicy: SecurityPolicyProtocol.TLS_V1_2_2018,
+			}
+		});
 
-		// new s3deploy.BucketDeployment(this, 'DeployWebsite', {
-		// 	sources: [s3deploy.Source.asset('services/./frontend/dist')],
-		// 	destinationBucket: frontendBucket,
-		// 	distribution,
-		// });
+		new s3deploy.BucketDeployment(this, 'DeployWebsite', {
+			sources: [s3deploy.Source.asset('services/./frontend/dist')],
+			destinationBucket: frontendBucket,
+			distribution,
+		});
 
 		//CLOUDTRAIL
 		const trail = new cloudtrail.Trail(this, 'CloudTrail', {
