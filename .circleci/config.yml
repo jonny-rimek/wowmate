@@ -11,7 +11,8 @@ jobs:
           command: |
             cd services/frontend
             npm install
-            npm run build
+
+          # npm run build
 
   # test:
   #   docker:
