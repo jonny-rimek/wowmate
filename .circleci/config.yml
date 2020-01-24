@@ -35,10 +35,10 @@ workflows:
   work_flow_name:
     jobs:
       - build
-      - approval:
+      - approval_step:
           type: approval
           requires:
             - build
       - test:
           requires:
-            - Hold-For-Approval
+            - approval_step
