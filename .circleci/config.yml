@@ -4,15 +4,17 @@ jobs:
     docker:
       - image: node:13
     resource_class: small
-    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/services/frontend
     steps:
       - checkout
-      # - attach_worksprace
-      - run: 
-          command: |
-            ls
-            cd services/frontend
-            npm install
+      # - attach_worksprace:
+      - restore_cache:
+          key: v1-npm-{{ checksum "package-lock.json" }}
+      - run: npm install
+      - save_cache:
+          key: v1-npm-{{ checksum "package-lock.json" }}
+          paths: 
+            -  ./node_modules
       # - run: npm run build
 
   # test:
