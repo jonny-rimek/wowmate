@@ -35,4 +35,6 @@ workflows:
   work_flow_name:
     jobs:
       - build
-      - test
+      - test:
+          requires:
+            - one
