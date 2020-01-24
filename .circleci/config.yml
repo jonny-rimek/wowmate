@@ -35,7 +35,8 @@ workflows:
   work_flow_name:
     jobs:
       - build
-      - Hold-For-Approval:
+      - approval:
+          type: approval
           requires:
             - build
       - test:
