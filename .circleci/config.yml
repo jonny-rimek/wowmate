@@ -15,6 +15,8 @@ jobs:
           paths: 
             -  ./node_modules
 
+            # TODO: add main.js content
+
       - run: cd services/frontend && ls -l && cd .. && npm run build
 
   # test:
