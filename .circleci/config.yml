@@ -9,13 +9,13 @@ jobs:
       - checkout
       - restore_cache:
           key: v1-npm-{{ checksum "services/frontend/package-lock.json" }}
-      - run: cd services/frontend && ls -l && npm install
+      - run: cd services/frontend && ls -l && pwd && npm install
       - save_cache:
           key: v1-npm-{{ checksum "services/frontend/package-lock.json" }}
           paths: 
             -  ./node_modules
 
-      - run: cd services/frontend/node_modules/.bin && ls -l && cd .. && npm run build
+      - run: cd services/frontend && ls -l && cd .. && npm run build
 
   # test:
   #   docker:
