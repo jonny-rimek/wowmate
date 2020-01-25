@@ -17,7 +17,9 @@ jobs:
           command: | 
             ls -l 
             cd ../..
+            ls
             mv node_modules services/frontend/node_modules
+            cd services/frontend
             if [ ! -d node_modules ]; then
               echo if
               npm install
