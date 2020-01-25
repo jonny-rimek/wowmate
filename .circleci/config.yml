@@ -23,7 +23,7 @@ jobs:
 
       - run: 
           name: Build npm
-          working_directory: ~/services/frontend
+          working_directory: ${CIRCLE_WORKING_DIRECTORY}/services/frontend
           command: | 
             ls -l 
             pwd
