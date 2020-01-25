@@ -4,6 +4,7 @@ jobs:
     docker:
       - image: node:13
     resource_class: small
+    working_directory: ~/wowmate
     steps:
       - checkout
       # - restore_cache:
@@ -23,7 +24,7 @@ jobs:
 
       - run: 
           name: Build npm
-          working_directory: ${CIRCLE_WORKING_DIRECTORY}/services/frontend
+          working_directory: ~/wowmate/services/frontend
           command: | 
             ls -l 
             pwd
