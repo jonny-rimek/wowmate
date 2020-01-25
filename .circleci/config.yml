@@ -17,8 +17,9 @@ jobs:
           command: | 
             ls -l 
             pwd 
-            npm install
-            # TODO: only run install when no cache was found
+            if [ ! -d node_modules ]; then
+              npm install
+            fi
       - save_cache:
           key: v1-npm-{{ checksum "package.json" }}
           paths: 
