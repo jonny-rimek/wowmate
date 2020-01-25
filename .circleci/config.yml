@@ -28,20 +28,27 @@ jobs:
             ls -l 
             pwd
             npm run build
-  # test:
-  #   docker:
-  #     - image: circleci/node:latest
-  #   resource_class: small
-  #   working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
-  #   steps:
-  #     - checkout
-  #     - run: ls
+      - persist_to_workspace:
+          root: .
+          paths: 
+            - dist
+  deploy:
+    docker:
+      - image: circleci/node:latest
+    resource_class: small
+    working_directory: ~/wowmate
+    steps:
+      - checkout
+      - run: 
+          name: Deploy to AWS
+          working_directory: ~/wowmate/services/frontend
+          command: ls 
 
-# workflows:
-#   version: 2
-#   work_flow_name:
-#     jobs:
-#       - build
-#       - test:
-#           requires:
-#             - build
+workflows:
+  version: 2
+  work_flow_name:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
