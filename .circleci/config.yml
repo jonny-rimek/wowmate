@@ -24,6 +24,7 @@ jobs:
           key: v1-npm-{{ checksum "services/frontend/package.json" }}
           paths: 
             -  ./node_modules
+
       # TODO: add main.js content
       - run: 
           name: Build npm
