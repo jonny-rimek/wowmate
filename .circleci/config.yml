@@ -29,14 +29,15 @@ jobs:
           command: | 
             pwd
             ls -l 
-            npm install -g typescript
-            npm i -g aws-cdk
-            cdk synth
-            ls -l
-      - persist_to_workspace:
-          root: .
-          paths: 
-            - cdk.out
+          # note need all other stages to finish first
+          # npm install -g typescript
+          # npm i -g aws-cdk
+          # cdk synth
+          # ls -l
+      # - persist_to_workspace:
+      #     root: .
+      #     paths: 
+      #       - cdk.out
   deploy_to_aws:
     docker:
       - image: circleci/node:latest
