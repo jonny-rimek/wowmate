@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  build:
+  build_infrastructure:
     docker:
       - image: node:13
     resource_class: small
@@ -13,30 +13,25 @@ jobs:
           key: v1-npm-{{ checksum "package-lock.json" }}
       - run: 
           name: Install npm 
-          # working_directory: ~/wowmate/services/frontend
           command: | 
-            ls -l -a 
             if [ ! -d node_modules ]; then
-              echo if
+              echo npm install
               npm install
             else
-              echo else
+              echo skip install because the node_modules are cached
             fi
-            echo after
-            ls -l
       - save_cache:
           key: v1-npm-{{ checksum "package-lock.json" }}
           paths: 
             -  node_modules
-
-      # TODO: add main.js content
       - run: 
           name: Build npm
           # working_directory: ~/wowmate/services/frontend
           command: | 
             pwd
-            npm run build
             ls -l 
+            sudo npm install -g typescript
+            npm run build
       - persist_to_workspace:
           root: services/frontend
           paths: 
