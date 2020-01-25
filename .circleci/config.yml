@@ -30,6 +30,7 @@ jobs:
             pwd
             ls -l 
             npm install -g typescript
+            npm i -g aws-cdk
             cdk synth
             ls -l
       - persist_to_workspace:
