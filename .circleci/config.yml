@@ -51,7 +51,7 @@ jobs:
       - run: 
           name: Deploy to AWS
           working_directory: ~/wowmate/services/frontend
-          command: ls dist
+          command: ls 
 
 workflows:
   version: 2
