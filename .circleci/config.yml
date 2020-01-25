@@ -26,17 +26,16 @@ jobs:
             -  node_modules
       - run: 
           name: Build npm
-          # working_directory: ~/wowmate/services/frontend
           command: | 
             pwd
             ls -l 
             npm install -g typescript
             npm run build
       - persist_to_workspace:
-          root: services/frontend
+          root: .
           paths: 
             - dist
-  deploy:
+  deploy_to_aws:
     docker:
       - image: circleci/node:latest
     resource_class: small
@@ -53,6 +52,6 @@ workflows:
   wowmatecicd:
     jobs:
       - build_infrastructure
-      - deploy:
+      - deploy_to_aws:
           requires:
             - build_infrastructure
