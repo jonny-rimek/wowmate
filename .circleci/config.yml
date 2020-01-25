@@ -9,7 +9,7 @@ jobs:
       - checkout
       - restore_cache:
           key: v1-npm-{{ checksum "package-lock.json" }}
-      - run: ls
+      - run: cd services/frontend && ls
       - save_cache:
           key: v1-npm-{{ checksum "package-lock.json" }}
           paths: 
