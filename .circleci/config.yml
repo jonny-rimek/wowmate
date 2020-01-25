@@ -10,7 +10,7 @@ jobs:
       - attach_workspace: 
           at: ~/wowmate
       - restore_cache:
-          key: v1-npm-{{ checksum "package.json" }}
+          key: v1-npm-{{ checksum "services/frontend/package.json" }}
       - run: 
           name: Install npm 
           working_directory: ~/wowmate/services/frontend
@@ -21,7 +21,7 @@ jobs:
               npm install
             fi
       - save_cache:
-          key: v1-npm-{{ checksum "package.json" }}
+          key: v1-npm-{{ checksum "services/frontend/package.json" }}
           paths: 
             -  ./node_modules
       # TODO: add main.js content
