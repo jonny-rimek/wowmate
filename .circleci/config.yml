@@ -30,7 +30,7 @@ jobs:
           command: | 
             pwd
             ls -l 
-            sudo npm install -g typescript
+            npm install -g typescript
             npm run build
       - persist_to_workspace:
           root: services/frontend
