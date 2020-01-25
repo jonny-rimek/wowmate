@@ -31,10 +31,11 @@ jobs:
             ls -l 
             npm install -g typescript
             npm run build
+            ls -l
       - persist_to_workspace:
           root: .
           paths: 
-            - dist
+            - cdk.out
   deploy_to_aws:
     docker:
       - image: circleci/node:latest
