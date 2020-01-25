@@ -50,12 +50,12 @@ jobs:
           at: ~/wowmate
       - run: 
           name: Deploy to AWS
-          # working_directory: ~/wowmate/services/frontend
-          command: ls 
+          working_directory: ~/wowmate/services/frontend
+          command: ls dist
 
 workflows:
   version: 2
-  work_flow_name:
+  wowmatecicd:
     jobs:
       - build
       - deploy:
