@@ -16,8 +16,17 @@ jobs:
           working_directory: ~/wowmate/services/frontend
           command: | 
             ls -l 
-            cd ../..
-            ls
+            cd ..
+            echo go up a dir
+            ls -l 
+            cd ..
+            echo go up a dir
+            ls -l 
+            cd ..
+            echo go up a dir
+            ls -l 
+            cd ..
+            echo go up a dir
             mv node_modules services/frontend/node_modules
             cd services/frontend
             if [ ! -d node_modules ]; then
