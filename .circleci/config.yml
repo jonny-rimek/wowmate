@@ -11,10 +11,11 @@ jobs:
       #     key: v1-npm-{{ checksum "services/frontend/package-lock.json" }}
       - run: 
           name: Install npm 
+          working_directory: ~/wowmate/services/frontend
           command: | 
             ls -l 
             pwd 
-          # npm install
+            install
       # - save_cache:
       #     key: v1-npm-{{ checksum "services/frontend/package-lock.json" }}
       #     paths: 
@@ -28,7 +29,7 @@ jobs:
           command: | 
             ls -l 
             pwd
-          # npm run build
+            npm run build
 
   # test:
   #   docker:
