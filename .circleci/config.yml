@@ -16,7 +16,6 @@ jobs:
           # working_directory: ~/wowmate/services/frontend
           command: | 
             ls -l -a 
-            mkdir node_modules
             if [ ! -d node_modules ]; then
               echo if
               npm install
@@ -31,7 +30,7 @@ jobs:
       - save_cache:
           key: v1-npm-{{ checksum "package-lock.json" }}
           paths: 
-            -  ./node_modules
+            -  node_modules
 
       # TODO: add main.js content
       - run: 

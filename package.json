@@ -1,5 +1,5 @@
 {
-  "name": "wowmate-",
+  "name": "wowmate-i",
   "version": "0.1.0",
   "bin": {
     "wowmate": "bin/wowmate.js"
