@@ -17,6 +17,7 @@ jobs:
           command: | 
             ls -l 
             pwd 
+            mv ../../node_modules .
             if [ ! -d node_modules ]; then
               echo if
               npm install
