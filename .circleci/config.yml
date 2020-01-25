@@ -32,25 +32,19 @@ jobs:
             npm run build
             ls -l 
       - persist_to_workspace:
-          root: .
+          root: services/frontend
           paths: 
-            - services/frontend/dist
-      # - run: 
-      #     name: Check tmp
-      #     command: | 
-      #       ls /tmp
+            - dist
   deploy:
     docker:
       - image: circleci/node:latest
     resource_class: small
     working_directory: ~/wowmate
     steps:
-      # - checkout
       - attach_workspace: 
           at: ~/wowmate
       - run: 
           name: Deploy to AWS
-          working_directory: ~/wowmate/services/frontend
           command: ls 
 
 workflows:
