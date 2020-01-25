@@ -4,12 +4,12 @@ jobs:
     docker:
       - image: node:13
     resource_class: small
-    # working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/services/frontend
+    working_directory: ~/services/frontend
     steps:
       - checkout
       - restore_cache:
           key: v1-npm-{{ checksum "package-lock.json" }}
-      - run: cd
+      - run: ls
       - save_cache:
           key: v1-npm-{{ checksum "package-lock.json" }}
           paths: 
