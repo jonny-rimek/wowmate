@@ -15,7 +15,7 @@ jobs:
       #     paths: 
       #       -  ./node_modules
 
-      - run: cd services/frontend/node_modules && ls -l && cd .. && npm run build
+      - run: cd services/frontend/node_modules/.bin && ls -l && cd .. && npm run build
 
   # test:
   #   docker:
