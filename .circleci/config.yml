@@ -28,10 +28,11 @@ jobs:
             pwd
             npm run build
             ls -l 
+            mv dist /tmp/dist
       - persist_to_workspace:
-          root: .
+          root: /tmp
           paths: 
-            - services/frontend/dist
+            - dist
   deploy:
     docker:
       - image: circleci/node:latest
@@ -42,7 +43,7 @@ jobs:
       - run: 
           name: Deploy to AWS
           working_directory: ~/wowmate/services/frontend
-          command: ls 
+          command: ls /tmp
 
 workflows:
   version: 2
