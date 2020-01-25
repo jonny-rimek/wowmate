@@ -7,6 +7,8 @@ jobs:
     working_directory: ~/wowmate
     steps:
       - checkout
+      - attach_workspace: 
+          at: ~/wowmate
       - restore_cache:
           key: v1-npm-{{ checksum "package.json" }}
       - run: 
@@ -29,26 +31,27 @@ jobs:
             pwd
             npm run build
             ls -l 
-            mv dist /tmp/dist
-      # - persist_to_workspace:
-      #     root: /tmp
-      #     paths: 
-      #       - dist
-      - run: 
-          name: Check tmp
-          command: | 
-            ls /tmp
+      - persist_to_workspace:
+          root: .
+          paths: 
+            - dist
+      # - run: 
+      #     name: Check tmp
+      #     command: | 
+      #       ls /tmp
   deploy:
     docker:
       - image: circleci/node:latest
     resource_class: small
     working_directory: ~/wowmate
     steps:
-      - checkout
+      # - checkout
+      - attach_workspace: 
+          at: ~/wowmate
       - run: 
           name: Deploy to AWS
-          working_directory: ~/wowmate/services/frontend
-          command: ls /tmp
+          # working_directory: ~/wowmate/services/frontend
+          command: ls 
 
 workflows:
   version: 2
