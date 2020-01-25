@@ -25,9 +25,9 @@ jobs:
           name: Build npm
           working_directory: ~/wowmate/services/frontend
           command: | 
-            ls -l 
             pwd
             npm run build
+            ls -l 
       - persist_to_workspace:
           root: .
           paths: 
