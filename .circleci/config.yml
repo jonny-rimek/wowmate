@@ -15,7 +15,7 @@ jobs:
           command: | 
             ls -l 
             pwd 
-            install
+            npm install
       # - save_cache:
       #     key: v1-npm-{{ checksum "services/frontend/package-lock.json" }}
       #     paths: 
