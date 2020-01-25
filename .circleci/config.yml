@@ -52,7 +52,7 @@ workflows:
   version: 2
   wowmatecicd:
     jobs:
-      - build
+      - build_infrastructure
       - deploy:
           requires:
-            - build
+            - build_infrastructure
