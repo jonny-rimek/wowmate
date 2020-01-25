@@ -24,9 +24,6 @@ jobs:
             fi
             echo after
             ls -l
-          # mv node_modules services/frontend/node_modules
-          # cd services/frontend
-          # git diff
       - save_cache:
           key: v1-npm-{{ checksum "package-lock.json" }}
           paths: 
