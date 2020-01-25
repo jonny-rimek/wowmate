@@ -15,13 +15,14 @@ jobs:
           name: Install npm 
           # working_directory: ~/wowmate/services/frontend
           command: | 
-            ls -l 
+            ls -l -a 
             if [ ! -d node_modules ]; then
               echo if
               npm install
             else
               echo else
             fi
+            echo after
             ls -l
           # mv node_modules services/frontend/node_modules
           # cd services/frontend
