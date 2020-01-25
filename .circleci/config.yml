@@ -7,8 +7,8 @@ jobs:
     working_directory: ~/wowmate
     steps:
       - checkout
-      # - restore_cache:
-      #     key: v1-npm-{{ checksum "services/frontend/package-lock.json" }}
+      - restore_cache:
+          key: v1-npm-{{ checksum "package-lock.json" }}
       - run: 
           name: Install npm 
           working_directory: ~/wowmate/services/frontend
@@ -16,13 +16,11 @@ jobs:
             ls -l 
             pwd 
             npm install
-      # - save_cache:
-      #     key: v1-npm-{{ checksum "services/frontend/package-lock.json" }}
-      #     paths: 
-      #       -  ./node_modules
-
-            # TODO: add main.js content
-
+      - save_cache:
+          key: v1-npm-{{ checksum "package-lock.json" }}
+          paths: 
+            -  ./node_modules
+      # TODO: add main.js content
       - run: 
           name: Build npm
           working_directory: ~/wowmate/services/frontend
