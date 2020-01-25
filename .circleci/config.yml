@@ -30,10 +30,10 @@ jobs:
             npm run build
             ls -l 
             mv dist /tmp/dist
-      - persist_to_workspace:
-          root: /tmp
-          paths: 
-            - dist
+      # - persist_to_workspace:
+      #     root: /tmp
+      #     paths: 
+      #       - dist
       - run: 
           name: Check tmp
           command: | 
