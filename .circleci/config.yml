@@ -30,7 +30,7 @@ jobs:
             pwd
             ls -l 
             npm install -g typescript
-            npm run build
+            cdk synth
             ls -l
       - persist_to_workspace:
           root: .
