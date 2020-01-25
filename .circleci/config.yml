@@ -18,7 +18,10 @@ jobs:
             ls -l 
             pwd 
             if [ ! -d node_modules ]; then
+              echo if
               npm install
+            else
+              echo else
             fi
       - save_cache:
           key: v1-npm-{{ checksum "services/frontend/package.json" }}
