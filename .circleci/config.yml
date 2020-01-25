@@ -10,7 +10,7 @@ jobs:
       - attach_workspace: 
           at: ~/wowmate
       - restore_cache:
-          key: v1-npm-{{ checksum "services/frontend/package.json" }}
+          key: v1-npm-{{ checksum "services/frontend/package-lock.json" }}
       - run: 
           name: Install npm 
           working_directory: ~/wowmate/services/frontend
@@ -23,8 +23,10 @@ jobs:
             else
               echo else
             fi
+            ls
+            git diff
       - save_cache:
-          key: v1-npm-{{ checksum "services/frontend/package.json" }}
+          key: v1-npm-{{ checksum "services/frontend/package-lock.json" }}
           paths: 
             -  ./node_modules
 
