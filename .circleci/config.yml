@@ -16,8 +16,8 @@ jobs:
           working_directory: ~/wowmate/services/frontend
           command: | 
             ls -l 
-            pwd 
-            mv ../../node_modules .
+            cd ../..
+            mv node_modules services/frontend/node_modules
             if [ ! -d node_modules ]; then
               echo if
               npm install
