@@ -16,6 +16,7 @@ jobs:
             ls -l 
             pwd 
             npm install
+            # TODO: only run install when no cache was found
       - save_cache:
           key: v1-npm-{{ checksum "package.json" }}
           paths: 
@@ -33,6 +34,10 @@ jobs:
           root: /tmp
           paths: 
             - dist
+      - run: 
+          name: Check tmp
+          command: | 
+            ls /tmp
   deploy:
     docker:
       - image: circleci/node:latest
