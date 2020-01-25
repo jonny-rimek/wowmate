@@ -4,18 +4,18 @@ jobs:
     docker:
       - image: node:13
     resource_class: small
-    working_directory: services/frontend
+    # working_directory: services/frontend
     steps:
       - checkout
       - restore_cache:
           key: v1-npm-{{ checksum "package-lock.json" }}
-      - run: cd services/frontend && ls
+      - run: cd services/frontend && npm install
       - save_cache:
           key: v1-npm-{{ checksum "package-lock.json" }}
           paths: 
             -  ./node_modules
 
-      - run: ls -l
+      - run: cd services/frontend && npm run build
 
   # test:
   #   docker:
