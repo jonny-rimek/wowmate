@@ -27,16 +27,19 @@ jobs:
             ls -l 
             cd ..
             echo go up a dir
-            mv node_modules services/frontend/node_modules
-            cd services/frontend
-            if [ ! -d node_modules ]; then
-              echo if
-              npm install
-            else
-              echo else
-            fi
-            ls
-            git diff
+            ls -l 
+            cd ..
+            echo go up a dir
+          # mv node_modules services/frontend/node_modules
+          # cd services/frontend
+          # if [ ! -d node_modules ]; then
+          #   echo if
+          #   npm install
+          # else
+          #   echo else
+          # fi
+          # ls
+          # git diff
       - save_cache:
           key: v1-npm-{{ checksum "services/frontend/package-lock.json" }}
           paths: 
