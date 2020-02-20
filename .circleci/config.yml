@@ -11,8 +11,14 @@ jobs:
     working_directory: ~/wowmate
     steps:
       - checkout
+
+      - run:
+          name: aws installed?
+          command: which aws
+
       - aws-cli/setup:
           profile-name: default
+
       - attach_workspace: 
           at: ~/wowmate
       - restore_cache:
