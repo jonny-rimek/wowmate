@@ -1,4 +1,8 @@
 version: 2.1
+
+orbs:
+  aws-cli: circleci/aws-cli@0.1
+
 jobs:
   build_infrastructure:
     docker:
@@ -7,6 +11,8 @@ jobs:
     working_directory: ~/wowmate
     steps:
       - checkout
+      - aws-cli/setup:
+          profile-name: default
       - attach_workspace: 
           at: ~/wowmate
       - restore_cache:
