@@ -14,7 +14,9 @@ jobs:
 
       - run:
           name: aws installed?
-          command: /root/bin/aws --version
+          command: |
+            cd /root/bin
+            ls
 
       - aws-cli/setup:
           profile-name: default
