@@ -1,3 +1,3 @@
 # wowmate mono repo
 
-run `. deploy.sh` from repo root to deploy
+NOTE: has to be inside ~/dev/wowmate

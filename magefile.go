@@ -21,17 +21,25 @@ var Aliases = map[string]interface{} {
 	"f": Frontend,
 }
 
-var WorkingDir string
+func rootDir() error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	os.Chdir(home)
+	os.Chdir("dev/wowmate")
+	return nil
+}
 
 func Build() error {
-	WorkingDir, _ = sh.Output("pwd")
-
 	mg.SerialDeps(Go, Frontend)
 
 	return nil
 }
 /* 
 TODO: add a scaffold lambda function
+		- [ ] run npm install if dir is missing
+		- [ ] add command to update
 		- [ ] create folder and go file with the same name
 		- [ ] go mod init
 		- [ ] go mod edit -replace=github.com/alexedwards/argon2id=/home/alex/code/argon2i
@@ -39,9 +47,10 @@ TODO: add a scaffold lambda function
  */
 
 func Go() error {
-	if WorkingDir != "" {
-		os.Chdir(WorkingDir)
+	if err := rootDir(); err != nil {
+		return err
 	}
+
 	s, err := sh.Output("go", "list", "./...")
 	if err != nil {
 		return err
@@ -84,8 +93,8 @@ func goBuild() error {
 }
 
 func Frontend() error {
-	if WorkingDir != "" {
-		os.Chdir(WorkingDir)
+	if err := rootDir(); err != nil {
+		return err
 	}
 	os.Chdir("services/frontend")
 	// if err := sh.Run("npm", "install"); err != nil {
@@ -95,6 +104,9 @@ func Frontend() error {
 }
 
 func Deploy() error {
+	if err := rootDir(); err != nil {
+		return err
+	}
 	// if err := sh.Run("npm", "install"); err != nil {
 	// 	return err
 	// }
@@ -106,6 +118,9 @@ func Deploy() error {
 }
 
 func Diff() error {
+	if err := rootDir(); err != nil {
+		return err
+	}
 	// if err := sh.Run("npm", "install"); err != nil {
 	// 	return err
 	// }
@@ -117,5 +132,48 @@ func Diff() error {
 }
 
 func Clear() error {
+	mg.SerialDeps(clearGo, clearFrontend, clearCDK)
+
+	return nil
+}
+
+func clearFrontend() error {
+	if err := rootDir(); err != nil {
+		return err
+	}
+	os.Chdir("services/frontend")
 	return sh.Run("rm", "-rf", "node_modules");
+}
+
+func clearCDK() error {
+	if err := rootDir(); err != nil {
+		return err
+	}
+	return sh.Run("rm", "-rf", "node_modules");
+}
+
+func clearGo() error {
+	if err := rootDir(); err != nil {
+		return err
+	}
+
+	s, err := sh.Output("go", "list", "./...")
+	if err != nil {
+		return err
+	}
+	pkgs := strings.Split(s, "\n")
+	for i := range pkgs {
+		filepath := strings.TrimPrefix(pkgs[i], "_")
+		
+		//for some reason go list ./... finds files in cdk.out
+		if strings.Contains(filepath, "cdk.out") == true {
+			continue;
+		}
+		os.Chdir(filepath)
+		fmt.Println(filepath)
+
+		sh.Run("rm", "main");
+	}
+
+	return nil
 }
