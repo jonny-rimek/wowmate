@@ -97,9 +97,14 @@ func Frontend() error {
 		return err
 	}
 	os.Chdir("services/frontend")
-	// if err := sh.Run("npm", "install"); err != nil {
-	// 	return err
-	// }
+
+	if _, err := os.Stat("node_modules"); err != nil {
+		if os.IsNotExist(err) {
+			sh.Run("npm", "install")
+		} else {
+			return err
+		}
+	}
 	return sh.Run("npm", "run", "build")
 }
 
@@ -121,9 +126,13 @@ func Diff() error {
 	if err := rootDir(); err != nil {
 		return err
 	}
-	// if err := sh.Run("npm", "install"); err != nil {
-	// 	return err
-	// }
+	if _, err := os.Stat("node_modules"); err != nil {
+		if os.IsNotExist(err) {
+			sh.Run("npm", "install")
+		} else {
+			return err
+		}
+	}
 	if err := sh.Run("tsc"); err != nil {
 		return err
 	}
@@ -142,7 +151,8 @@ func clearFrontend() error {
 		return err
 	}
 	os.Chdir("services/frontend")
-	return sh.Run("rm", "-rf", "node_modules");
+	sh.Run("rm", "-rf", "node_modules");
+	return sh.Run("rm", "-rf", "dist");
 }
 
 func clearCDK() error {
