@@ -63,7 +63,7 @@ func handler(e StepfunctionEvent) error {
 	}
 	s := bufio.NewScanner(uncompressed)
 
-	events, err := Import(s, uploadUUID) 
+	events, err := Import(s, uploadUUID)
 	if err != nil {
 		return err
 	}

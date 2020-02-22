@@ -49,12 +49,13 @@ func Go() error {
 	pkgs := strings.Split(s, "\n")
 	for i := range pkgs {
 		filepath := strings.TrimPrefix(pkgs[i], "_")
-		os.Chdir(filepath)
 		
 		//for some reason go list ./... finds files in cdk.out
 		if strings.Contains(filepath, "cdk.out") == true {
 			continue;
 		}
+		os.Chdir(filepath)
+
 		if err := goTidy(); err != nil {
 			return err
 		}
@@ -113,4 +114,8 @@ func Diff() error {
 	}
 
 	return sh.Run("cdk", "diff")
+}
+
+func Clear() error {
+	return sh.Run("rm", "-rf", "node_modules");
 }

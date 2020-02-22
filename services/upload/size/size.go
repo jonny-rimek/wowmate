@@ -32,6 +32,7 @@ type Response struct {
 	BucketName string `json:"bucketName"`
 	Key        string `json:"key"`
 }
+
 //TODO: add event bridge as a step between s3 and sfn
 
 func handler(e Event) (Response, error) {
