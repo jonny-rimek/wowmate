@@ -98,12 +98,8 @@ func Frontend() error {
 	}
 	os.Chdir("services/frontend")
 
-	if _, err := os.Stat("node_modules"); err != nil {
-		if os.IsNotExist(err) {
-			sh.Run("npm", "install")
-		} else {
-			return err
-		}
+	if err := npmInstall(); err != nil {
+		return err
 	}
 	return sh.Run("npm", "run", "build")
 }
@@ -112,9 +108,9 @@ func Deploy() error {
 	if err := rootDir(); err != nil {
 		return err
 	}
-	// if err := sh.Run("npm", "install"); err != nil {
-	// 	return err
-	// }
+	if err := npmInstall(); err != nil {
+		return err
+	}
 	if err := sh.Run("tsc"); err != nil {
 		return err
 	}
@@ -122,16 +118,23 @@ func Deploy() error {
 	return sh.Run("cdk", "deploy", "--require-approval=never")
 }
 
-func Diff() error {
-	if err := rootDir(); err != nil {
-		return err
-	}
+func npmInstall() error {
 	if _, err := os.Stat("node_modules"); err != nil {
 		if os.IsNotExist(err) {
 			sh.Run("npm", "install")
 		} else {
 			return err
 		}
+	}
+	return nil
+}
+
+func Diff() error {
+	if err := rootDir(); err != nil {
+		return err
+	}
+	if err := npmInstall(); err != nil {
+		return err
 	}
 	if err := sh.Run("tsc"); err != nil {
 		return err
