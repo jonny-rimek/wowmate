@@ -13,6 +13,8 @@ import (
 
 var Default = Build
 
+const ProjectPath = "/dev/wowmate/"
+
 var Aliases = map[string]interface{} {
 	"d": Deploy,
 	"di": Diff,
@@ -21,33 +23,20 @@ var Aliases = map[string]interface{} {
 	"f": Frontend,
 }
 
-func rootDir() error {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return err
-	}
-	os.Chdir(home)
-	os.Chdir("dev/wowmate")
-	return nil
-}
-
-func Build() error {
-	mg.SerialDeps(Go, Frontend)
-
-	return nil
-}
 /* 
 TODO: add a scaffold lambda function
-		- [ ] run npm install if dir is missing
+		- [x] run npm install if dir is missing
 		- [ ] add command to update
-		- [ ] create folder and go file with the same name
+
+IMPROVE:
+		- [ ] create folder and go file with the same name (?)
 		- [ ] go mod init
 		- [ ] go mod edit -replace=github.com/alexedwards/argon2id=/home/alex/code/argon2i
 		- [ ] add biler plate go code to mail file, including golib.InitLogging()
  */
 
 func Go() error {
-	if err := rootDir(); err != nil {
+	if err := projectDir(); err != nil {
 		return err
 	}
 
@@ -88,16 +77,17 @@ func gofmt() error {
 }
 
 func goBuild() error {
-	os.Remove("main")
+	//IMPROVE: remove if doesn't exist, maybe even unnecessary
+	// if err := os.Remove("main"); err != nil {
+	// 	return err
+	// }
 	return sh.Run("go", "build", "-ldflags", "-s -w", "-o", "main", ".")
 }
 
 func Frontend() error {
-	if err := rootDir(); err != nil {
+	if err := projectSubDir("services/frontend"); err != nil {
 		return err
 	}
-	os.Chdir("services/frontend")
-
 	if err := npmInstall(); err != nil {
 		return err
 	}
@@ -105,7 +95,7 @@ func Frontend() error {
 }
 
 func Deploy() error {
-	if err := rootDir(); err != nil {
+	if err := projectDir(); err != nil {
 		return err
 	}
 	if err := npmInstall(); err != nil {
@@ -114,7 +104,6 @@ func Deploy() error {
 	if err := sh.Run("tsc"); err != nil {
 		return err
 	}
-
 	return sh.Run("cdk", "deploy", "--require-approval=never")
 }
 
@@ -130,7 +119,7 @@ func npmInstall() error {
 }
 
 func Diff() error {
-	if err := rootDir(); err != nil {
+	if err := projectDir(); err != nil {
 		return err
 	}
 	if err := npmInstall(); err != nil {
@@ -150,23 +139,24 @@ func Clear() error {
 }
 
 func clearFrontend() error {
-	if err := rootDir(); err != nil {
+	if err := projectSubDir("services/frontend"); err != nil {
 		return err
 	}
-	os.Chdir("services/frontend")
-	sh.Run("rm", "-rf", "node_modules");
+	if err := sh.Run("rm", "-rf", "node_modules"); err != nil {
+		return err
+	}
 	return sh.Run("rm", "-rf", "dist");
 }
 
 func clearCDK() error {
-	if err := rootDir(); err != nil {
+	if err := projectDir(); err != nil {
 		return err
 	}
 	return sh.Run("rm", "-rf", "node_modules");
 }
 
 func clearGo() error {
-	if err := rootDir(); err != nil {
+	if err := projectDir(); err != nil {
 		return err
 	}
 
@@ -182,11 +172,42 @@ func clearGo() error {
 		if strings.Contains(filepath, "cdk.out") == true {
 			continue;
 		}
-		os.Chdir(filepath)
-		fmt.Println(filepath)
-
-		sh.Run("rm", "main");
+		if err = os.Chdir(filepath); err != nil {
+			return err
+		}
+		if err = sh.Run("rm", "main"); err != nil {
+			return err
+		}
 	}
+	return nil
+}
+
+func projectSubDir(subPath string) error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	if err = os.Chdir(home + ProjectPath + subPath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func projectDir() error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	if err = os.Chdir(home + ProjectPath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func Build() error {
+	mg.SerialDeps(Go, Frontend)
 
 	return nil
 }
