@@ -41,4 +41,4 @@ workflows:
   version: 2
   wowmatecicd:
     jobs:
-      - build_infrastructure
+      - build
