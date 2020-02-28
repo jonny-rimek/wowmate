@@ -12,6 +12,7 @@ jobs:
           name: check mage
           command: |
             ls
+            nodejs --version
             go version
 
       # - attach_workspace: 
