@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  build_infrastructure:
+  build:
     docker:
       - image: 45635463452425452/cdk-mage:0.1
     resource_class: small
@@ -9,34 +9,33 @@ jobs:
     steps:
       - checkout
       - run:
-          name: aws installed?
+          name: check mage
           command: |
-            cd /root/bin
             ls
             mage --help
 
-      - attach_workspace: 
-          at: ~/wowmate
-      - restore_cache:
-          key: v1-npm-{{ checksum "package-lock.json" }}
-      - run: 
-          name: Install npm 
-          command: | 
-            if [ ! -d node_modules ]; then
-              echo npm install
-              npm install
-            else
-              echo skip install because the node_modules are cached
-            fi
-      - save_cache:
-          key: v1-npm-{{ checksum "package-lock.json" }}
-          paths: 
-            -  node_modules
-      - run: 
-          name: Build npm
-          command: | 
-            pwd
-            ls -l 
+      # - attach_workspace: 
+      #     at: ~/wowmate
+      # - restore_cache:
+      #     key: v1-npm-{{ checksum "package-lock.json" }}
+      # - run: 
+      #     name: Install npm 
+      #     command: | 
+      #       if [ ! -d node_modules ]; then
+      #         echo npm install
+      #         npm install
+      #       else
+      #         echo skip install because the node_modules are cached
+      #       fi
+      # - save_cache:
+      #     key: v1-npm-{{ checksum "package-lock.json" }}
+      #     paths: 
+      #       -  node_modules
+      # - run: 
+      #     name: Build npm
+      #     command: | 
+      #       pwd
+      #       ls -l 
 
 workflows:
   version: 2
