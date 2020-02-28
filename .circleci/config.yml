@@ -12,7 +12,7 @@ jobs:
           name: check mage
           command: |
             ls
-            mage --help
+            go version
 
       # - attach_workspace: 
       #     at: ~/wowmate
