@@ -43,6 +43,3 @@ workflows:
   wowmatecicd:
     jobs:
       - build_infrastructure
-      - deploy_to_aws:
-          requires:
-            - build_infrastructure
