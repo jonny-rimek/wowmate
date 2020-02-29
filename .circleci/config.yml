@@ -17,6 +17,8 @@ jobs:
             mage --version
             pwd
             mage build
+            ls
+            ls services/frontend
 
       # - attach_workspace: 
       #     at: ~/wowmate
