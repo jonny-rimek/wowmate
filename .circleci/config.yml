@@ -4,7 +4,7 @@ jobs:
   build:
     docker:
       - image: 45635463452425452/cdk-mage:0.3
-    resource_class: large
+    resource_class: medium
     #resource_class: small
     working_directory: ~/dev/wowmate
     steps:
