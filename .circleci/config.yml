@@ -4,22 +4,19 @@ jobs:
   build:
     docker:
       - image: 45635463452425452/cdk-mage:0.3
-    resource_class: medium
+    resource_class: large
+    #resource_class: small
     working_directory: ~/dev/wowmate
     steps:
       - checkout
       - run:
           name: check mage
           command: |
-            ls
-            nodejs --version
-            go version
-            mage --version
-            pwd
             mage build
+            mage diff
             ls
+            echo frontend
             ls services/frontend
-          # mage diff
 
       # - attach_workspace: 
       #     at: ~/wowmate
