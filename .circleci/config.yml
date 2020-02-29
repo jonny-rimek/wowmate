@@ -16,7 +16,7 @@ jobs:
             go version
             mage --version
             pwd
-            mage go
+            mage build
 
       # - attach_workspace: 
       #     at: ~/wowmate
