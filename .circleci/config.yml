@@ -13,7 +13,7 @@ jobs:
           name: check mage
           command: |
             mage build
-            mage diff
+            mage deploy
             ls
             echo frontend
             ls services/frontend
