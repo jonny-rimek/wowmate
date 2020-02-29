@@ -19,6 +19,7 @@ jobs:
             mage build
             ls
             ls services/frontend
+            mage diff
 
       # - attach_workspace: 
       #     at: ~/wowmate
