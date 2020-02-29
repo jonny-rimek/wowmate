@@ -15,6 +15,7 @@ jobs:
             nodejs --version
             go version
             mage --version
+            pwd
             mage go
 
       # - attach_workspace: 
