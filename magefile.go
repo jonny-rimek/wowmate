@@ -129,7 +129,7 @@ func Diff() error {
 		return err
 	}
 
-	return sh.Run("cdk", "diff")
+	return sh.Run("cdk", "synth")
 }
 
 func Clear() error {
