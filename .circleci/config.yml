@@ -9,8 +9,9 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: cdk.out-{{ checksum "cdk.out/tree.json" }}
-          key: cdk.out
+          keys: 
+            - cdk.out-{{ checksum "cdk.out/tree.json" }}
+            - cdk.out
       - run:
           name: build and deploy
           command: |
