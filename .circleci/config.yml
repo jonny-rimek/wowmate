@@ -16,7 +16,14 @@ jobs:
             - go.pkg-{{ epoch }}
             - go.pkg
 
-      - run: mage go
+      - run: 
+          name: go
+          command: |
+            mage go
+            cd $GOPATH
+            ls
+            cd pkg
+            ls
 
       - save_cache:
           key: go.pkg-{{ epoch }}
