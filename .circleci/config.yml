@@ -13,12 +13,17 @@ jobs:
             - cdk.out-{{ checksum "cdk.out/tree.json" }}
             - cdk.out
       - run:
-          name: build and deploy
+          name: build go
           command: |
-            ls
-            mage build
+            mage go
+      - run:
+          name: build frontend
+          command: |
+            mage frontend
+      - run:
+          name: deploy
+          command: |
             mage deploy
-            ls
       - save_cache:
           key: cdk.out-{{ checksum "cdk.out/tree.json" }}
           paths: 
