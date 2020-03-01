@@ -19,10 +19,9 @@ jobs:
       - run: 
           name: go
           command: |
-            mage go
             cd $GOPATH
             ls
-            cd pkg
+            cd pkg/mod
             ls
 
       - save_cache:
