@@ -27,13 +27,13 @@ jobs:
 
       - restore_cache:
           keys: 
-            - frontend-npm-{{ checksum "services/frontend/package-lock.json" }}
-            - frontend-npm
+            - frontend_npm-{{ checksum "services/frontend/package-lock.json" }}
+            # - frontend-npm
 
       - run: mage frontend
 
       - save_cache:
-          key: frontend-npm-{{ checksum "services/frontend/package-lock.json" }}
+          key: frontend_npm-{{ checksum "services/frontend/package-lock.json" }}
           paths: 
             -  services/frontend/node_modules
 
@@ -41,20 +41,20 @@ jobs:
 
       - restore_cache:
           keys: 
-            - cdk-out-{{ checksum "cdk.out/tree.json" }}
-            - cdk-out
+            - cdk_out-{{ checksum "cdk.out/tree.json" }}
+            - cdk_out
 
       - restore_cache:
           keys: 
-            - cdk-npm-{{ checksum "package-lock.json" }}
-            - cdk-npm
+            - cdk_npm-{{ checksum "package-lock.json" }}
+            # - cdk-npm
 
       - run: mage deploy
 
       - save_cache:
-          key: cdk-out-{{ checksum "cdk.out/tree.json" }}
+          key: cdk_out-{{ checksum "cdk.out/tree.json" }}
           paths: 
-            -  cdk-out
+            -  cdk.out
 
       - save_cache:
           key: cdk-npm-{{ checksum "package-lock.json" }}
