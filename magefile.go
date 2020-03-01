@@ -54,12 +54,12 @@ func Go() error {
 		}
 		os.Chdir(filepath)
 
-		if err := goTidy(); err != nil {
-			return err
-		}
-		if err := gofmt(); err != nil {
-			return err
-		}
+		// if err := goTidy(); err != nil {
+		// 	return err
+		// }
+		// if err := gofmt(); err != nil {
+		// 	return err
+		// }
 		if err := goBuild(); err != nil {
 			return err
 		}
