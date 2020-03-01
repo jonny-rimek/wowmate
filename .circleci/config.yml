@@ -4,42 +4,26 @@ jobs:
   build:
     docker:
       - image: 45635463452425452/cdk-mage:0.3
-    resource_class: medium
-    #resource_class: small
+    resource_class: small
     working_directory: ~/dev/wowmate
     steps:
+      - restore_cache:
+          key: cdk.out
       - checkout
       - run:
-          name: check mage
+          name: build and deploy
           command: |
+            ls
             mage build
             mage deploy
             ls
-            echo frontend
-            ls services/frontend
+      - save_cache:
+          key: cdk.out
+          paths: 
+            -  cdk.out
 
       # - attach_workspace: 
       #     at: ~/wowmate
-      # - restore_cache:
-      #     key: v1-npm-{{ checksum "package-lock.json" }}
-      # - run: 
-      #     name: Install npm 
-      #     command: | 
-      #       if [ ! -d node_modules ]; then
-      #         echo npm install
-      #         npm install
-      #       else
-      #         echo skip install because the node_modules are cached
-      #       fi
-      # - save_cache:
-      #     key: v1-npm-{{ checksum "package-lock.json" }}
-      #     paths: 
-      #       -  node_modules
-      # - run: 
-      #     name: Build npm
-      #     command: | 
-      #       pwd
-      #       ls -l 
 
 workflows:
   version: 2
