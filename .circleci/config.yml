@@ -13,7 +13,7 @@ jobs:
       
       - restore_cache:
           keys: 
-            - go-pkg-{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-caster-id/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}
+            - go-pkg--{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-caster-id/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}
             - go-pkg
 
       - run:  mage go
