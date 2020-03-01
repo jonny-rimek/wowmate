@@ -15,10 +15,7 @@ jobs:
           keys: 
             - go-pkg
 
-      - run: 
-          name: go
-          command: |
-            mage go
+      - run:  mage go
 
       - save_cache:
           key: go-pkg
@@ -64,6 +61,10 @@ jobs:
             -  node_modules
       # - attach_workspace: 
       #     at: ~/wowmate
+      # - run: 
+      #     name: go
+      #     command: |
+      #       mage go
 
 workflows:
   version: 2
