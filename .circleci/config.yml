@@ -57,7 +57,7 @@ jobs:
             -  cdk.out
 
       - save_cache:
-          key: cdk-npm-{{ checksum "package-lock.json" }}
+          key: cdk_npm-{{ checksum "package-lock.json" }}
           paths: 
             -  node_modules
       # - attach_workspace: 
