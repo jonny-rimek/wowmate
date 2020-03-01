@@ -81,7 +81,7 @@ func goBuild() error {
 	// if err := os.Remove("main"); err != nil {
 	// 	return err
 	// }
-	return sh.Run("go", "build", "-ldflags", "-s -w", "-o", "main", ".")
+	return sh.Run("go", "build", "-i", "-ldflags", "-s -w", "-o", "main", ".")
 }
 
 func Frontend() error {
