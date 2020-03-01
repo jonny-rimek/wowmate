@@ -13,21 +13,17 @@ jobs:
       
       - restore_cache:
           keys: 
-            - go.pkg-{{ epoch }}
-            - go.pkg
+            - go-pkg
 
       - run: 
           name: go
           command: |
             mage go
-            cd $GOPATH/pkg/mod
-            pwd
-            ls
 
       - save_cache:
-          key: go.pkg-{{ epoch }}
+          key: go-pkg
           paths: 
-            -  $GOPATH/pkg
+            -  /go/pkg
 
       # FRONTEND
 
