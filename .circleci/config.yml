@@ -8,26 +8,32 @@ jobs:
     working_directory: ~/dev/wowmate
     steps:
       - checkout
+
+      - run: mage go
+
+      - run: mage frontend
+
       - restore_cache:
           keys: 
             - cdk.out-{{ checksum "cdk.out/tree.json" }}
             - cdk.out
-      - run:
-          name: build go
-          command: |
-            mage go
-      - run:
-          name: build frontend
-          command: |
-            mage frontend
-      - run:
-          name: deploy
-          command: |
-            mage deploy
+
+      - restore_cache:
+          keys: 
+            - cdk.npm-{{ checksum "package-lock.json" }}
+            - cdk.npm
+
+      - run: mage deploy
+
       - save_cache:
           key: cdk.out-{{ checksum "cdk.out/tree.json" }}
           paths: 
             -  cdk.out
+
+      - save_cache:
+          key: cdk.npm-{{ checksum "package-lock.json" }}
+          paths: 
+            -  node_modules
       # - attach_workspace: 
       #     at: ~/wowmate
 
