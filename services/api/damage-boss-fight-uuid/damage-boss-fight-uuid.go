@@ -25,6 +25,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 		ScanIndexForward:       aws.Bool(false),
 	}
 
+	//tesdt
 	rcu, apiGwRes, err := golib.DDBQuery(ctx, input)
 	golib.CanonicalLog(map[string]interface{}{
 		"boss-fight-uuid":  req.PathParameters["boss-fight-uuid"],

@@ -9,6 +9,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
+          key: cdk.out-{{ checksum "cdk.out/tree.json" }}
           key: cdk.out
       - run:
           name: build and deploy
@@ -18,7 +19,7 @@ jobs:
             mage deploy
             ls
       - save_cache:
-          key: cdk.out
+          key: cdk.out-{{ checksum "cdk.out/tree.json" }}
           paths: 
             -  cdk.out
       # - attach_workspace: 
