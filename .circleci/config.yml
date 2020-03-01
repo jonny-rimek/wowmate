@@ -4,7 +4,7 @@ jobs:
   build:
     docker:
       - image: 45635463452425452/cdk-mage:0.3
-    resource_class: small
+    resource_class: medium
     working_directory: ~/dev/wowmate
     steps:
       - checkout
@@ -13,12 +13,13 @@ jobs:
       
       - restore_cache:
           keys: 
+            - go-pkg-{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-caster-id/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}
             - go-pkg
 
       - run:  mage go
 
       - save_cache:
-          key: go-pkg
+          key: go-pkg-{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-caster-id/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}
           paths: 
             -  /go/pkg
 
@@ -26,13 +27,13 @@ jobs:
 
       - restore_cache:
           keys: 
-            - frontend.npm-{{ checksum "services/frontend/package-lock.json" }}
-            - frontend.npm
+            - frontend-npm-{{ checksum "services/frontend/package-lock.json" }}
+            - frontend-npm
 
       - run: mage frontend
 
       - save_cache:
-          key: frontend.npm-{{ checksum "services/frontend/package-lock.json" }}
+          key: frontend-npm-{{ checksum "services/frontend/package-lock.json" }}
           paths: 
             -  services/frontend/node_modules
 
@@ -40,23 +41,23 @@ jobs:
 
       - restore_cache:
           keys: 
-            - cdk.out-{{ checksum "cdk.out/tree.json" }}
-            - cdk.out
+            - cdk-out-{{ checksum "cdk.out/tree.json" }}
+            - cdk-out
 
       - restore_cache:
           keys: 
-            - cdk.npm-{{ checksum "package-lock.json" }}
-            - cdk.npm
+            - cdk-npm-{{ checksum "package-lock.json" }}
+            - cdk-npm
 
       - run: mage deploy
 
       - save_cache:
-          key: cdk.out-{{ checksum "cdk.out/tree.json" }}
+          key: cdk-out-{{ checksum "cdk.out/tree.json" }}
           paths: 
-            -  cdk.out
+            -  cdk-out
 
       - save_cache:
-          key: cdk.npm-{{ checksum "package-lock.json" }}
+          key: cdk-npm-{{ checksum "package-lock.json" }}
           paths: 
             -  node_modules
       # - attach_workspace: 
