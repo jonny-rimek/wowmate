@@ -26,7 +26,7 @@ var Aliases = map[string]interface{} {
 /* 
 TODO: add a scaffold lambda function
 		- [x] run npm install if dir is missing
-		- [ ] add command to update
+		- [ ] add command to update //go get -u ./...
 
 IMPROVE:
 		- [ ] create folder and go file with the same name (?)
@@ -77,11 +77,7 @@ func gofmt() error {
 }
 
 func goBuild() error {
-	//IMPROVE: remove if doesn't exist, maybe even unnecessary
-	// if err := os.Remove("main"); err != nil {
-	// 	return err
-	// }
-	return sh.Run("go", "build", "-i", "-ldflags", "-s -w", "-o", "main", ".")
+	return sh.Run("go", "build", "-ldflags", "-s -w", "-o", "main", ".")
 }
 
 func Frontend() error {
