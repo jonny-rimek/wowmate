@@ -17,7 +17,6 @@ jobs:
             - go.pkg
 
       - run: mage go
-      - run: echo $GOPATH
 
       - save_cache:
           key: go.pkg-{{ epoch }}
