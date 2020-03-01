@@ -7,9 +7,9 @@ jobs:
     resource_class: small
     working_directory: ~/dev/wowmate
     steps:
+      - checkout
       - restore_cache:
           key: cdk.out
-      - checkout
       - run:
           name: build and deploy
           command: |
