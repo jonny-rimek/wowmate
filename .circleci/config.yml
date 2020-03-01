@@ -11,7 +11,17 @@ jobs:
 
       - run: mage go
 
+      - restore_cache:
+          keys: 
+            - frontend.npm-{{ checksum "services/frontend/package-lock.json" }}
+            - frontend.npm
+
       - run: mage frontend
+
+      - save_cache:
+          key: frontend.npm-{{ checksum "services/frontend/package-lock.json" }}
+          paths: 
+            -  services/frontend/node_modules
 
       - restore_cache:
           keys: 
