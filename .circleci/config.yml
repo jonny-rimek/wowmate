@@ -29,13 +29,13 @@ jobs:
 
       - restore_cache:
           keys: 
-            - frontend_npm-{{ checksum "services/frontend/package-lock.json" }}
+            - frontend_yarn-{{ checksum "services/frontend/yarn.lock" }}
             # - frontend-npm
 
       - run: mage frontend
 
       - save_cache:
-          key: frontend_npm-{{ checksum "services/frontend/package-lock.json" }}
+          key: frontend_yarn-{{ checksum "services/frontend/yarn.lock" }}
           paths: 
             -  services/frontend/node_modules
 
