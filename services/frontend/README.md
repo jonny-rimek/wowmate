@@ -1,60 +1,18 @@
-# vue-cli
+# Vue + Tailwind Interactive Component Examples
 
-Setting up Tailwind with vue-cli is really simple, just install Tailwind:
+A small collection of interactive Vue + Tailwind examples, written from scratch.
 
-```sh
-npm install tailwindcss
-```
-
-Then add it to your PostCSS config (use a separate `postcss.config.js` file):
-
-```js
-module.exports = {
-  plugins: [
-    require('tailwindcss'),
-    require('autoprefixer'),
-  ]
-}
-```
-
-Next, create a CSS file for your Tailwind styles. We've stored in it `src/assets/tailwind.css` for this example:
-
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-```
-
-Finally, import that CSS file at the bottom of your main `App.vue` component:
-
-```html
-<template>
-  <!-- ... --->
-</template>
-
-<script>
-  /* ... */
-</script>
-
-<style src="./assets/tailwind.css">
-```
+[See the examples live on Netlify &rarr;](https://vue-tailwind-examples.netlify.com/)
 
 ## Project setup
 ```
+yarn install
+yarn run serve
+```
+
+Or
+
+```
 npm install
-```
-
-### Compiles and hot-reloads for development
-```
 npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
 ```
