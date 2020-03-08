@@ -106,7 +106,7 @@ func Deploy() error {
 func yarnInstall() error {
 	if _, err := os.Stat("node_modules"); err != nil {
 		if os.IsNotExist(err) {
-			sh.Run("yarn", "install")
+			sh.Run("yarn", "--version")
 		} else {
 			return err
 		}
