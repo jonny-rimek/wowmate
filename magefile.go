@@ -84,7 +84,7 @@ func Frontend() error {
 	if err := projectSubDir("services/frontend"); err != nil {
 		return err
 	}
-	if err := npmInstall(); err != nil {
+	if err := yarnInstall(); err != nil {
 		return err
 	}
 	return sh.Run("yarn", "build")
