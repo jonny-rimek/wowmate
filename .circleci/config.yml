@@ -32,7 +32,7 @@ jobs:
             - frontend_yarn-{{ checksum "services/frontend/yarn.lock" }}
             # - frontend-npm
 
-      - run: yarn --version
+      - run: cd services/frontend && yarn install && yarn build
       - run: mage frontend
 
       - save_cache:
