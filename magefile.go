@@ -87,7 +87,7 @@ func Frontend() error {
 	if err := npmInstall(); err != nil {
 		return err
 	}
-	return sh.Run("npm", "run", "build")
+	return sh.Run("yarn", "build")
 }
 
 func Deploy() error {
@@ -101,6 +101,17 @@ func Deploy() error {
 		return err
 	}
 	return sh.Run("cdk", "deploy", "--require-approval=never")
+}
+
+func yarnInstall() error {
+	if _, err := os.Stat("node_modules"); err != nil {
+		if os.IsNotExist(err) {
+			sh.Run("yarn", "install")
+		} else {
+			return err
+		}
+	}
+	return nil
 }
 
 func npmInstall() error {
