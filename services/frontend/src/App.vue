@@ -93,6 +93,49 @@
 	</div>
 	</nav>
 
+  <!-- Static sidebar for desktop -->
+  <div class="hidden md:flex md:flex-shrink-0 h-screen">
+    <div class="flex flex-col w-64 border-r border-gray-200 bg-white">
+      <!-- <div class="flex items-center flex-shrink-0 px-4">
+        <img class="h-8 w-auto" src="/img/logos/workflow-logo-on-white.svg" alt="Workflow" />
+      </div> -->
+      <div class="mt-2 h-0 flex-1 flex flex-col overflow-y-auto">
+        <!-- Sidebar component, swap this element with another sidebar if you like -->
+<nav class="flex-1 px-2 bg-white">
+ 
+  <a href="#" class="group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-900 rounded-md bg-gray-100 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:bg-gray-200 transition ease-in-out duration-150">
+    <span class="truncate">
+      Dashboard
+    </span>
+  </a>
+  <a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
+    <span class="truncate">
+      Team
+    </span>
+  </a>
+  <a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
+    <span class="truncate">
+      Projects
+    </span>
+  </a>
+  <a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
+    <span class="truncate">
+      Calendar
+    </span>
+  </a>
+  <a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
+    <span class="truncate">
+      Documents
+    </span>
+  </a>
+  <a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
+    <span class="truncate">
+      Reports
+    </span>
+  </a>
+</nav>
+         </div>
+    </div>
     <router-view class="flex-1"/>
     <div class="flex-shrink-0 py-12 text-center">
       <div>
@@ -107,6 +150,7 @@
       </div>
     </div>
     <portal-target name="modals"></portal-target>
+  </div>
   </div>
 </template>
 
