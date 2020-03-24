@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
 	"strconv"
 	"strings"
+	"crypto/sha1"
 
+	"github.com/sirupsen/logrus"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -163,6 +164,9 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert encounter id column to int: %v", err)
 		}
+
+		h := sha1.New()
+		logrus.Debug(h.Sum([]byte("test sha1")))
 
 		r := golib.DamageSummary{
 			BossFightUUID: trimQuotes(row[2]), //boss fight uuid
