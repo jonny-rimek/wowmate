@@ -236,7 +236,7 @@ export class WowmateStack extends cdk.Stack {
 			timeout: Duration.seconds(10),
 			environment: {
 				DDB_NAME: db.tableName,
-				LOG_LEVEL: 'prod',
+				// LOG_LEVEL: 'prod',
 			}
 		})
 
