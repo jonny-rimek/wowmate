@@ -165,8 +165,8 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 			return nil, fmt.Errorf("Failed to convert encounter id column to int: %v", err)
 		}
 
-		h := sha1.New()
-		logrus.Debug(h.Sum([]byte("test sha1")))
+		sha1 := sha1.New()
+		logrus.Debug(fmt.Sprintf("%x", sha1.Sum([]byte("test sha1"))))
 
 		r := golib.DamageSummary{
 			BossFightUUID: trimQuotes(row[2]), //boss fight uuid
