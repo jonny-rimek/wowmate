@@ -189,7 +189,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 
 	logrus.Debug("pre hash" + hash)
 	logrus.Debug("hash2" + toHash2)
-	logrus.Debug("hash " + fmt.Sprintf("%v", sha1.Sum([]byte(hash))))
+	logrus.Debug("hash " + fmt.Sprintf("%x", sha1.Sum([]byte(hash))))
 
 	logrus.Debug("read CSV into structs")
 
