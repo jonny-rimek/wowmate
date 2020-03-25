@@ -150,6 +150,8 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 
 	reader := bytes.NewReader(file)
 	scanner := bufio.NewScanner(reader)
+	
+	var toHash strings.Builder
 
 	scanner.Scan() //skips the first line, which is the header of the csv
 	for scanner.Scan() {
@@ -164,20 +166,27 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert encounter id column to int: %v", err)
 		}
+		bossFightUUID := trimQuotes(row[2])
+		casterID := trimQuotes(row[3])
+		casterName := trimQuotes(row[4])
 
-		sha1 := sha1.New()
-		logrus.Debug(fmt.Sprintf("%x", sha1.Sum([]byte("test sha1"))))
+		toHash.WriteString(fmt.Sprintf("%x-%x", casterID, damage))
 
 		r := golib.DamageSummary{
-			BossFightUUID: trimQuotes(row[2]), //boss fight uuid
-			CasterID:      trimQuotes(row[3]), //caster id
+			BossFightUUID: bossFightUUID, 
+			CasterID:      casterID, 
 			EncounterID:   encounterID,
 			Damage:        damage,
-			CasterName:    trimQuotes(row[4]), //caster name
+			CasterName:    casterName, 
 		}
 
 		records = append(records, r)
 	}
+	sha1 := sha1.New()
+	hash := toHash.String()
+
+	logrus.Debug(hash)
+	logrus.Debug(fmt.Sprintf("%x", sha1.Sum([]byte(hash))))
 
 	logrus.Debug("read CSV into structs")
 
