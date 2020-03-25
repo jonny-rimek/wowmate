@@ -152,6 +152,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 	scanner := bufio.NewScanner(reader)
 	
 	var toHash strings.Builder
+	var toHash2 string
 
 	scanner.Scan() //skips the first line, which is the header of the csv
 	for scanner.Scan() {
@@ -171,6 +172,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		casterName := trimQuotes(row[4])
 
 		toHash.WriteString(fmt.Sprintf("%x-%x", casterID, damage))
+		toHash2 += fmt.Sprintf("%x-%x", casterID, damage)
 
 		r := golib.DamageSummary{
 			BossFightUUID: bossFightUUID, 
@@ -185,8 +187,9 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 	sha1 := sha1.New()
 	hash := fmt.Sprintf("%x-%x", records[0].EncounterID, toHash.String())
 
-	logrus.Debug(hash)
-	logrus.Debug(fmt.Sprintf("%x", sha1.Sum([]byte(hash))))
+	logrus.Debug("pre hash" + hash)
+	logrus.Debug("hash2" + toHash2)
+	logrus.Debug("hash " + fmt.Sprintf("%x", sha1.Sum([]byte(hash))))
 
 	logrus.Debug("read CSV into structs")
 
