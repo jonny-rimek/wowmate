@@ -185,7 +185,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 	}
 	h := md5.New()
 	io.WriteString(h, toHash.String())
-	hash := fmt.Sprintf("%v|%x", records[0].EncounterID, h)
+	hash := fmt.Sprintf("%v|%x", records[0].EncounterID, h.Sum(nil))
 
 	logrus.Debug("pre hash: " + toHash.String())
 	logrus.Debug("hashed: " + hash)
