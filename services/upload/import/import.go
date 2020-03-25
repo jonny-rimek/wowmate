@@ -171,8 +171,8 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		casterID := trimQuotes(row[3])
 		casterName := trimQuotes(row[4])
 
-		toHash.WriteString(fmt.Sprintf("%x-%x", casterID, damage))
-		toHash2 += fmt.Sprintf("%x-%x", casterID, damage)
+		toHash.WriteString(fmt.Sprintf("%v-%v", casterID, damage))
+		toHash2 += fmt.Sprintf("%v-%v", casterID, damage)
 
 		r := golib.DamageSummary{
 			BossFightUUID: bossFightUUID, 
@@ -185,11 +185,11 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		records = append(records, r)
 	}
 	sha1 := sha1.New()
-	hash := fmt.Sprintf("%x-%x", records[0].EncounterID, toHash.String())
+	hash := fmt.Sprintf("%v-%v", records[0].EncounterID, toHash.String())
 
 	logrus.Debug("pre hash" + hash)
 	logrus.Debug("hash2" + toHash2)
-	logrus.Debug("hash " + fmt.Sprintf("%x", sha1.Sum([]byte(hash))))
+	logrus.Debug("hash " + fmt.Sprintf("%v", sha1.Sum([]byte(hash))))
 
 	logrus.Debug("read CSV into structs")
 
