@@ -183,7 +183,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		records = append(records, r)
 	}
 	sha1 := sha1.New()
-	hash := toHash.String()
+	hash := fmt.Sprintf("%x-%x", records[0].EncounterID, toHash.String())
 
 	logrus.Debug(hash)
 	logrus.Debug(fmt.Sprintf("%x", sha1.Sum([]byte(hash))))
