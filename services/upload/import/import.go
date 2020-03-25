@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"crypto/md5"
+	"crypto/sha1"
 
 	"github.com/sirupsen/logrus"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -152,7 +152,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 	reader := bytes.NewReader(file)
 	scanner := bufio.NewScanner(reader)
 	
-	var toHash strings.Builder
+	var s strings.Builder
 
 	scanner.Scan() //skips the first line, which is the header of the csv
 	for scanner.Scan() {
@@ -171,7 +171,8 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		casterID := trimQuotes(row[3])
 		casterName := trimQuotes(row[4])
 
-		toHash.WriteString(fmt.Sprintf("|%v|%v", casterID, damage))
+		//strings.Builder is way faster than += 
+		s.WriteString(fmt.Sprintf("|%v|%v", casterID, damage))
 
 		r := golib.DamageSummary{
 			BossFightUUID: bossFightUUID, 
@@ -180,17 +181,14 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 			Damage:        damage,
 			CasterName:    casterName, 
 		}
-
 		records = append(records, r)
 	}
-	h := md5.New()
-	io.WriteString(h, toHash.String())
-	hash := fmt.Sprintf("%v|%x", records[0].EncounterID, h.Sum(nil))
+	h := sha1.New()
+	io.WriteString(h, s.String())
+	hash := fmt.Sprintf("%x%x", h.Sum(nil), records[0].EncounterID)
 
-	logrus.Debug("pre hash: " + toHash.String())
+	logrus.Debug("pre hash: " + s.String())
 	logrus.Debug("hashed: " + hash)
-
-	logrus.Debug("read CSV into structs")
 
 	return records, nil
 }
