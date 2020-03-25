@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"bufio"
 	"bytes"
 	"fmt"
@@ -182,11 +183,12 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 
 		records = append(records, r)
 	}
-	sha1 := md5.New()
-	hash := fmt.Sprintf("%v%v", records[0].EncounterID, toHash.String())
+	h := md5.New()
+	io.WriteString(h, toHash.String())
+	hash := fmt.Sprintf("%v|%x", records[0].EncounterID, h)
 
-	logrus.Debug("pre hash" + hash)
-	logrus.Debug("hash " + fmt.Sprintf("%x", sha1.Sum([]byte(hash))))
+	logrus.Debug("pre hash: " + toHash.String())
+	logrus.Debug("hashed: " + hash)
 
 	logrus.Debug("read CSV into structs")
 
