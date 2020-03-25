@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"crypto/sha1"
+	"crypto/md5"
 
 	"github.com/sirupsen/logrus"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -182,7 +182,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 
 		records = append(records, r)
 	}
-	sha1 := sha1.New()
+	sha1 := md5.New()
 	hash := fmt.Sprintf("%v%v", records[0].EncounterID, toHash.String())
 
 	logrus.Debug("pre hash" + hash)
