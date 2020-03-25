@@ -56,6 +56,9 @@ func handle(e Event) (int64, float64, error) {
 	return bytes, wcu, err
 }
 
+//it handles more than 25 entries, it's not very well tested tho, might have an
+//edge case
+//WISHLIST: test behaviour with =25 and >25 entries
 func writeDynamoDB(records []golib.DamageSummary, sess *session.Session) (float64, error) {
 	writeRequests, err := createDynamoDBWriteRequest(records)
 	var writes []*dynamodb.WriteRequest
@@ -174,6 +177,14 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		//strings.Builder is way faster than += 
 		s.WriteString(fmt.Sprintf("|%v|%v", casterID, damage))
 
+		//TODO: update struct structire sort key is damage
+		/*
+			SHA1
+			encounter_id + "_damage"
+			damage
+			caster_id
+			caster_name
+		*/
 		r := golib.DamageSummary{
 			BossFightUUID: bossFightUUID, 
 			CasterID:      casterID, 

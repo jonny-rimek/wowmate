@@ -32,18 +32,21 @@ export class WowmateStack extends cdk.Stack {
             billingMode: ddb.BillingMode.PAY_PER_REQUEST
 		})
 
+		//TODO: update to sk + damage
 		db.addGlobalSecondaryIndex({
 			indexName: 'GSI1',
 			partitionKey: {name: 'pk', type: ddb.AttributeType.STRING},
 			sortKey: {name: 'gsi123sk', type: ddb.AttributeType.NUMBER}
 		})
 
+		//TODO: delete
 		db.addGlobalSecondaryIndex({
 			indexName: 'GSI2',
 			partitionKey: {name: 'sk', type: ddb.AttributeType.STRING},
 			sortKey: {name: 'gsi123sk', type: ddb.AttributeType.NUMBER}
 		})
 
+		//TODO: delete
 		db.addGlobalSecondaryIndex({
 			indexName: 'GSI3',
 			partitionKey: {name: 'gsi3pk', type: ddb.AttributeType.NUMBER},
@@ -72,6 +75,7 @@ export class WowmateStack extends cdk.Stack {
 			environment: {DDB_NAME: db.tableName}
 		})
 
+		//TODO: delete
 		const damageCasterIdFunc = new lambda.Function(this, 'DamageCasterId', {
 			code: lambda.Code.asset('services/api/damage-caster-id'),
 			handler: 'main',
@@ -85,6 +89,7 @@ export class WowmateStack extends cdk.Stack {
 		db.grantReadData(damageBossFightUuidFunc)
 		db.grantReadData(damageEncounterIdFunc)
 		db.grantReadData(damageCasterIdFunc)
+		//TODO: delete
 		
 		const api = new apigateway.LambdaRestApi(this, 'api', {
 			handler: damageBossFightUuidFunc,
@@ -110,6 +115,7 @@ export class WowmateStack extends cdk.Stack {
 		const CasterIdPath = damagePath.addResource('caster');
 		const CasterIdParam = CasterIdPath.addResource('{caster-id}');
 		const damageCasterIdIntegration = new apigateway.LambdaIntegration(damageCasterIdFunc);
+		//TODO: delete
 		CasterIdParam.addMethod('GET', damageCasterIdIntegration)
 
 		//FRONTEND
