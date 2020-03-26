@@ -50,6 +50,7 @@ jobs:
           keys: 
             - cdk_npm-{{ checksum "package-lock.json" }}
 
+      - run: du -hcs cdk.out
       - run: mage deploy
 
       - save_cache:
