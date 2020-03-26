@@ -53,27 +53,28 @@ func handle(e Event) (int64, float64, bool, float64, error) {
 	var bytes int64
 	var wcu float64
 	var rcu float64
+	var duplicate bool
 
 	file, bytes, err := golib.DownloadFileFromS3(e.BucketName, e.Key, sess)
 	if err != nil {
-		return bytes, wcu, false, rcu, err
+		return bytes, wcu, duplicate, rcu, err
 	}
 
 	records, err := parseCSV(file)
 	if err != nil {
-		return bytes, wcu, false, rcu, err
+		return bytes, wcu, duplicate, rcu, err
 	}
 
 	rcu, err = newCombatlog(records, sess)
 	if err != nil {
-		//NOTE: 
-		//this is technically not true, the function could fail for other 
-		//reasons too
-		return bytes, wcu, false, rcu, err
+		if err.Error() == "duplicate combatlog" {
+			duplicate = true
+		}
+		return bytes, wcu, duplicate, rcu, err
 	}
 
 	wcu, err = writeDynamoDB(records, sess)
-	return bytes, wcu, false, rcu, err
+	return bytes, wcu, duplicate, rcu, err
 }
 
 func newCombatlog(records []golib.DamageSummary,  sess *session.Session) (float64, error) {
