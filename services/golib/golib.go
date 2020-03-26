@@ -21,11 +21,11 @@ import (
 
 //DamageSummary is the DynamoDB schema for all damage summaries
 type DamageSummary struct {
-	BossFightUUID string `json:"pk"`
-	CasterID      string `json:"sk"`
-	EncounterID   int    `json:"gsi3pk"`
-	Damage        int64  `json:"gsi123sk"`
-	CasterName    string `json:"caster_name"`
+	Hash        string `json:"pk"`
+	EncounterID string `json:"sk"`
+	Damage      int64  `json:"gsi1sk"`
+	CasterID    string `json:"caster_id"`
+	CasterName  string `json:"caster_name"`
 }
 
 //CanonicalLog writes a structured message to stdout if the log level is atleast INFO

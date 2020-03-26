@@ -1,16 +1,15 @@
 package main
 
 import (
-	"io"
 	"bufio"
 	"bytes"
+	"crypto/sha1"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
-	"crypto/sha1"
 
-	"github.com/sirupsen/logrus"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -18,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/jonny-rimek/wowmate/services/golib"
+	"github.com/sirupsen/logrus"
 )
 
 //Event is the data from StepFunctions
@@ -154,7 +154,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 
 	reader := bytes.NewReader(file)
 	scanner := bufio.NewScanner(reader)
-	
+
 	var s strings.Builder
 
 	scanner.Scan() //skips the first line, which is the header of the csv
@@ -170,33 +170,27 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert encounter id column to int: %v", err)
 		}
-		bossFightUUID := trimQuotes(row[2])
 		casterID := trimQuotes(row[3])
 		casterName := trimQuotes(row[4])
 
-		//strings.Builder is way faster than += 
+		//strings.Builder is way faster than +=
 		s.WriteString(fmt.Sprintf("|%v|%v", casterID, damage))
 
-		//TODO: update struct structire sort key is damage
-		/*
-			SHA1
-			encounter_id + "_damage"
-			damage
-			caster_id
-			caster_name
-		*/
 		r := golib.DamageSummary{
-			BossFightUUID: bossFightUUID, 
-			CasterID:      casterID, 
-			EncounterID:   encounterID,
-			Damage:        damage,
-			CasterName:    casterName, 
+			EncounterID: fmt.Sprintf("%v_b_v", encounterID),
+			Damage:      damage,
+			CasterID:    casterID,
+			CasterName:  casterName,
 		}
 		records = append(records, r)
 	}
 	h := sha1.New()
 	io.WriteString(h, s.String())
 	hash := fmt.Sprintf("%x%x", h.Sum(nil), records[0].EncounterID)
+
+	for _, item := range records {
+		item.Hash = hash
+	}
 
 	logrus.Debug("pre hash: " + s.String())
 	logrus.Debug("hashed: " + hash)
