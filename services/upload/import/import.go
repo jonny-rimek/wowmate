@@ -189,12 +189,12 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 	io.WriteString(h, s.String())
 	hash := fmt.Sprintf("%x%x", h.Sum(nil), records[0].EncounterID)
 
-	for _, item := range records {
-		item.Hash = hash
+	for i := 0; i < len(records); i++ {
+		records[i].Hash = hash
 	}
 
 	logrus.Debug(fmt.Sprintf("hash: %v encounter: %v damage: %v caster id: %v caster name: %v",
-		records[0].Hash, 
+		records[0].Hash,
 		records[0].EncounterID,
 		records[0].Damage,
 		records[0].CasterID,
