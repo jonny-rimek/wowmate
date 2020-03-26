@@ -177,7 +177,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		s.WriteString(fmt.Sprintf("|%v|%v", casterID, damage))
 
 		r := golib.DamageSummary{
-			EncounterID: fmt.Sprintf("%v_b_v", encounterID),
+			EncounterID: fmt.Sprintf("%v_b_d", encounterID),
 			Damage:      damage,
 			CasterID:    casterID,
 			CasterName:  casterName,
@@ -191,6 +191,14 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 	for _, item := range records {
 		item.Hash = hash
 	}
+
+	logrus.Debug(fmt.Sprintf("hash: %v encounter: %v damage: %v caster id: %v caster name: %v",
+		records[0].Hash, 
+		records[0].EncounterID,
+		records[0].Damage,
+		records[0].CasterID,
+		records[0].CasterName,
+	))
 
 	logrus.Debug("pre hash: " + s.String())
 	logrus.Debug("hashed: " + hash)

@@ -34,7 +34,7 @@ export class WowmateStack extends cdk.Stack {
 
 		db.addGlobalSecondaryIndex({
 			indexName: 'GSI1',
-			partitionKey: {name: 'pk', type: ddb.AttributeType.STRING},
+			partitionKey: {name: 'sk', type: ddb.AttributeType.STRING},
 			sortKey: {name: 'gsi1sk', type: ddb.AttributeType.NUMBER}
 		})
 
