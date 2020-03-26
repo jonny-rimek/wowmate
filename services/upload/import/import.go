@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"crypto/sha1"
+	"crypto/md5"
 	"fmt"
 	"io"
 	"os"
@@ -185,7 +185,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		}
 		records = append(records, r)
 	}
-	h := sha1.New()
+	h := md5.New()
 	io.WriteString(h, s.String())
 	hash := fmt.Sprintf("%x%x", h.Sum(nil), records[0].EncounterID)
 
