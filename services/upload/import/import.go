@@ -65,13 +65,13 @@ func handle(e Event) (int64, float64, bool, float64, error) {
 		return bytes, wcu, duplicate, rcu, err
 	}
 
-	rcu, err = newCombatlog(records, sess)
-	if err != nil {
-		if err.Error() == "duplicate combatlog" {
-			duplicate = true
-		}
-		return bytes, wcu, duplicate, rcu, err
-	}
+	// rcu, err = newCombatlog(records, sess)
+	// if err != nil {
+	// 	if err.Error() == "duplicate combatlog" {
+	// 		duplicate = true
+	// 	}
+	// 	return bytes, wcu, duplicate, rcu, err
+	// }
 
 	wcu, err = writeDynamoDB(records, sess)
 	return bytes, wcu, duplicate, rcu, err
