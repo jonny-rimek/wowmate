@@ -27,38 +27,43 @@ type Event struct {
 }
 
 func handler(e Event) error {
-	bytes, wcu, err := handle(e)
+	bytes, wcu, dup, err := handle(e)
 	golib.CanonicalLog(map[string]interface{}{
 		"bucket":        e.BucketName,
 		"key":           e.Key,
 		"downloaded KB": bytes / 1024,
+		"duplicate":     dup,
 		"wcu":           wcu,
+		"err":           err.Error(),
 	})
 	return err
 }
 
-func handle(e Event) (int64, float64, error) {
+func handle(e Event) (int64, float64, bool, error) {
 	sess, _ := session.NewSession()
 	var bytes int64
 	var wcu float64
 
 	file, bytes, err := golib.DownloadFileFromS3(e.BucketName, e.Key, sess)
 	if err != nil {
-		return bytes, 0, err
+		return bytes, 0, false, err
 	}
 
 	records, err := parseCSV(file)
 	if err != nil {
-		return bytes, 0, err
+		return bytes, 0, false, err
 	}
 
 	err = newCombatlog(records, sess)
 	if err != nil {
-		return bytes, 0, err
+		//NOTE: 
+		//this is technically not true, the function could fail for other 
+		//reasons too
+		return bytes, 0, true, err
 	}
 
 	wcu, err = writeDynamoDB(records, sess)
-	return bytes, wcu, err
+	return bytes, wcu, false, err
 }
 
 func newCombatlog(records []golib.DamageSummary,  sess *session.Session) error {
