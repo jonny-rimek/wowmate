@@ -29,7 +29,7 @@ type Event struct {
 func handler(e Event) error {
 	var errMsg string
 
-	bytes, wcu, dup, err := handle(e)
+	bytes, wcu, dup, rcu, err := handle(e)
 	if err == nil {
 		errMsg = ""
 	} else {
@@ -42,39 +42,41 @@ func handler(e Event) error {
 		"downloaded KB": bytes / 1024,
 		"duplicate":     dup,
 		"wcu":           wcu,
+		"rcu":           rcu,
 		"err":           errMsg,
 	})
 	return err
 }
 
-func handle(e Event) (int64, float64, bool, error) {
+func handle(e Event) (int64, float64, bool, float64, error) {
 	sess, _ := session.NewSession()
 	var bytes int64
 	var wcu float64
+	var rcu float64
 
 	file, bytes, err := golib.DownloadFileFromS3(e.BucketName, e.Key, sess)
 	if err != nil {
-		return bytes, 0, false, err
+		return bytes, wcu, false, rcu, err
 	}
 
 	records, err := parseCSV(file)
 	if err != nil {
-		return bytes, 0, false, err
+		return bytes, wcu, false, rcu, err
 	}
 
-	err = newCombatlog(records, sess)
+	rcu, err = newCombatlog(records, sess)
 	if err != nil {
 		//NOTE: 
 		//this is technically not true, the function could fail for other 
 		//reasons too
-		return bytes, 0, true, err
+		return bytes, wcu, false, rcu, err
 	}
 
 	wcu, err = writeDynamoDB(records, sess)
-	return bytes, wcu, false, err
+	return bytes, wcu, false, rcu, err
 }
 
-func newCombatlog(records []golib.DamageSummary,  sess *session.Session) error {
+func newCombatlog(records []golib.DamageSummary,  sess *session.Session) (float64, error) {
 	svcdb := dynamodb.New(sess)
 
 	//IMPROVE: 
@@ -94,31 +96,29 @@ func newCombatlog(records []golib.DamageSummary,  sess *session.Session) error {
 	}
 
 	result, err := svcdb.Query(input)
+	rcu := *result.ConsumedCapacity.CapacityUnits
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				logrus.Error(dynamodb.ErrCodeProvisionedThroughputExceededException)
-				return err
+				return rcu , err
 			case dynamodb.ErrCodeResourceNotFoundException:
-				return err
+				return rcu , err
 			case dynamodb.ErrCodeInternalServerError:
-				return err
+				return rcu , err
 			default:
-				return err
+				return rcu , err
 			}
 		} else {
-			return err
+			return rcu , err
 		}
 	}
-	//TODO: add rcu to cononical log
-	logrus.Debug(fmt.Sprintf("rcu %v", *result.ConsumedCapacity.CapacityUnits))
 
 	if *result.Count > 0 {
-		return fmt.Errorf("duplicate combatlog")
+		return rcu , fmt.Errorf("duplicate combatlog")
 	}
 
-	return nil
+	return rcu , nil
 }
 
 //it handles more than 25 entries, it's not tested tho, might have an
