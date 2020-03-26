@@ -178,7 +178,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		s.WriteString(fmt.Sprintf("|%v|%v", casterID, damage))
 
 		r := golib.DamageSummary{
-			EncounterID: fmt.Sprintf("%v_b_d", encounterID),
+			EncounterID: fmt.Sprintf("%v_b_d_%v", encounterID, casterID),
 			Damage:      damage,
 			CasterID:    casterID,
 			CasterName:  casterName,
