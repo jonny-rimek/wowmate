@@ -27,14 +27,22 @@ type Event struct {
 }
 
 func handler(e Event) error {
+	var errMsg string
+
 	bytes, wcu, dup, err := handle(e)
+	if err == nil {
+		errMsg = ""
+	} else {
+		errMsg = err.Error()
+	}
+
 	golib.CanonicalLog(map[string]interface{}{
 		"bucket":        e.BucketName,
 		"key":           e.Key,
 		"downloaded KB": bytes / 1024,
 		"duplicate":     dup,
 		"wcu":           wcu,
-		"err":           err.Error(),
+		"err":           errMsg,
 	})
 	return err
 }
@@ -71,6 +79,8 @@ func newCombatlog(records []golib.DamageSummary,  sess *session.Session) error {
 
 	//IMPROVE: 
 	//use GetItem, should always consume less RCU as it is limited to 1 item, atm rcu is still 0.5
+	//https://github.com/awsdocs/aws-doc-sdk-examples/blob/master/go/example_code/dynamodb/DynamoDBReadItem.go
+	//https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_GetItem.html
 	input := &dynamodb.QueryInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":v1": {
@@ -101,6 +111,7 @@ func newCombatlog(records []golib.DamageSummary,  sess *session.Session) error {
 			return err
 		}
 	}
+	//TODO: add rcu to cononical log
 	logrus.Debug(fmt.Sprintf("rcu %v", *result.ConsumedCapacity.CapacityUnits))
 
 	if *result.Count > 0 {
