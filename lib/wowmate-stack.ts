@@ -272,7 +272,7 @@ export class WowmateStack extends cdk.Stack {
 		checkFunc.addToRolePolicy(athenaWorkgroupPolicy)
 
 		athenaBucket.grantRead(impFunc)
-		db.grantWriteData(impFunc)
+		db.grantReadWriteData(impFunc)
 
 		//STEP FUNCTION
 		const sizeJob = new sfn.Task(this, 'Size Job', {

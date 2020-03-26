@@ -98,6 +98,7 @@ func newCombatlog(records []golib.DamageSummary,  sess *session.Session) error {
 			return err
 		}
 	}
+	logrus.Debug(fmt.Sprintf("rcu %v", *result.ConsumedCapacity.CapacityUnits))
 
 	if *result.Count > 0 {
 		return fmt.Errorf("duplicate combatlog")
