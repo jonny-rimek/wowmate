@@ -52,11 +52,12 @@ func handle(e Event) (int64, float64, error) {
 		return bytes, 0, err
 	}
 
+	//check for if combatlog already was uploaded
 	wcu, err = writeDynamoDB(records, sess)
 	return bytes, wcu, err
 }
 
-//it handles more than 25 entries, it's not very well tested tho, might have an
+//it handles more than 25 entries, it's not tested tho, might have an
 //edge case
 //WISHLIST: test behaviour with =25 and >25 entries
 func writeDynamoDB(records []golib.DamageSummary, sess *session.Session) (float64, error) {
@@ -66,9 +67,8 @@ func writeDynamoDB(records []golib.DamageSummary, sess *session.Session) (float6
 	var consumedWCU float64
 	for _, value := range writeRequests {
 		writes = append(writes, value)
-		//NOTE: should probably be >25
-		if len(writes) == 25 {
-			logrus.Debug("writing batch to dynamodb")
+		if len(writes) > 25 {
+			logrus.Debug("batch size > 25")
 			wcu, err := writeBatchDynamoDB(writes, sess)
 			if err != nil {
 				return consumedWCU, err
@@ -77,8 +77,6 @@ func writeDynamoDB(records []golib.DamageSummary, sess *session.Session) (float6
 			writes = nil
 		}
 	}
-	//NOTE: if the size was exactly 25 this will still execute with
-	//an empty array, not sure how it will behave
 	wcu, err := writeBatchDynamoDB(writes, sess)
 	if err != nil {
 		return consumedWCU, err
@@ -190,7 +188,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 	hash := fmt.Sprintf("%x%x", h.Sum(nil), records[0].EncounterID)
 
 	for i := 0; i < len(records); i++ {
-		records[i].Hash = hash
+		records[i].Hash = hash[:12]
 	}
 
 	logrus.Debug(fmt.Sprintf("hash: %v encounter: %v damage: %v caster id: %v caster name: %v",
