@@ -25,7 +25,7 @@ export class WowmateStack extends cdk.Stack {
 		super(scope, id, props);
 
 		//DYNAMODB
-		const db = new ddb.Table(this, 'DDB', {
+/* 		const db = new ddb.Table(this, 'DDB', {
 			partitionKey: { name: 'pk', type: ddb.AttributeType.STRING },
 			sortKey: {name: 'sk', type: ddb.AttributeType.STRING},
 			removalPolicy: RemovalPolicy.DESTROY,
@@ -52,7 +52,7 @@ export class WowmateStack extends cdk.Stack {
 			partitionKey: {name: 'gsi3pk', type: ddb.AttributeType.NUMBER},
 			sortKey: {name: 'gsi123sk', type: ddb.AttributeType.NUMBER}
 		})
-
+*/		
 		//unfortunately route53 is somewhat of a pain with CDK so I created the alias and the ACM cert manually
 		const cert = acm.Certificate.fromCertificateArn(this, 'Certificate', 'arn:aws:acm:eu-central-1:940880032268:certificate/4159a4aa-6055-48ff-baa8-0b8379cdb494');
 
@@ -63,7 +63,7 @@ export class WowmateStack extends cdk.Stack {
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(3),
-			environment: {DDB_NAME: db.tableName}
+			// environment: {DDB_NAME: db.tableName}
 		})
 
 		const damageEncounterIdFunc = new lambda.Function(this, 'DamageEncounterId', {
@@ -72,7 +72,7 @@ export class WowmateStack extends cdk.Stack {
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(3),
-			environment: {DDB_NAME: db.tableName}
+			// environment: {DDB_NAME: db.tableName}
 		})
 
 		// const damageCasterIdFunc = new lambda.Function(this, 'DamageCasterId', {
@@ -85,8 +85,8 @@ export class WowmateStack extends cdk.Stack {
 		// })
 
 
-		db.grantReadData(damageBossFightUuidFunc)
-		db.grantReadData(damageEncounterIdFunc)
+		// db.grantReadData(damageBossFightUuidFunc)
+		// db.grantReadData(damageEncounterIdFunc)
 		// db.grantReadData(damageCasterIdFunc)
 		
 		const api = new apigateway.LambdaRestApi(this, 'api', {
@@ -238,7 +238,7 @@ export class WowmateStack extends cdk.Stack {
 			memorySize: 3008,
 			timeout: Duration.seconds(10),
 			environment: {
-				DDB_NAME: db.tableName,
+				// DDB_NAME: db.tableName,
 				// LOG_LEVEL: 'prod',
 			}
 		})
@@ -303,7 +303,7 @@ export class WowmateStack extends cdk.Stack {
 		checkFunc.addToRolePolicy(athenaWorkgroupPolicy)
 
 		athenaBucket.grantRead(impFunc)
-		db.grantWriteData(impFunc)
+		// db.grantWriteData(impFunc)
 
 		//STEP FUNCTION
 		const sizeJob = new sfn.Task(this, 'Size Job', {
