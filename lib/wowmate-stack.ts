@@ -32,25 +32,10 @@ export class WowmateStack extends cdk.Stack {
             billingMode: ddb.BillingMode.PAY_PER_REQUEST
 		})
 
-		//TODO: update to sk + damage
 		db.addGlobalSecondaryIndex({
 			indexName: 'GSI1',
 			partitionKey: {name: 'pk', type: ddb.AttributeType.STRING},
-			sortKey: {name: 'gsi123sk', type: ddb.AttributeType.NUMBER}
-		})
-
-		//TODO: delete
-		db.addGlobalSecondaryIndex({
-			indexName: 'GSI2',
-			partitionKey: {name: 'sk', type: ddb.AttributeType.STRING},
-			sortKey: {name: 'gsi123sk', type: ddb.AttributeType.NUMBER}
-		})
-
-		//TODO: delete
-		db.addGlobalSecondaryIndex({
-			indexName: 'GSI3',
-			partitionKey: {name: 'gsi3pk', type: ddb.AttributeType.NUMBER},
-			sortKey: {name: 'gsi123sk', type: ddb.AttributeType.NUMBER}
+			sortKey: {name: 'gsi1sk', type: ddb.AttributeType.NUMBER}
 		})
 
 		//unfortunately route53 is somewhat of a pain with CDK so I created the alias and the ACM cert manually
@@ -75,19 +60,8 @@ export class WowmateStack extends cdk.Stack {
 			environment: {DDB_NAME: db.tableName}
 		})
 
-		// const damageCasterIdFunc = new lambda.Function(this, 'DamageCasterId', {
-		// 	code: lambda.Code.asset('services/api/damage-caster-id'),
-		// 	handler: 'main',
-		// 	runtime: lambda.Runtime.GO_1_X,
-		// 	memorySize: 3008,
-		// 	timeout: Duration.seconds(3),
-		// 	environment: {DDB_NAME: db.tableName}
-		// })
-
-
 		db.grantReadData(damageBossFightUuidFunc)
 		db.grantReadData(damageEncounterIdFunc)
-		// db.grantReadData(damageCasterIdFunc)
 		
 		const api = new apigateway.LambdaRestApi(this, 'api', {
 			handler: damageBossFightUuidFunc,
@@ -109,11 +83,6 @@ export class WowmateStack extends cdk.Stack {
 		const encounterIdParam = encounterIdPath.addResource('{encounter-id}');
 		const damageEncounterIdIntegration = new apigateway.LambdaIntegration(damageEncounterIdFunc);
 		encounterIdParam.addMethod('GET', damageEncounterIdIntegration)
-
-		// const CasterIdPath = damagePath.addResource('caster');
-		// const CasterIdParam = CasterIdPath.addResource('{caster-id}');
-		// const damageCasterIdIntegration = new apigateway.LambdaIntegration(damageCasterIdFunc);
-		// CasterIdParam.addMethod('GET', damageCasterIdIntegration)
 
 		//FRONTEND
 		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
