@@ -66,6 +66,7 @@ func writeDynamoDB(records []golib.DamageSummary, sess *session.Session) (float6
 	var consumedWCU float64
 	for _, value := range writeRequests {
 		writes = append(writes, value)
+		//NOTE: should probably be >25
 		if len(writes) == 25 {
 			logrus.Debug("writing batch to dynamodb")
 			wcu, err := writeBatchDynamoDB(writes, sess)

@@ -32,11 +32,11 @@ export class WowmateStack extends cdk.Stack {
             billingMode: ddb.BillingMode.PAY_PER_REQUEST
 		})
 
-		db.addGlobalSecondaryIndex({
-			indexName: 'GSI1',
-			partitionKey: {name: 'sk', type: ddb.AttributeType.STRING},
-			sortKey: {name: 'gsi1sk', type: ddb.AttributeType.NUMBER}
-		})
+		// db.addGlobalSecondaryIndex({
+		// 	indexName: 'GSI1',
+		// 	partitionKey: {name: 'sk', type: ddb.AttributeType.STRING},
+		// 	sortKey: {name: 'gsi1sk', type: ddb.AttributeType.NUMBER}
+		// })
 
 		//unfortunately route53 is somewhat of a pain with CDK so I created the alias and the ACM cert manually
 		const cert = acm.Certificate.fromCertificateArn(this, 'Certificate', 'arn:aws:acm:eu-central-1:940880032268:certificate/4159a4aa-6055-48ff-baa8-0b8379cdb494');
