@@ -52,9 +52,58 @@ func handle(e Event) (int64, float64, error) {
 		return bytes, 0, err
 	}
 
-	//check for if combatlog already was uploaded
+	err = newCombatlog(records, sess)
+	if err != nil {
+		return bytes, 0, err
+	}
+
 	wcu, err = writeDynamoDB(records, sess)
 	return bytes, wcu, err
+}
+
+func newCombatlog(records []golib.DamageSummary,  sess *session.Session) error {
+	svcdb := dynamodb.New(sess)
+	input := &dynamodb.QueryInput{
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":v1": {
+				S: aws.String(records[0].Hash),
+			},
+		},
+		KeyConditionExpression: aws.String("pk = :v1"),
+		TableName:              aws.String(os.Getenv("DDB_NAME")),
+		ReturnConsumedCapacity: aws.String("TOTAL"),
+		// IndexName:              aws.String("GSI3"),
+		Limit:                  aws.Int64(1),
+		// ScanIndexForward:       aws.Bool(false),
+	}
+	//TODO: 
+	//		add sk too
+	//		use GetItem, should always consume less RCU as it is limited to 1 item
+
+	result, err := svcdb.Query(input)
+	if err != nil {
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case dynamodb.ErrCodeProvisionedThroughputExceededException:
+				logrus.Error(dynamodb.ErrCodeProvisionedThroughputExceededException)
+				return err
+			case dynamodb.ErrCodeResourceNotFoundException:
+				return err
+			case dynamodb.ErrCodeInternalServerError:
+				return err
+			default:
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	if *result.Count > 0 {
+		return fmt.Errorf("duplicate combatlog")
+	}
+
+	return nil
 }
 
 //it handles more than 25 entries, it's not tested tho, might have an
@@ -188,19 +237,11 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 	hash := fmt.Sprintf("%x%x", h.Sum(nil), records[0].EncounterID)
 
 	for i := 0; i < len(records); i++ {
+		//limiting the size of the pk to 12 chars
+		//to reduce the storage and not have an unessesary long value
+		//as they are exposed to the user in the URL
 		records[i].Hash = hash[:12]
 	}
-
-	logrus.Debug(fmt.Sprintf("hash: %v encounter: %v damage: %v caster id: %v caster name: %v",
-		records[0].Hash,
-		records[0].EncounterID,
-		records[0].Damage,
-		records[0].CasterID,
-		records[0].CasterName,
-	))
-
-	logrus.Debug("pre hash: " + s.String())
-	logrus.Debug("hashed: " + hash)
 
 	return records, nil
 }
