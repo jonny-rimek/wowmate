@@ -68,6 +68,9 @@ func handle(e Event) (int64, float64, bool, error) {
 
 func newCombatlog(records []golib.DamageSummary,  sess *session.Session) error {
 	svcdb := dynamodb.New(sess)
+
+	//IMPROVE: 
+	//use GetItem, should always consume less RCU as it is limited to 1 item, atm rcu is still 0.5
 	input := &dynamodb.QueryInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":v1": {
@@ -77,13 +80,8 @@ func newCombatlog(records []golib.DamageSummary,  sess *session.Session) error {
 		KeyConditionExpression: aws.String("pk = :v1"),
 		TableName:              aws.String(os.Getenv("DDB_NAME")),
 		ReturnConsumedCapacity: aws.String("TOTAL"),
-		// IndexName:              aws.String("GSI3"),
 		Limit:                  aws.Int64(1),
-		// ScanIndexForward:       aws.Bool(false),
 	}
-	//TODO: 
-	//		add sk too
-	//		use GetItem, should always consume less RCU as it is limited to 1 item
 
 	result, err := svcdb.Query(input)
 	if err != nil {
