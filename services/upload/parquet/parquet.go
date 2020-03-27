@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"bufio"
 	"bytes"
 	"compress/gzip"
@@ -119,11 +120,14 @@ func handler(e StepfunctionEvent) error {
 		return err
 	}
 
+	newFilename := fmt.Sprintf("processed/%v", strings.TrimPrefix(e.Key, "new"))
+
+
 	svc := s3.New(sess)
 	_, err = svc.CopyObject(&s3.CopyObjectInput{
 		CopySource: aws.String(e.BucketName + "/" + e.Key), 
 		Bucket: aws.String(e.BucketName), 
-		Key: aws.String("processed/file.gz.txt"),
+		Key: aws.String(newFilename),
 	})
 	if err != nil {
 		log.Printf("unable to move file to processed dir. %v", err)

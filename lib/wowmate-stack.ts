@@ -215,7 +215,7 @@ export class WowmateStack extends cdk.Stack {
 		//IAM
 		uploadBucket.grantRead(sizeFunc)
 
-		uploadBucket.grantRead(parquetFunc)
+		uploadBucket.grantReadWrite(parquetFunc)
 		parquetBucket.grantPut(parquetFunc)
 
 		parquetBucket.grantRead(athenaFunc)
