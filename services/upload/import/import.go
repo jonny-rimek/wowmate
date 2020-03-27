@@ -81,7 +81,7 @@ func newCombatlog(records []golib.DamageSummary,  sess *session.Session) (float6
 	svcdb := dynamodb.New(sess)
 
 	//IMPROVE: 
-	//use GetItem, should always consume less RCU as it is limited to 1 item, atm rcu is still 0.5
+	//use GetItem, should consume less RCU as it is limited to 1 item, atm rcu is still 0.5
 	//https://github.com/awsdocs/aws-doc-sdk-examples/blob/master/go/example_code/dynamodb/DynamoDBReadItem.go
 	//https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_GetItem.html
 	input := &dynamodb.QueryInput{
