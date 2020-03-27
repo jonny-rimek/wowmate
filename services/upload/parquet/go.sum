@@ -35,6 +35,7 @@ github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81P
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/xitongsys/parquet-go v1.4.0 h1:+3+QFRRwAilhTdNcJU2hPxslLCAKJ+Tn8C2OhnCVWDo=
 github.com/xitongsys/parquet-go v1.4.0/go.mod h1:on8bl2K/PEouGNEJqxht0t3K4IyN/ABeFu84Hh3lzrE=
+github.com/xitongsys/parquet-go v1.5.1 h1:GFjQXrFmqI2XvmAaj7k73QtW3eECFVwaLX2/Mv3Fnuo=
 github.com/xitongsys/parquet-go-source v0.0.0-20191104003508-ecfa341356a6 h1:KPDKkdchSII+K5KS7iMpE062MVh2OucaM31599ER4U0=
 github.com/xitongsys/parquet-go-source v0.0.0-20191104003508-ecfa341356a6/go.mod h1:xxCx7Wpym/3QCo6JhujJX51dzSXrwmb0oH6FQb39SEA=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
