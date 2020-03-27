@@ -122,7 +122,7 @@ func handler(e StepfunctionEvent) error {
 
 	newFilename := fmt.Sprintf("processed/%v", strings.TrimPrefix(e.Key, "new"))
 
-
+	//If removed, remove write access to upload bucket
 	svc := s3.New(sess)
 	_, err = svc.CopyObject(&s3.CopyObjectInput{
 		CopySource: aws.String(e.BucketName + "/" + e.Key), 
