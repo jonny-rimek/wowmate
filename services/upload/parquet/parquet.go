@@ -112,7 +112,7 @@ func handler(e StepfunctionEvent) error {
 	//END
 
 	//UPLOAD TO S3
-	//TODO: use same combatlog uuid as filename
+	//TODO: use e.Key - "txt.gz" + ".parquet"
 	uploadFileName := fmt.Sprintf("test/test-diff.parquet")
 
 	err = golib.UploadFileToS3(fr, targetBucket, uploadFileName, sess)
@@ -132,7 +132,31 @@ func handler(e StepfunctionEvent) error {
 	if err != nil {
 		log.Printf("unable to move file to processed dir. %v", err)
 		return err
-    }
+	}
+	// Wait to see if the item got copied
+	err = svc.WaitUntilObjectExists(&s3.HeadObjectInput{
+		Bucket: aws.String(e.BucketName), 
+		Key: aws.String(newFilename),
+	})
+	if err != nil {
+		fmt.Printf("Error occurred while waiting for item %q to be copied to bucket processed folder", e.Key)
+		return err
+	}
+	// Delete the item
+	_, err = svc.DeleteObject(&s3.DeleteObjectInput{Bucket: aws.String(e.BucketName), Key: aws.String(e.Key)})
+	if err != nil {
+		fmt.Printf("Unable to delete object %q from bucket %q", e.Key, e.BucketName)
+		return err
+	}
+
+	err = svc.WaitUntilObjectNotExists(&s3.HeadObjectInput{
+		Bucket: aws.String(e.BucketName),
+		Key:    aws.String(e.Key),
+	})
+	if err != nil {
+		fmt.Printf("Error occurred while waiting for object %q to be deleted from bucket %v", e.Key, e.BucketName)
+		return err
+	}
 
 	err = os.Remove("/tmp/flat.parquet")
 	if err != nil {
