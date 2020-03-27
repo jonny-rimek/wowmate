@@ -13,14 +13,13 @@ jobs:
 
       - restore_cache:
           keys: 
-            - go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-caster-id/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}
-            # - go_pkg_
+            - go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/partitions/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}
 
       - run:  mage go
       - run:  du -hcs ~/.cache/go-build
 
       - save_cache:
-          key: go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-caster-id/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}
+          key: go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/partitions/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}
           paths: 
             - /go/pkg
             - /root/.cache/go-build 
@@ -30,7 +29,6 @@ jobs:
       - restore_cache:
           keys: 
             - frontend_yarn-{{ checksum "services/frontend/yarn.lock" }}
-            # - frontend-npm
 
       - run: mage frontend
 
@@ -43,18 +41,19 @@ jobs:
 
       - restore_cache:
           keys: 
-            - cdk_out-{{ checksum "cdk.out/tree.json" }}
             - cdk_out
 
       - restore_cache:
           keys: 
             - cdk_npm-{{ checksum "package-lock.json" }}
 
-      - run: du -hcs cdk.out
       - run: mage deploy
+      # the asset.* directories don't need to be cached. but we do need to cache the other files
+      # to "remember" the state, so not every lambda has to be deployed every time a change is made
+      - run: rm -rf cdk.out/asset.*
 
       - save_cache:
-          key: cdk_out-{{ checksum "cdk.out/tree.json" }}
+          key: cdk_out{{ epoch }}
           paths: 
             -  cdk.out
 
@@ -68,6 +67,7 @@ jobs:
       #     name: go
       #     command: |
       #       mage go
+
 
 workflows:
   version: 2

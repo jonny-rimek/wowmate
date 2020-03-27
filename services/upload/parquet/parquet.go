@@ -1,13 +1,14 @@
 package main
 
 import (
-	"strings"
 	"bufio"
 	"bytes"
 	"compress/gzip"
 	"fmt"
 	"log"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -20,9 +21,9 @@ import (
 	"github.com/xitongsys/parquet-go/parquet"
 	"github.com/xitongsys/parquet-go/writer"
 )
+//IMPROVE: refactor to use up to date logging approach
 
 //StepfunctionEvent provides config data to the lambda
-//IMPROVE: refactor to use up to date logging approach
 type StepfunctionEvent struct {
 	BucketName string `json:"bucketName"`
 	Key        string `json:"key"`
@@ -111,9 +112,15 @@ func handler(e StepfunctionEvent) error {
 	}
 	//END
 
-	//UPLOAD TO S3
-	//TODO: use e.Key - "txt.gz" + ".parquet"
-	uploadFileName := fmt.Sprintf("test/test-diff.parquet")
+	//file name with partitions per minute
+	uploadFileName := fmt.Sprintf("%v/%v/%v/%v/%v/%v.parquet",
+		time.Now().Year(),
+		int(time.Now().Month()),
+		time.Now().Day(),
+		time.Now().Hour(),
+		time.Now().Minute(),
+		strings.TrimPrefix(strings.TrimSuffix(e.Key, ".txt.gz"), "new/"),
+	)
 
 	err = golib.UploadFileToS3(fr, targetBucket, uploadFileName, sess)
 	if err != nil {
@@ -125,9 +132,9 @@ func handler(e StepfunctionEvent) error {
 	//If removed, remove write access to upload bucket
 	svc := s3.New(sess)
 	_, err = svc.CopyObject(&s3.CopyObjectInput{
-		CopySource: aws.String(e.BucketName + "/" + e.Key), 
-		Bucket: aws.String(e.BucketName), 
-		Key: aws.String(newFilename),
+		CopySource: aws.String(e.BucketName + "/" + e.Key),
+		Bucket:     aws.String(e.BucketName),
+		Key:        aws.String(newFilename),
 	})
 	if err != nil {
 		log.Printf("unable to move file to processed dir. %v", err)
@@ -135,8 +142,8 @@ func handler(e StepfunctionEvent) error {
 	}
 	// Wait to see if the item got copied
 	err = svc.WaitUntilObjectExists(&s3.HeadObjectInput{
-		Bucket: aws.String(e.BucketName), 
-		Key: aws.String(newFilename),
+		Bucket: aws.String(e.BucketName),
+		Key:    aws.String(newFilename),
 	})
 	if err != nil {
 		fmt.Printf("Error occurred while waiting for item %q to be copied to bucket processed folder", e.Key)

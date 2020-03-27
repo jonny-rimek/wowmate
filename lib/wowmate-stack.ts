@@ -17,7 +17,7 @@ import route53= require('@aws-cdk/aws-route53');
 import acm = require('@aws-cdk/aws-certificatemanager');
 import { SSLMethod, SecurityPolicyProtocol, OriginAccessIdentity } from '@aws-cdk/aws-cloudfront';
 import { StateMachineType } from '@aws-cdk/aws-stepfunctions';
-// import events = require('@aws-cdk/aws-events');
+import events = require('@aws-cdk/aws-events');
 // import { Result } from '@aws-cdk/aws-stepfunctions';
 
 export class WowmateStack extends cdk.Stack {
@@ -166,77 +166,36 @@ export class WowmateStack extends cdk.Stack {
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 		})
 
-		//LAMBDA
-		const sizeFunc = new lambda.Function(this, 'Size', {
-			code: lambda.Code.asset('services/upload/size'),
-			handler: 'main',
-			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 128,
-			timeout: Duration.seconds(3),
-		})
+		//IAM for UPLOAD LAMBDA
 
-		const parquetFunc = new lambda.Function(this, 'ParquetFunc', {
-			code: lambda.Code.asset('services/upload/parquet'),
-			handler: 'main',
-			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 3008,
-			timeout: Duration.seconds(720),
-			environment: {TARGET_BUCKET_NAME: parquetBucket.bucketName}
-		})
-
-		const athenaFunc = new lambda.Function(this, 'AthenaFunc', {
-			code: lambda.Code.asset('services/upload/athena'),
-			handler: 'main',
-			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 3008,
-			timeout: Duration.seconds(3),
-		})
-
-		const checkFunc = new lambda.Function(this, 'Check', {
-			code: lambda.Code.asset('services/upload/check'),
-			handler: 'main',
-			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 3008,
-			timeout: Duration.seconds(3),
-		})
-	
-		const impFunc = new lambda.Function(this, 'Import', {
-			code: lambda.Code.asset('services/upload/import'),
-			handler: 'main',
-			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 3008,
-			timeout: Duration.seconds(10),
-			environment: {
-				DDB_NAME: db.tableName,
-				// LOG_LEVEL: 'prod',
-			}
-		})
-
-		//IAM
-		uploadBucket.grantRead(sizeFunc)
-
-		uploadBucket.grantReadWrite(parquetFunc)
-		parquetBucket.grantPut(parquetFunc)
-
-		parquetBucket.grantRead(athenaFunc)
-
-		athenaBucket.grantReadWrite(athenaFunc)
-		athenaBucket.grantWrite(checkFunc)
-
+		//TODO: tighten athena IAM permissions
 		//permission are from the aws docs https://docs.aws.amazon.com/athena/latest/ug/example-policies-workgroup.html
-		//they could probably be tightend a bit, especially differences between checkFunc and athenaFunc 
 		const athenaGeneralPolicy = new iam.PolicyStatement({
 			effect: Effect.ALLOW,
 			actions: [ 
 				"athena:ListWorkGroups",
-                "athena:GetExecutionEngine",
-                "athena:GetExecutionEngines",
-                "athena:GetNamespace",
-                "athena:GetCatalogs",
-                "athena:GetNamespaces",
-                "athena:GetTables",
+				"athena:GetExecutionEngine",
+				"athena:GetExecutionEngines",
+				"athena:GetNamespace",
+				"athena:GetCatalogs",
+				"athena:GetNamespaces",
+				"athena:GetTables",
 				"athena:GetTable",
-				"glue:GetTable"
+				"glue:GetTable",
+				"glue:GetDatabase",
+				"glue:GetPartition",
+				"glue:GetPartitions",
+				"glue:UpdateDatabase",
+				"glue:UpdatePartition",
+				"glue:UpdateTable",
+				"glue:BatchCreatePartition",
+				"s3:ListAllMyBuckets",
+				"s3:ListBucket",
+				"s3:PutObject",
+				"s3:GetObject",
+				"s3:AbortMultipartUpload",
+				"s3:ListMultipartUploadParts",
+				"s3:GetBucketLocation",
 			],
 			resources: [
 				'*'
@@ -265,14 +224,87 @@ export class WowmateStack extends cdk.Stack {
 			],
 		})
 
+		//UPLOAD LAMBDA
+		const sizeFunc = new lambda.Function(this, 'Size', {
+			code: lambda.Code.asset('services/upload/size'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 128,
+			timeout: Duration.seconds(3),
+		})
+		uploadBucket.grantRead(sizeFunc)
+
+		const parquetFunc = new lambda.Function(this, 'ParquetFunc', {
+			code: lambda.Code.asset('services/upload/parquet'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: Duration.seconds(720),
+			environment: {TARGET_BUCKET_NAME: parquetBucket.bucketName}
+		})
+		uploadBucket.grantReadWrite(parquetFunc)
+		parquetBucket.grantPut(parquetFunc)
+
+		const athenaFunc = new lambda.Function(this, 'AthenaFunc', {
+			code: lambda.Code.asset('services/upload/athena'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: Duration.seconds(3),
+		})
+		parquetBucket.grantRead(athenaFunc)
+		athenaBucket.grantReadWrite(athenaFunc)
 		athenaFunc.addToRolePolicy(athenaGeneralPolicy)
-		checkFunc.addToRolePolicy(athenaGeneralPolicy)
-
 		athenaFunc.addToRolePolicy(athenaWorkgroupPolicy)
-		checkFunc.addToRolePolicy(athenaWorkgroupPolicy)
 
+		const checkFunc = new lambda.Function(this, 'Check', {
+			code: lambda.Code.asset('services/upload/check'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: Duration.seconds(3),
+		})
+		athenaBucket.grantWrite(checkFunc)
+		checkFunc.addToRolePolicy(athenaGeneralPolicy)
+		checkFunc.addToRolePolicy(athenaWorkgroupPolicy)
+	
+		const impFunc = new lambda.Function(this, 'Import', {
+			code: lambda.Code.asset('services/upload/import'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: Duration.seconds(10),
+			environment: {
+				DDB_NAME: db.tableName,
+				// LOG_LEVEL: 'prod',
+			}
+		})
 		athenaBucket.grantRead(impFunc)
 		db.grantReadWriteData(impFunc)
+
+		const partitionsFunc = new lambda.Function(this, 'Partitions', {
+			code: lambda.Code.asset('services/upload/partitions'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 128,
+			timeout: Duration.seconds(3),
+			environment: {
+				DDB_NAME: db.tableName,
+				ATHENA_DB: "wowmate",
+				ATHENA_TABLE: "combatlogs",
+				ATHENA_QUERY_RESULT_BUCKET: athenaBucket.bucketName,
+				SOURCE_BUCKET: parquetBucket.bucketName,
+			}
+		})
+		partitionsFunc.addToRolePolicy(athenaGeneralPolicy)
+		partitionsFunc.addToRolePolicy(athenaWorkgroupPolicy)
+		athenaBucket.grantReadWrite(partitionsFunc)
+		parquetBucket.grantReadWrite(athenaFunc)
+
+		new events.Rule(this, 'NewPartitionsSchedule', {
+			schedule: events.Schedule.cron({ minute: '5' }),
+			targets: [new targets.LambdaFunction(partitionsFunc)],
+		})
 
 		//STEP FUNCTION
 		const sizeJob = new sfn.Task(this, 'Size Job', {

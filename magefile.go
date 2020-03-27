@@ -27,12 +27,17 @@ var Aliases = map[string]interface{} {
 TODO: add a scaffold lambda function
 		- [x] run npm install if dir is missing
 		- [ ] add command to update //go get -u ./...
+		- [ ] command to delete all cache
+			- gp/pkg
+			- ~/.cache/go-build
+			- node_modules
+			- services/frontend/node_modules
 
 IMPROVE:
 		- [ ] create folder and go file with the same name (?)
 		- [ ] go mod init
 		- [ ] go mod edit -replace=github.com/alexedwards/argon2id=/home/alex/code/argon2i
-		- [ ] add biler plate go code to mail file, including golib.InitLogging()
+		- [ ] add boiler plate go code to mail file, including golib.InitLogging()
  */
 
 func Go() error {

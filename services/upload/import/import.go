@@ -77,10 +77,10 @@ func handle(e Event) (int64, float64, bool, float64, error) {
 	return bytes, wcu, duplicate, rcu, err
 }
 
-func newCombatlog(records []golib.DamageSummary,  sess *session.Session) (float64, error) {
+func newCombatlog(records []golib.DamageSummary, sess *session.Session) (float64, error) {
 	svcdb := dynamodb.New(sess)
 
-	//IMPROVE: 
+	//IMPROVE:
 	//use GetItem, should consume less RCU as it is limited to 1 item, atm rcu is still 0.5
 	//https://github.com/awsdocs/aws-doc-sdk-examples/blob/master/go/example_code/dynamodb/DynamoDBReadItem.go
 	//https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_GetItem.html
@@ -102,24 +102,24 @@ func newCombatlog(records []golib.DamageSummary,  sess *session.Session) (float6
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case dynamodb.ErrCodeProvisionedThroughputExceededException:
-				return rcu , err
+				return rcu, err
 			case dynamodb.ErrCodeResourceNotFoundException:
-				return rcu , err
+				return rcu, err
 			case dynamodb.ErrCodeInternalServerError:
-				return rcu , err
+				return rcu, err
 			default:
-				return rcu , err
+				return rcu, err
 			}
 		} else {
-			return rcu , err
+			return rcu, err
 		}
 	}
 
 	if *result.Count > 0 {
-		return rcu , fmt.Errorf("duplicate combatlog")
+		return rcu, fmt.Errorf("duplicate combatlog")
 	}
 
-	return rcu , nil
+	return rcu, nil
 }
 
 //it handles more than 25 entries, it's not tested tho, might have an
