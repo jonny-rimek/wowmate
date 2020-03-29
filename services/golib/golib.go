@@ -22,7 +22,8 @@ import (
 //DamageSummary is the DynamoDB schema for all damage summaries
 type DamageSummary struct {
 	Hash        string `json:"pk"`
-	EncounterID string `json:"sk"`
+	SortKey     string `json:"sk"`
+	EncounterID int    `json:"gsi1pk"`
 	Damage      int64  `json:"gsi1sk"`
 	CasterID    string `json:"caster_id"`
 	CasterName  string `json:"caster_name"`

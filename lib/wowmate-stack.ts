@@ -34,7 +34,7 @@ export class WowmateStack extends cdk.Stack {
 
 		db.addGlobalSecondaryIndex({
 			indexName: 'GSI1',
-			partitionKey: {name: 'sk', type: ddb.AttributeType.STRING},
+			partitionKey: {name: 'gsi1pk', type: ddb.AttributeType.NUMBER},
 			sortKey: {name: 'gsi1sk', type: ddb.AttributeType.NUMBER}
 		})
 
@@ -185,6 +185,7 @@ export class WowmateStack extends cdk.Stack {
 				"glue:GetDatabase",
 				"glue:GetPartition",
 				"glue:GetPartitions",
+				//below I added all for partitions lambda, not sure which of those I actually need
 				"glue:UpdateDatabase",
 				"glue:UpdatePartition",
 				"glue:UpdateTable",
@@ -251,6 +252,12 @@ export class WowmateStack extends cdk.Stack {
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: Duration.seconds(3),
+			environment: {
+				"RESULT_BUCKET": athenaBucket.bucketName,
+				"REGION": "eu-central-1",
+				"ATHENA_DATABASE": "wowmate",
+			},
+
 		})
 		parquetBucket.grantRead(athenaFunc)
 		athenaBucket.grantReadWrite(athenaFunc)
@@ -320,29 +327,6 @@ export class WowmateStack extends cdk.Stack {
 			error: 'parquetJob returned FAILED',
 		});
 
-		const athenaInput = new sfn.Pass(this, 'Input for Athena', {
-			result: sfn.Result.fromArray([{
-				"result_bucket": athenaBucket.bucketName,
-                "query": `
-                    SELECT cl.damage, ei.encounter_id, cl.boss_fight_uuid, cl.caster_id, cl.caster_name
-                    FROM (SELECT SUM(actual_amount) AS damage, caster_name, caster_id, boss_fight_uuid
-                          FROM  "wowmate"."combatlogs"
-                          WHERE caster_type LIKE '0x5%' AND caster_name != 'nil' 
-                          GROUP BY caster_name, caster_id, boss_fight_uuid
-                          ) AS cl
-                    JOIN (SELECT encounter_id, boss_fight_uuid
-                          FROM "wowmate"."combatlogs"
-                          WHERE event_type = 'ENCOUNTER_START'
-                          GROUP BY encounter_id, boss_fight_uuid) AS ei
-                          ON cl.boss_fight_uuid = ei.boss_fight_uuid
-                          
-                    ORDER BY encounter_id, damage DESC
-                `,
-				"region": "eu-central-1",
-				"database": "wowmate"
-			}]),
-		})
-
 		const athenaJob = new sfn.Task(this, 'Athena Job', {
 			task: new tasks.InvokeFunction(athenaFunc),
 		});
@@ -375,7 +359,6 @@ export class WowmateStack extends cdk.Stack {
 		})
 
 		const duplicateLog = new sfn.Fail(this, 'Combatlog duplicate', {
-			//cause: 'File too big',
 			error: 'combatlog is already in the database',
 		});
 
@@ -467,7 +450,6 @@ export class WowmateStack extends cdk.Stack {
 				//NOTE: I know I can handle 11MB(gzipped), but 21MB already fails with out of memory fatal error
 				.when(sfn.Condition.numberGreaterThan('$.file_size', 16), fileTooBig)
 				.otherwise(parquetJob
-					.next(athenaInput)
 					.next(athenaJob)
 					.next(setWaitTimeJob)
 					.next(waitX)

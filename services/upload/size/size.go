@@ -33,8 +33,6 @@ type Response struct {
 	Key        string `json:"key"`
 }
 
-//TODO: add event bridge as a step between s3 and sfn
-
 func handler(e Event) (Response, error) {
 
 	//TODO: add conanical log

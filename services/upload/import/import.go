@@ -132,7 +132,7 @@ func writeDynamoDB(records []golib.DamageSummary, sess *session.Session) (float6
 	var consumedWCU float64
 	for _, value := range writeRequests {
 		writes = append(writes, value)
-		if len(writes) > 25 {
+		if len(writes) == 25 {
 			logrus.Debug("batch size > 25")
 			wcu, err := writeBatchDynamoDB(writes, sess)
 			if err != nil {
@@ -229,7 +229,6 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert damage column to int64: %v", err)
 		}
-
 		encounterID, err := strconv.Atoi(trimQuotes(row[1]))
 		if err != nil {
 			return nil, fmt.Errorf("Failed to convert encounter id column to int: %v", err)
@@ -241,7 +240,8 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		s.WriteString(fmt.Sprintf("|%v|%v", casterID, damage))
 
 		r := golib.DamageSummary{
-			EncounterID: fmt.Sprintf("%v_b_d_%v", encounterID, casterID),
+			SortKey:     fmt.Sprintf("B#D#%v", casterID), //NOTE: casterID is added to make PK SK combination unique
+			EncounterID: encounterID,
 			Damage:      damage,
 			CasterID:    casterID,
 			CasterName:  casterName,
@@ -256,7 +256,7 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		//limiting the size of the pk to 12 chars
 		//to reduce the storage and not have an unessesary long value
 		//as they are exposed to the user in the URL
-		records[i].Hash = hash[:12]
+		records[i].Hash = "BF#" + hash[:12]
 	}
 
 	return records, nil

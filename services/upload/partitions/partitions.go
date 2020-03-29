@@ -34,7 +34,7 @@ func addPartition() error {
 			q := fmt.Sprintf(`
 				PARTITION (partition_0 = '%d', partition_1 = '%d', partition_2 = '%d', partition_3 = '%d', partition_4 = '%d')
 				LOCATION 's3://%s/%d/%d/%d/%d/%d' 
-				`, today.Year(), today.Month(), today.Day(), today.Hour() + hour, minute, bucket, today.Year(), today.Month(), today.Day(), hour, minute)
+				`, today.Year(), today.Month(), today.Day(), today.Hour()+hour, minute, bucket, today.Year(), today.Month(), today.Day(), hour, minute)
 			query += q
 		}
 	}

@@ -21,16 +21,29 @@ import (
 	"github.com/xitongsys/parquet-go/parquet"
 	"github.com/xitongsys/parquet-go/writer"
 )
+
 //IMPROVE: refactor to use up to date logging approach
 
-//StepfunctionEvent provides config data to the lambda
-type StepfunctionEvent struct {
+//SfnEvent provides config data to the lambda
+type SfnEvent struct {
 	BucketName string `json:"bucketName"`
 	Key        string `json:"key"`
 }
 
-func handler(e StepfunctionEvent) error {
+//Response is the object the next step in Stepfunctions expects
+type Response struct {
+	UploadUUID string `json:"upload_uuid"`
+	Year       int    `json:"year"`
+	Month      int    `json:"month"`
+	Day        int    `json:"day"`
+	Hour       int    `json:"hour"`
+	Minute     int    `json:"minute"`
+}
+
+func handler(e SfnEvent) (Response, error) {
 	uploadUUID := uuid.Must(uuid.NewV4()).String()
+	resp := Response{UploadUUID: uploadUUID}
+
 	targetBucket := os.Getenv("TARGET_BUCKET_NAME")
 
 	log.Print("DEBUG: bucketname: " + e.BucketName)
@@ -61,13 +74,13 @@ func handler(e StepfunctionEvent) error {
 	r := bytes.NewReader(file.Bytes())
 	uncompressed, err := gzip.NewReader(r)
 	if err != nil {
-		return err
+		return resp, err
 	}
 	s := bufio.NewScanner(uncompressed)
 
 	events, err := Import(s, uploadUUID)
 	if err != nil {
-		return err
+		return resp, err
 	}
 
 	log.Print("DEBUG: read combatlog to slice of Event structs")
@@ -111,20 +124,24 @@ func handler(e StepfunctionEvent) error {
 		log.Fatalf("Can't open file")
 	}
 	//END
+	resp.Year = time.Now().Year()
+	resp.Month = int(time.Now().Month())
+	resp.Day = time.Now().Day()
+	resp.Hour = time.Now().Hour()
+	resp.Minute = time.Now().Minute()
 
-	//file name with partitions per minute
 	uploadFileName := fmt.Sprintf("%v/%v/%v/%v/%v/%v.parquet",
-		time.Now().Year(),
-		int(time.Now().Month()),
-		time.Now().Day(),
-		time.Now().Hour(),
-		time.Now().Minute(),
+		resp.Year,
+		resp.Month,
+		resp.Day,
+		resp.Hour,
+		resp.Minute,
 		strings.TrimPrefix(strings.TrimSuffix(e.Key, ".txt.gz"), "new/"),
 	)
 
 	err = golib.UploadFileToS3(fr, targetBucket, uploadFileName, sess)
 	if err != nil {
-		return err
+		return resp, err
 	}
 
 	newFilename := fmt.Sprintf("processed/%v", strings.TrimPrefix(e.Key, "new"))
@@ -138,7 +155,7 @@ func handler(e StepfunctionEvent) error {
 	})
 	if err != nil {
 		log.Printf("unable to move file to processed dir. %v", err)
-		return err
+		return resp, err
 	}
 	// Wait to see if the item got copied
 	err = svc.WaitUntilObjectExists(&s3.HeadObjectInput{
@@ -147,13 +164,13 @@ func handler(e StepfunctionEvent) error {
 	})
 	if err != nil {
 		fmt.Printf("Error occurred while waiting for item %q to be copied to bucket processed folder", e.Key)
-		return err
+		return resp, err
 	}
 	// Delete the item
 	_, err = svc.DeleteObject(&s3.DeleteObjectInput{Bucket: aws.String(e.BucketName), Key: aws.String(e.Key)})
 	if err != nil {
 		fmt.Printf("Unable to delete object %q from bucket %q", e.Key, e.BucketName)
-		return err
+		return resp, err
 	}
 
 	err = svc.WaitUntilObjectNotExists(&s3.HeadObjectInput{
@@ -162,17 +179,17 @@ func handler(e StepfunctionEvent) error {
 	})
 	if err != nil {
 		fmt.Printf("Error occurred while waiting for object %q to be deleted from bucket %v", e.Key, e.BucketName)
-		return err
+		return resp, err
 	}
 
 	err = os.Remove("/tmp/flat.parquet")
 	if err != nil {
 		log.Println("ERROR: failed to delete file")
-		return err
+		return resp, err
 	}
 	log.Printf("DEBUG: file deleted")
 
-	return nil
+	return resp, nil
 }
 
 func main() {
