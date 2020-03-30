@@ -74,15 +74,17 @@ export class WowmateStack extends cdk.Stack {
 		});
 
 		const basePath = api.root.addResource('api');
-		const damagePath = basePath.addResource('damage');
-		const bossFightPath = damagePath.addResource('boss-fight');
+		const bossFightPath= basePath.addResource('bossfight');
 		const bossFightUuidParam = bossFightPath.addResource('{boss-fight-uuid}');
-		bossFightUuidParam.addMethod('GET')
+		const bossFightDamagePath  = bossFightUuidParam.addResource('damage');
+		bossFightDamagePath.addMethod('GET')
+		
 
-		const encounterIdPath = damagePath.addResource('encounter');
+		const encounterIdPath = basePath.addResource('encounter');
 		const encounterIdParam = encounterIdPath.addResource('{encounter-id}');
 		const damageEncounterIdIntegration = new apigateway.LambdaIntegration(damageEncounterIdFunc);
-		encounterIdParam.addMethod('GET', damageEncounterIdIntegration)
+		const encounterDamagePath  = encounterIdParam.addResource('damage');
+		encounterDamagePath.addMethod('GET', damageEncounterIdIntegration)
 
 		//FRONTEND
 		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
