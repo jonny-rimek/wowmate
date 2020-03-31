@@ -89,11 +89,11 @@ func DDBQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, ev
 	response := []PDamageSummary{}
 	for _, item := range summaries {
 		r := PDamageSummary{
-			Hash: item.Hash,
+			Hash:        item.Hash,
 			EncounterID: item.EncounterID,
-			Damage: item.Damage,
-			CasterID: item.CasterID,
-			CasterName: item.CasterName,
+			Damage:      item.Damage,
+			CasterID:    item.CasterID,
+			CasterName:  item.CasterName,
 		}
 		response = append(response, r)
 	}

@@ -57,7 +57,7 @@ func handler(e SfnEvent) (Response, error) {
 			AND cl.partition_4 = '%v'
 		ORDER BY encounter_id, damage DESC
 	`,
-	//TODO: das query selbst gibt atm keine daten zurück
+		//TODO: das query selbst gibt atm keine daten zurück
 		e.UploadUUID,
 		e.Year,
 		e.Month,
