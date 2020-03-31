@@ -29,6 +29,16 @@ type DamageSummary struct {
 	CasterName  string `json:"caster_name"`
 }
 
+//PDamageSummary is the DynamoDB schema for all damage summaries
+type PDamageSummary struct {
+	Hash        string `json:"pk"`
+	SortKey     string `json:"sk"`
+	EncounterID int    `json:"encounter_id"`
+	Damage      int64  `json:"damage"`
+	CasterID    string `json:"caster_id"`
+	CasterName  string `json:"caster_name"`
+}
+
 //CanonicalLog writes a structured message to stdout if the log level is atleast INFO
 func CanonicalLog(msg map[string]interface{}) {
 	logrus.WithFields(msg).Info()
@@ -77,7 +87,19 @@ func DDBQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, ev
 		summaries = append(summaries, s)
 	}
 
-	js, err := json.Marshal(summaries)
+	response := []PDamageSummary{}
+	for _, item := range summaries {
+		r := PDamageSummary{
+			Hash: item.Hash,
+			EncounterID: item.EncounterID,
+			Damage: item.Damage,
+			CasterID: item.CasterID,
+			CasterName: item.CasterName,
+		}
+		response = append(response, r)
+	}
+
+	js, err := json.Marshal(response)
 	if err != nil {
 		return rcu, APIGwError(500), fmt.Errorf("failed to marshal data to JSON: %v", err)
 	}

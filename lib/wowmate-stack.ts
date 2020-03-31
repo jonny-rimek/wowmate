@@ -78,7 +78,6 @@ export class WowmateStack extends cdk.Stack {
 		const bossFightUuidParam = bossFightPath.addResource('{boss-fight-uuid}');
 		const bossFightDamagePath  = bossFightUuidParam.addResource('damage');
 		bossFightDamagePath.addMethod('GET')
-		
 
 		const encounterIdPath = basePath.addResource('encounter');
 		const encounterIdParam = encounterIdPath.addResource('{encounter-id}');
