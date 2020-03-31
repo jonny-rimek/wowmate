@@ -32,7 +32,6 @@ type DamageSummary struct {
 //PDamageSummary is the DynamoDB schema for all damage summaries
 type PDamageSummary struct {
 	Hash        string `json:"pk"`
-	SortKey     string `json:"sk"`
 	EncounterID int    `json:"encounter_id"`
 	Damage      int64  `json:"damage"`
 	CasterID    string `json:"caster_id"`
