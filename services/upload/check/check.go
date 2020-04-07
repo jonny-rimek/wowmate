@@ -13,18 +13,26 @@ import (
 
 //RequestParameters test ..
 type RequestParameters struct {
-	ID           string `json:"id"`
-	ResultBucket string `json:"result_bucket"`
-	FileName     string `json:"file_name"`
+	ID            string `json:"id"`
+	ResultBucket  string `json:"result_bucket"`
+	FileName      string `json:"file_name"`
+	UploadUUID    string `json:"upload_uuid"`
+	Year          int    `json:"year"`
+	Month         int    `json:"month"`
+	Day           int    `json:"day"`
+	Hour          int    `json:"hour"`
+	Minute        int    `json:"minute"`
+	ParquetBucket string `json:"parquet_bucket"`
+	ParquetFile   string `json:"parquet_file"`
 }
 
 func handler(e RequestParameters) (RequestParameters, error) {
 
 	sess, _ := session.NewSession(&aws.Config{
-		Region: aws.String("eu-central-1")},
+		Region: aws.String("us-east-1")},
 	)
 
-	svc := athena.New(sess, aws.NewConfig().WithRegion("eu-central-1"))
+	svc := athena.New(sess, aws.NewConfig().WithRegion("us-east-1"))
 
 	var qri athena.GetQueryExecutionInput
 	qri.SetQueryExecutionId(e.ID)
@@ -36,6 +44,7 @@ func handler(e RequestParameters) (RequestParameters, error) {
 		return e, err
 	}
 
+	//TODO: check status QUEUED
 	if *qrop.QueryExecution.Status.State == "RUNNING" {
 		err = fmt.Errorf("Query is still running")
 		return e, err

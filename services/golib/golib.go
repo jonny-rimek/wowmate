@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
@@ -89,7 +90,7 @@ func DDBQuery(ctx context.Context, queryInput *dynamodb.QueryInput) (float64, ev
 	response := []PDamageSummary{}
 	for _, item := range summaries {
 		r := PDamageSummary{
-			Hash:        item.Hash,
+			Hash:        strings.TrimPrefix(item.Hash, "BF#"),
 			EncounterID: item.EncounterID,
 			Damage:      item.Damage,
 			CasterID:    item.CasterID,

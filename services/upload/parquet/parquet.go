@@ -32,12 +32,14 @@ type SfnEvent struct {
 
 //Response is the object the next step in Stepfunctions expects
 type Response struct {
-	UploadUUID string `json:"upload_uuid"`
-	Year       int    `json:"year"`
-	Month      int    `json:"month"`
-	Day        int    `json:"day"`
-	Hour       int    `json:"hour"`
-	Minute     int    `json:"minute"`
+	UploadUUID    string `json:"upload_uuid"`
+	Year          int    `json:"year"`
+	Month         int    `json:"month"`
+	Day           int    `json:"day"`
+	Hour          int    `json:"hour"`
+	Minute        int    `json:"minute"`
+	ParquetBucket string `json:"parquet_bucket"`
+	ParquetFile   string `json:"parquet_file"`
 }
 
 func handler(e SfnEvent) (Response, error) {
@@ -50,7 +52,7 @@ func handler(e SfnEvent) (Response, error) {
 	log.Print("DEBUG: filename: " + e.Key)
 
 	sess, _ := session.NewSession(&aws.Config{
-		Region: aws.String("eu-central-1")},
+		Region: aws.String("us-east-1")},
 	)
 
 	downloader := s3manager.NewDownloader(sess)
@@ -124,13 +126,14 @@ func handler(e SfnEvent) (Response, error) {
 		log.Fatalf("Can't open file")
 	}
 	//END
+
 	resp.Year = time.Now().Year()
 	resp.Month = int(time.Now().Month())
 	resp.Day = time.Now().Day()
 	resp.Hour = time.Now().Hour()
 	resp.Minute = time.Now().Minute()
-
-	uploadFileName := fmt.Sprintf("%v/%v/%v/%v/%v/%v.parquet",
+	resp.ParquetBucket = targetBucket
+	resp.ParquetFile = fmt.Sprintf("year=%v/month=%v/day=%v/hour=%v/minute=%v/%v.parquet",
 		resp.Year,
 		resp.Month,
 		resp.Day,
@@ -139,7 +142,7 @@ func handler(e SfnEvent) (Response, error) {
 		strings.TrimPrefix(strings.TrimSuffix(e.Key, ".txt.gz"), "new/"),
 	)
 
-	err = golib.UploadFileToS3(fr, targetBucket, uploadFileName, sess)
+	err = golib.UploadFileToS3(fr, targetBucket, resp.ParquetFile, sess)
 	if err != nil {
 		return resp, err
 	}

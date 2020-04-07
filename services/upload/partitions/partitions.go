@@ -14,22 +14,22 @@ import (
 
 func addPartition() error {
 	awscfg := &aws.Config{}
-	awscfg.WithRegion("eu-central-1")
+	awscfg.WithRegion("us-east-1")
 	sess := session.Must(session.NewSession(awscfg))
-	svc := athena.New(sess, aws.NewConfig().WithRegion("eu-central-1"))
+	svc := athena.New(sess, aws.NewConfig().WithRegion("us-east-1"))
 
 	athenaDB := os.Getenv("ATHENA_DB")
 	athenaTable := os.Getenv("ATHENA_TABLE")
 	athenaQueryResultBucket := os.Getenv("ATHENA_QUERY_RESULT_BUCKET")
 	bucket := os.Getenv("SOURCE_BUCKET")
 
-	today := time.Now()
+	today := time.Now().UTC()
 	query := "ALTER TABLE " + athenaTable + " ADD IF NOT EXISTS"
 
 	//NOTE: I'm always adding partitions that already exist, because I add 2 hours
 	//		but run the cron hourly, this is just to be save, I don't see a downside
 	//		so there is no need to optimize
-	for hour := 1; hour < 3; hour++ {
+	for hour := 0; hour < 3; hour++ {
 		for minute := 0; minute < 60; minute++ {
 			q := fmt.Sprintf(`
 				PARTITION (partition_0 = '%d', partition_1 = '%d', partition_2 = '%d', partition_3 = '%d', partition_4 = '%d')

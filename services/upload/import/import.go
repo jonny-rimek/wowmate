@@ -16,14 +16,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/jonny-rimek/wowmate/services/golib"
 	"github.com/sirupsen/logrus"
 )
 
 //Event is the data from StepFunctions
 type Event struct {
-	BucketName string `json:"result_bucket"`
-	Key        string `json:"file_name"`
+	BucketName    string `json:"result_bucket"`
+	Key           string `json:"file_name"`
+	ParquetBucket string `json:"parquet_bucket"`
+	ParquetFile   string `json:"parquet_file"`
 }
 
 func handler(e Event) error {
@@ -65,16 +68,45 @@ func handle(e Event) (int64, float64, bool, float64, error) {
 		return bytes, wcu, duplicate, rcu, err
 	}
 
+	//checks if it is a new combatlog
 	rcu, err = newCombatlog(records, sess)
 	if err != nil {
 		if err.Error() == "duplicate combatlog" {
+			//TODO: delete duplicate
+			deleteDuplicateParquet(e.ParquetBucket, e.ParquetFile, sess)
 			duplicate = true
+			//NOTE: duplicate combtalogs are an expected behavior and shouldnt fail the SFN
+			return bytes, wcu, duplicate, rcu, nil
 		}
 		return bytes, wcu, duplicate, rcu, err
 	}
 
 	wcu, err = writeDynamoDB(records, sess)
 	return bytes, wcu, duplicate, rcu, err
+}
+
+//IMPROVE: extract into extra sfn step
+//NOTE: duplicate file in upload bucket is not deleted, not sure if I should
+func deleteDuplicateParquet(bucket string, key string, sess *session.Session) error {
+	svc := s3.New(sess)
+
+	_, err := svc.DeleteObject(&s3.DeleteObjectInput{Bucket: aws.String(bucket), Key: aws.String(key)})
+	if err != nil {
+		fmt.Printf("Unable to delete object %q from bucket %q", key, bucket)
+		return err
+	}
+	/*
+		//NOTE: somehow this never finishes and I don't care enough to find out why
+		err = svc.WaitUntilObjectNotExists(&s3.HeadObjectInput{
+			Bucket: aws.String(bucket),
+			Key:    aws.String(key),
+		})
+		if err != nil {
+			fmt.Printf("Error occurred while waiting for object %q to be deleted from bucket %v", key, bucket)
+			return err
+		}
+	*/
+	return nil
 }
 
 func newCombatlog(records []golib.DamageSummary, sess *session.Session) (float64, error) {
@@ -248,8 +280,12 @@ func parseCSV(file []byte) ([]golib.DamageSummary, error) {
 		}
 		records = append(records, r)
 	}
+	if len(records) == 0 {
+		return nil, fmt.Errorf("empty result csv from athena")
+	}
 	h := md5.New()
 	io.WriteString(h, s.String())
+	//TODO: handle query with no results from athena
 	hash := fmt.Sprintf("%x%x", h.Sum(nil), records[0].EncounterID)
 
 	for i := 0; i < len(records); i++ {

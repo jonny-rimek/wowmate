@@ -40,7 +40,7 @@ func handler(e Event) (Response, error) {
 	log.Print("DEBUG: filename: " + e.Detail.RequestParameters.Key)
 
 	sess, _ := session.NewSession(&aws.Config{
-		Region: aws.String("eu-central-1")},
+		Region: aws.String("us-east-1")},
 	)
 
 	svc := s3.New(sess)

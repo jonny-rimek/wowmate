@@ -13,13 +13,14 @@ jobs:
 
       - restore_cache:
           keys: 
-            - go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/partitions/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}
+            - go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/partitions/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}-{{ checksum "services/upload/athena-repair/go.sum" }}
+
 
       - run:  mage go
       - run:  du -hcs ~/.cache/go-build
 
       - save_cache:
-          key: go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/partitions/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}
+          key: go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/partitions/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}-{{ checksum "services/upload/athena-repair/go.sum" }}
           paths: 
             - /go/pkg
             - /root/.cache/go-build 

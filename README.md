@@ -1,3 +1,10 @@
 # wowmate mono repo
 
-NOTE: has to be inside ~/dev/wowmate
+## manual steps:
+
+- creating the public hosted zone in route53
+
+### update cdk cli
+
+`sudo npm i -g aws-cdk`
+

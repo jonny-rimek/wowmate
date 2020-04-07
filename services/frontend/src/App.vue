@@ -5,42 +5,95 @@
 				<div class="flex justify-between h-16">
 					<div class="flex px-2 lg:px-0">
 						<div class="flex-shrink-0 flex items-center">
-							<img class="block lg:hidden h-8 w-auto" src="/img/logos/workflow-mark-on-white.svg" alt="" />
-							<img class="hidden lg:block h-8 w-auto" src="/img/logos/workflow-logo-on-white.svg" alt="" />
+							<img
+								class="block lg:hidden h-8 w-auto"
+								src="/img/logos/workflow-mark-on-white.svg"
+								alt=""
+							/>
+							<img
+								class="hidden lg:block h-8 w-auto"
+								src="/img/logos/workflow-logo-on-white.svg"
+								alt=""
+							/>
 						</div>
 						<div class="hidden lg:ml-6 lg:flex">
-							<a href="#" class="inline-flex items-center px-1 pt-1 border-b-2 border-red-500 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-red-500 transition duration-150 ease-in-out">
-								Ny'alotha 
+							<a
+								href="#"
+								class="inline-flex items-center px-1 pt-1 border-b-2 border-red-500 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-red-500 transition duration-150 ease-in-out"
+							>
+								Ny'alotha
 							</a>
-							<a href="#" class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">
+							<a
+								href="#"
+								class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+							>
 								Mythic Plus
 							</a>
-							<a href="#" class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">
+							<a
+								href="#"
+								class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+							>
 								Upload
 							</a>
 						</div>
 					</div>
-					<div class="flex-1 flex items-center justify-center px-2 lg:ml-6 lg:justify-end">
+					<div
+						class="flex-1 flex items-center justify-center px-2 lg:ml-6 lg:justify-end"
+					>
 						<div class="max-w-lg w-full lg:max-w-xs">
 							<label for="search" class="sr-only">Search</label>
 							<div class="relative">
-								<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-									<svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-										<path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+								<div
+									class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+								>
+									<svg
+										class="h-5 w-5 text-gray-400"
+										fill="currentColor"
+										viewBox="0 0 20 20"
+									>
+										<path
+											fill-rule="evenodd"
+											d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+											clip-rule="evenodd"
+										/>
 									</svg>
 								</div>
-								<input id="search" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-blue-300 focus:shadow-outline-blue sm:text-sm transition duration-150 ease-in-out"
-								    placeholder="Search" />
+								<input
+									id="search"
+									class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-blue-300 focus:shadow-outline-blue sm:text-sm transition duration-150 ease-in-out"
+									placeholder="Search"
+								/>
 							</div>
 						</div>
 					</div>
 					<div class="flex items-center lg:hidden">
-						<button class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-							<svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-								<path :class="{'hidden': open, 'inline-flex': !open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-								<path :class="{'hidden': !open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+						<button
+							class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
+						>
+							<svg
+								class="h-6 w-6"
+								stroke="currentColor"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<path
+									:class="{ hidden: open, 'inline-flex': !open }"
+									class="inline-flex"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M4 6h16M4 12h16M4 18h16"
+								/>
+								<path
+									:class="{ hidden: !open, 'inline-flex': open }"
+									class="hidden"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								/>
 							</svg>
-							</button>
+						</button>
 					</div>
 					<!-- notification + account
 						<div class="hidden lg:ml-4 lg:flex lg:items-center">
@@ -94,101 +147,139 @@
 					</div>
 					-->
 		</nav>
-	
+
 		<!-- Static sidebar for desktop -->
 		<div class="hidden md:flex md:flex-shrink-0 h-screen">
 			<div class="flex flex-col w-64 border-r border-gray-200 bg-white">
 				<!-- <div class="flex items-center flex-shrink-0 px-4">
-				        <img class="h-8 w-auto" src="/img/logos/workflow-logo-on-white.svg" alt="Workflow" />
-				      </div> -->
+				<img class="h-8 w-auto" src="/img/logos/workflow-logo-on-white.svg" alt="Workflow" />
+					</div> -->
 				<div class="mt-2 h-0 flex-1 flex flex-col overflow-y-auto">
 					<!-- Sidebar component, swap this element with another sidebar if you like -->
 					<nav class="flex-1 px-2 bg-white">
-						<a href="#" class="group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-900 rounded-md bg-gray-100 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:bg-gray-200 transition ease-in-out duration-150">
+						<a
+							href="#"
+							class="group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-900 rounded-md bg-gray-100 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:bg-gray-200 transition ease-in-out duration-150"
+						>
 							<span class="truncate">
 								Wrathion
 							</span>
 						</a>
-						<a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
+						<a
+							href="#"
+							class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+						>
 							<span class="truncate">
 								Maut
 							</span>
 						</a>
-						<a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
+						<a
+							href="#"
+							class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+						>
 							<span class="truncate">
 								Prophet Skitra
 							</span>
 						</a>
-						<a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
-				    <span class="truncate">
-				      Dark Inquisitor Xanesh
-				    </span>
+						<a
+							href="#"
+							class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+						>
+							<span class="truncate">
+								Dark Inquisitor Xanesh
+							</span>
 						</a>
-						<a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
+						<a
+							href="#"
+							class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+						>
 							<span class="truncate">
 								The Hivemind
 							</span>
 						</a>
-							<a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
-				    <span class="truncate">
-				      Shad'har the Insatiable
-				    </span>
-				  </a>
-						<a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
-				    <span class="truncate">
-				      Drest'agath
-				    </span>
-				  </a>
-						<a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
-				    <span class="truncate">
-				      Vexiona
-				    </span>
-				  </a>
-						<a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
-				    <span class="truncate">
-				      Ra-den the Despoiled
-				    </span>
-				  </a>
-						<a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
-				    <span class="truncate">
-				      Il'gynoth, Corruption Reborn
-				    </span>
-				  </a>
-						<a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
-				    <span class="truncate">
-				      Carapace of N'Zoth
-				    </span>
-				  </a>
-						<a href="#" class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150">
-				    <span class="truncate">
-				      N'Zoth the Corruptor
-				    </span>
-				  </a>
+						<a
+							href="#"
+							class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+						>
+							<span class="truncate">
+								Shad'har the Insatiable
+							</span>
+						</a>
+						<a
+							href="#"
+							class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+						>
+							<span class="truncate">
+								Drest'agath
+							</span>
+						</a>
+						<a
+							href="#"
+							class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+						>
+							<span class="truncate">
+								Vexiona
+							</span>
+						</a>
+						<a
+							href="#"
+							class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+						>
+							<span class="truncate">
+								Ra-den the Despoiled
+							</span>
+						</a>
+						<a
+							href="#"
+							class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+						>
+							<span class="truncate">
+								Il'gynoth, Corruption Reborn
+							</span>
+						</a>
+						<a
+							href="#"
+							class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+						>
+							<span class="truncate">
+								Carapace of N'Zoth
+							</span>
+						</a>
+						<a
+							href="#"
+							class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+						>
+							<span class="truncate">
+								N'Zoth the Corruptor
+							</span>
+						</a>
 					</nav>
 				</div>
 			</div>
 			<router-view class="flex-1" />
 			<!--
-				    <div class="flex-shrink-0 py-12 text-center">
-				      <div>
-				        <router-link class="font-semibold text-gray-700 hover:underline" to="/dropdown">Dropdown</router-link>
-				        <span class="mx-4 text-gray-500">|</span>
-				        <router-link class="font-semibold text-gray-700 hover:underline" to="/modal">Modal</router-link>
-				      </div>
-				      <div class="mt-2">
-				        <a href="https://github.com/adamwathan/vue-tailwind-examples" class="text-sm font-semibold text-gray-600 hover:underline">
-				          Source on GitHub
-				        </a>
-				      </div>
-				    </div>
-				    <portal-target name="modals"></portal-target>
-					-->
+				<div class="flex-shrink-0 py-12 text-center">
+					<div>
+					<router-link class="font-semibold text-gray-700 hover:underline" to="/dropdown">Dropdown</router-link>
+					<span class="mx-4 text-gray-500">|</span>
+					<router-link class="font-semibold text-gray-700 hover:underline" to="/modal">Modal</router-link>
+					</div>
+					<div class="mt-2">
+					<a href="https://github.com/adamwathan/vue-tailwind-examples" class="text-sm font-semibold text-gray-600 hover:underline">
+						Source on GitHub
+					</a>
+					</div>
+				</div>
+				<portal-target name="modals"></portal-target>
+				-->
 		</div>
 	</div>
 </template>
 
 <style>
+/* purgecss start ignore */
 @tailwind base;
 @tailwind components;
+/* purgecss end ignore */
 @tailwind utilities;
 </style>

@@ -14,7 +14,7 @@ func handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.API
 	input := &dynamodb.QueryInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":v1": {
-				S: aws.String(req.PathParameters["boss-fight-uuid"]),
+				S: aws.String("BF#" + req.PathParameters["boss-fight-uuid"]),
 			},
 		},
 		KeyConditionExpression: aws.String("pk = :v1"),
