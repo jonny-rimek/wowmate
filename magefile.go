@@ -92,7 +92,7 @@ func Frontend() error {
 	if err := yarnInstall(); err != nil {
 		return err
 	}
-	return sh.Run("yarn", "build")
+	return sh.Run("yarn", "generate")
 }
 
 func Deploy() error {
