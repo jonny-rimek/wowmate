@@ -9,9 +9,9 @@
 
 export default {
   layout: 'navbar',
-  layout(context) {
-    return 'navbar'
-  },
+  //   layout(context) {
+  //     return 'navbar'
+  //   },
   head() {
     return {
       title: 'wowmate'
