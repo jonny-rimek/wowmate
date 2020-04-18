@@ -42,6 +42,12 @@
               >
                 News
               </NavbarLink>
+              <NavbarLink
+                link="upload"
+                class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5"
+              >
+                Upload
+              </NavbarLink>
             </div>
           </div>
           <!-- SEARCH -->
@@ -212,6 +218,12 @@
             class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
           >
             News
+          </NavbarLink>
+          <NavbarLink
+            link="upload"
+            class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+          >
+            Upload
           </NavbarLink>
         </div>
         <!--
