@@ -12,6 +12,11 @@ export default {
   layout(context) {
     return 'navbar'
   },
+  head() {
+    return {
+      title: 'wowmate'
+    }
+  },
   components: {
     // Logo
   }
