@@ -1,10 +1,79 @@
 <template>
   <nav class="bg-white shadow">
-    <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-      <div class="relative flex justify-between h-16">
-        <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
-          <!-- Mobile menu button -->
-
+    <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex px-2 lg:px-0">
+          <div class="flex-shrink-0 flex items-center">
+            <img
+              class="block lg:hidden h-8 w-auto"
+              src="/wowmate_logo_full_transparent.png"
+              alt=""
+            />
+            <!-- TODO: make a icon only version -->
+            <img
+              class="hidden lg:block h-8 w-auto"
+              src="/wowmate_logo_full_transparent.png"
+              alt=""
+            />
+          </div>
+          <div class="hidden lg:ml-6 lg:flex">
+            <a
+              href="#"
+              class="inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out"
+            >
+              Dashboard
+            </a>
+            <a
+              href="#"
+              class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+            >
+              Team
+            </a>
+            <a
+              href="#"
+              class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+            >
+              Projects
+            </a>
+            <a
+              href="#"
+              class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+            >
+              Calendar
+            </a>
+          </div>
+        </div>
+        <div
+          class="flex-1 flex items-center justify-center px-2 lg:ml-6 lg:justify-end"
+        >
+          <div class="max-w-lg w-full lg:max-w-xs">
+            <label for="search" class="sr-only">Search</label>
+            <div class="relative">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <svg
+                  class="h-5 w-5 text-gray-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <input
+                id="search"
+                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-blue-300 focus:shadow-outline-blue sm:text-sm transition duration-150 ease-in-out"
+                placeholder="Search"
+                type="search"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center lg:hidden">
           <button
             class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
           >
@@ -40,53 +109,9 @@
             </svg>
           </button>
         </div>
-        <div
-          class="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start"
-        >
-          <div class="flex-shrink-0 flex items-center">
-            <img
-              class="block lg:hidden h-8 w-auto"
-              src="/img/logos/workflow-mark-on-white.svg"
-              alt=""
-            />
-            <img
-              class="hidden lg:block h-8 w-auto"
-              src="/img/logos/workflow-logo-on-white.svg"
-              alt=""
-            />
-          </div>
-          <div class="hidden sm:ml-6 sm:flex">
-            <a
-              href="#"
-              class="inline-flex items-center px-1 pt-1 border-b-2 border-indigo-500 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out"
-            >
-              Dashboard
-            </a>
-            <a
-              href="#"
-              class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
-            >
-              Team
-            </a>
-            <a
-              href="#"
-              class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
-            >
-              Projects
-            </a>
-            <a
-              href="#"
-              class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
-            >
-              Calendar
-            </a>
-          </div>
-        </div>
-        <div
-          class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0"
-        >
+        <div class="hidden lg:ml-4 lg:flex lg:items-center">
           <button
-            class="p-1 border-2 border-transparent text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:text-gray-500 focus:bg-gray-100 transition duration-150 ease-in-out"
+            class="flex-shrink-0 p-1 border-2 border-transparent text-gray-400 rounded-full hover:text-gray-500 focus:outline-none focus:text-gray-500 focus:bg-gray-100 transition duration-150 ease-in-out"
           >
             <svg
               class="h-6 w-6"
@@ -104,7 +129,7 @@
           </button>
 
           <!-- Profile dropdown -->
-          <div class="ml-3 relative">
+          <div class="ml-4 relative flex-shrink-0">
             <div>
               <button
                 class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition duration-150 ease-in-out"
@@ -119,7 +144,7 @@
             <!--
             Profile dropdown panel, show/hide based on dropdown state.
 
-            Entering: "transition ease-out duration-200"
+            Entering: "transition ease-out duration-100"
               From: "transform opacity-0 scale-95"
               To: "transform opacity-100 scale-100"
             Leaving: "transition ease-in duration-75"
@@ -157,8 +182,8 @@
 
     Menu open: "block", Menu closed: "hidden"
   -->
-    <div class="hidden sm:hidden">
-      <div class="pt-2 pb-4">
+    <div class="hidden lg:hidden">
+      <div class="pt-2 pb-3">
         <a
           href="#"
           class="block pl-3 pr-4 py-2 border-l-4 border-indigo-500 text-base font-medium text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700 transition duration-150 ease-in-out"
@@ -179,6 +204,42 @@
           class="mt-1 block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out"
           >Calendar</a
         >
+      </div>
+      <div class="pt-4 pb-3 border-t border-gray-200">
+        <div class="flex items-center px-4">
+          <div class="flex-shrink-0">
+            <img
+              class="h-10 w-10 rounded-full"
+              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+              alt=""
+            />
+          </div>
+          <div class="ml-3">
+            <div class="text-base font-medium leading-6 text-gray-800">
+              Tom Cook
+            </div>
+            <div class="text-sm font-medium leading-5 text-gray-500">
+              tom@example.com
+            </div>
+          </div>
+        </div>
+        <div class="mt-3">
+          <a
+            href="#"
+            class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:text-gray-800 focus:bg-gray-100 transition duration-150 ease-in-out"
+            >Your Profile</a
+          >
+          <a
+            href="#"
+            class="mt-1 block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:text-gray-800 focus:bg-gray-100 transition duration-150 ease-in-out"
+            >Settings</a
+          >
+          <a
+            href="#"
+            class="mt-1 block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:text-gray-800 focus:bg-gray-100 transition duration-150 ease-in-out"
+            >Sign out</a
+          >
+        </div>
       </div>
     </div>
   </nav>
