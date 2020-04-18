@@ -8,7 +8,12 @@ module.exports = {
   theme: {
    extend: {
     colors: {
-      wmred: '#E64E58',
+      red: {
+		'800': '#E64E58',
+		'600': '#EB7179',
+		'400': '#F0949B',
+		'200': '#F5B8BC',
+        }
       }
     }
   },

@@ -6,7 +6,7 @@
           <div class="flex px-2 lg:px-0">
             <!-- ICONS -->
             <div class="flex-shrink-0 flex items-center">
-              <router-link class="block lg:hidden" :to="{ path: 'index' }">
+              <router-link class="block lg:hidden" :to="{ name: 'index' }">
                 <img
                   class="h-12 w-auto"
                   src="/wowmate_logo_full_transparent.png"
@@ -14,31 +14,35 @@
                 />
               </router-link>
               <!-- TODO: make a icon only version -->
-              <a class="hidden lg:block" href="/">
+              <router-link class="hidden lg:block" :to="{ name: 'index' }">
                 <img
                   class="h-12 w-auto"
                   src="/wowmate_logo_full_transparent.png"
                   alt=""
                 />
-              </a>
+              </router-link>
             </div>
             <!-- NAV LINKS -->
             <div class="hidden lg:ml-6 lg:flex">
               <router-link
-                :to="{ path: 'mythicplus' }"
-                class="inline-flex items-center px-1 pt-1 border-b-2 border-wmred text-sm font-medium leading-5 text-gray-700 focus:outline-none transition duration-150 ease-in-out"
+                :to="{ name: 'mythicplus' }"
+                active-class="border-red-800 text-gray-700 hover:border-red-800"
+                class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-600 hover:text-gray-700 hover:border-gray-500 focus:outline-none transition duration-150 ease-in-out"
               >
+                <!-- class="inline-flex items-center px-1 pt-1 text-sm font-medium leading-5 text-gray-600 focus:outline-none transition duration-150 ease-in-out" -->
                 Mythic+
               </router-link>
               <router-link
-                :to="{ path: 'nyalotha' }"
-                class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-600 hover:text-gray-700 hover:border-gray-500 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+                :to="{ name: 'nyalotha' }"
+                active-class="border-red-800 text-gray-700 hover:border-red-800"
+                class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-600 hover:text-gray-700 hover:border-gray-500 focus:outline-none transition duration-150 ease-in-out"
               >
                 Ny'alotha
               </router-link>
               <router-link
-                :to="{ path: 'news' }"
-                class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-600 hover:text-gray-700 hover:border-gray-500 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out"
+                :to="{ name: 'news' }"
+                active-class="border-red-800 text-gray-700 hover:border-red-800"
+                class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-600 hover:text-gray-700 hover:border-gray-500 focus:outline-none transition duration-150 ease-in-out"
               >
                 News
               </router-link>
