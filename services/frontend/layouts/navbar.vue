@@ -90,7 +90,12 @@
             </div>
           </div>
           <!-- MOBILE MENU BUTTON -->
-          <div @click="toggleMobileMenu()" class="flex items-center lg:hidden">
+          <!-- @click="toggleMobileMenu()" -->
+          <div
+            @click="showMobileMenu"
+            v-on-clickaway="toggleMobileMenu"
+            class="flex items-center lg:hidden"
+          >
             <button
               class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
             >
@@ -207,7 +212,11 @@
 
     Menu open: "block", Menu closed: "hidden"
   -->
-      <div v-if="mobileMenu" class="lg:hidden">
+      <div
+        v-if="mobileMenu"
+        v-on-clickaway="toggleMobileMenu"
+        class="lg:hidden"
+      >
         <div class="pt-2 pb-3">
           <NavbarLink
             link="mythicplus"
@@ -280,7 +289,10 @@
 
 <script>
 import NavbarLink from '~/components/NavbarLink.vue'
+import { mixin as clickaway } from 'vue-clickaway' //IMPROVE: find a native solution
+
 export default {
+  mixins: [clickaway],
   components: {
     NavbarLink
   },
@@ -290,12 +302,11 @@ export default {
     }
   },
   methods: {
+    showMobileMenu() {
+      this.mobileMenu = true
+    },
     toggleMobileMenu() {
-      if (this.mobileMenu == false) {
-        this.mobileMenu = true
-      } else {
-        this.mobileMenu = false
-      }
+      this.mobileMenu = false
     }
   }
 }
