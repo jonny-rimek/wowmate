@@ -37,7 +37,7 @@ export class Frontend extends cdk.Construct {
 
 		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
 			websiteIndexDocument: 'index.html',
-			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+			publicReadAccess: true,
 		});
 
 		const originAccessIdentity = new cloudfront.OriginAccessIdentity(this, 'OAI');
@@ -54,9 +54,8 @@ export class Frontend extends cdk.Construct {
 					}]
 				},
 				{
-					s3OriginSource: {
-						s3BucketSource: frontendBucket,
-						originAccessIdentity: originAccessIdentity,
+					customOriginSource: {
+						domainName: frontendBucket.bucketRegionalDomainName,
 					},
 					behaviors : [ {
 						isDefaultBehavior: true,
@@ -65,18 +64,6 @@ export class Frontend extends cdk.Construct {
 				}
 			],
 			errorConfigurations: [
-				// {
-				// 	errorCode: 403,
-				// 	responseCode: 200,
-				// 	responsePagePath: '/index.html',
-				// 	errorCachingMinTtl: 300, 
-				// },
-				// {
-				// 	errorCode: 404,
-				// 	responseCode: 200,
-				// 	responsePagePath: '/index.html',
-				// 	errorCachingMinTtl: 300,
-				// },
 			],
 			aliasConfiguration: {
 				names: ['wowmate.io'],
