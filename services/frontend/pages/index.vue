@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div>
     wowmate
   </div>
 </template>
@@ -8,18 +8,7 @@
 // import Logo from '~/components/Logo.vue'
 
 export default {
-  layout: 'navbar',
-  //   layout(context) {
-  //     return 'navbar'
-  //   },
-  head() {
-    return {
-      title: 'wowmate'
-    }
-  },
-  components: {
-    // Logo
-  }
+  layout: 'navbar'
 }
 </script>
 

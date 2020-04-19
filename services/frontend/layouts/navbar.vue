@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <nav class="bg-white shadow">
+  <div class="h-screen">
+    <nav class="bg-white border-b">
       <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex px-2 lg:px-0">
@@ -283,7 +283,71 @@
 	  -->
       </div>
     </nav>
-    <nuxt />
+    <!-- END TOP NAVBARR -->
+
+    <!-- BODY -->
+
+    <div class="max-w-7xl mx-auto md:px-6 lg:px-9">
+      <div class="hidden md:flex md:flex-shrink-0 ">
+        <!-- SIDEBAR -->
+        <div class="flex flex-col w-64">
+          <div class="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+            <nav>
+              <a
+                href="#"
+                class="group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-700 rounded-md bg-gray-100 hover:text-gray-700 hover:bg-gray-200 focus:outline-none focus:bg-gray-200 transition ease-in-out duration-150"
+              >
+                <span class="truncate">
+                  Dashboard
+                </span>
+              </a>
+              <a
+                href="#"
+                class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-500 rounded-md hover:text-gray-700 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+              >
+                <span class="truncate">
+                  Team
+                </span>
+              </a>
+              <a
+                href="#"
+                class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+              >
+                <span class="truncate">
+                  Projects
+                </span>
+              </a>
+              <a
+                href="#"
+                class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+              >
+                <span class="truncate">
+                  Calendar
+                </span>
+              </a>
+              <a
+                href="#"
+                class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+              >
+                <span class="truncate">
+                  Documents
+                </span>
+              </a>
+              <a
+                href="#"
+                class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
+              >
+                <span class="truncate">
+                  Reports
+                </span>
+              </a>
+            </nav>
+          </div>
+        </div>
+
+        <nuxt />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -295,6 +359,11 @@ export default {
   mixins: [clickaway],
   components: {
     NavbarLink
+  },
+  head() {
+    return {
+      title: 'wowmate'
+    }
   },
   data() {
     return {
