@@ -54,6 +54,7 @@ export class Frontend extends cdk.Construct {
 				{
 					customOriginSource: {
 						domainName: frontendBucket.bucketWebsiteDomainName,
+						originProtocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
 					},
 					behaviors : [ {
 						isDefaultBehavior: true,
