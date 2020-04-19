@@ -65,21 +65,18 @@ export class Frontend extends cdk.Construct {
 				}
 			],
 			errorConfigurations: [
-				{
-					errorCode: 403,
-					responseCode: 200,
-					responsePagePath: '/index.html',
-					errorCachingMinTtl: 300, 
-				},
-				{
-					errorCode: 404,
-					responseCode: 200,
-					responsePagePath: '/index.html',
-					errorCachingMinTtl: 300,
-					//NOTE: this might make some problems for the API, if 404 is cached for 5 minutes and I ask for records that not yet exist
-					//		but it is needed, otherwise if I open the page, with any thing at the end, the response index.html is not cached
-					//		e.g. wowmate.io/modal
-				},
+				// {
+				// 	errorCode: 403,
+				// 	responseCode: 200,
+				// 	responsePagePath: '/index.html',
+				// 	errorCachingMinTtl: 300, 
+				// },
+				// {
+				// 	errorCode: 404,
+				// 	responseCode: 200,
+				// 	responsePagePath: '/index.html',
+				// 	errorCachingMinTtl: 300,
+				// },
 			],
 			aliasConfiguration: {
 				names: ['wowmate.io'],
