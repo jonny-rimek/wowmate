@@ -40,8 +40,6 @@ export class Frontend extends cdk.Construct {
 			publicReadAccess: true,
 		});
 
-		const originAccessIdentity = new cloudfront.OriginAccessIdentity(this, 'OAI');
-
 		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
 			originConfigs: [
 				{
@@ -55,7 +53,7 @@ export class Frontend extends cdk.Construct {
 				},
 				{
 					customOriginSource: {
-						domainName: frontendBucket.bucketRegionalDomainName,
+						domainName: frontendBucket.bucketWebsiteDomainName,
 					},
 					behaviors : [ {
 						isDefaultBehavior: true,
