@@ -19,6 +19,9 @@ module.exports = {
   },
   variants: {},
   plugins: [
-    require('@tailwindcss/ui'),
+	  //the import definately works, warning is ignorable
+    require('@tailwindcss/ui')({
+	  layout: 'sidebar',
+	})
   ]
 }
