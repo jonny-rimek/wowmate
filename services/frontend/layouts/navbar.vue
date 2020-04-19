@@ -82,7 +82,7 @@
                 </div>
                 <input
                   id="search"
-                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-gray-500 focus:shadow-outline-blue sm:text-sm transition duration-150 ease-in-out"
+                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-red-400 focus:shadow-outline-red sm:text-sm transition duration-150 ease-in-out"
                   placeholder="Search"
                   type="search"
                 />
