@@ -6,21 +6,29 @@
           <div class="flex px-2 lg:px-0">
             <!-- ICONS -->
             <div class="flex-shrink-0 flex items-center">
-              <router-link class="block lg:hidden" :to="{ name: 'index' }">
+              <nuxt-link
+                :to="{ name: 'index' }"
+                :prefetch="false"
+                class="block focus:outline-none lg:hidden"
+              >
                 <img
-                  class="h-12 w-auto"
+                  class="h-12 focus:outline-none w-auto"
                   src="/wowmate_logo_full_transparent.png"
                   alt=""
                 />
-              </router-link>
+              </nuxt-link>
               <!-- TODO: make a icon only version -->
-              <router-link class="hidden lg:block" :to="{ name: 'index' }">
+              <nuxt-link
+                :to="{ name: 'index' }"
+                :prefetch="false"
+                class="hidden focus:outline-none lg:block"
+              >
                 <img
                   class="h-12 w-auto"
                   src="/wowmate_logo_full_transparent.png"
                   alt=""
                 />
-              </router-link>
+              </nuxt-link>
             </div>
             <!-- NAV LINKS -->
             <div class="hidden lg:ml-6 lg:flex">
