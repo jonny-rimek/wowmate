@@ -170,10 +170,18 @@
     <div class="max-w-7xl mx-auto md:px-6 lg:px-9">
       <div class="flex flex-shrink-0">
         <!-- SIDEBAR -->
+        <!-- NOTE: md:hidden to hide sidebar -->
         <div class="hidden md:flex flex-col w-64">
           <div class="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <nav>
-              <a
+              <SidebarLink
+                link="lol"
+                v-for="item in sidebarContent"
+                :key="item"
+              >
+                {{ item }}
+              </SidebarLink>
+              <!-- <a
                 href="#"
                 class="group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-700 rounded-md bg-gray-100 hover:text-gray-700 hover:bg-gray-200 focus:outline-none transition ease-in-out duration-150"
               >
@@ -220,7 +228,7 @@
                 <span class="truncate">
                   Reports
                 </span>
-              </a>
+              </a> -->
             </nav>
           </div>
         </div>
@@ -233,12 +241,14 @@
 
 <script>
 import NavbarLink from '~/components/NavbarLink.vue'
+import SidebarLink from '~/components/SidebarLink.vue'
 import { mixin as clickaway } from 'vue-clickaway' //IMPROVE: find a native solution
 
 export default {
   mixins: [clickaway],
   components: {
-    NavbarLink
+    NavbarLink,
+    SidebarLink
   },
   head() {
     return {
@@ -247,7 +257,21 @@ export default {
   },
   data() {
     return {
-      mobileMenu: false
+      mobileMenu: false,
+      sidebarContent: [
+        "Atal'Dazar",
+        'Freehold',
+        "Kings'Rest",
+        'Shrine of the Storm',
+        'Siege of Boralus',
+        'Temple of Sethraliss',
+        'The MOTHERLODE!!',
+        'The Underrot',
+        'Tol Dagor',
+        'Waycrest Manor',
+        'Operation: Mechagon - Junkyard',
+        'Operation: Mechagon - Workshop'
+      ]
     }
   },
   methods: {
