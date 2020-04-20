@@ -175,60 +175,12 @@
           <div class="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <nav>
               <SidebarLink
-                link="lol"
                 v-for="item in sidebarContent"
-                :key="item"
+                :link="item.id"
+                :key="item.id"
               >
-                {{ item }}
+                {{ item.name }}
               </SidebarLink>
-              <!-- <a
-                href="#"
-                class="group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-700 rounded-md bg-gray-100 hover:text-gray-700 hover:bg-gray-200 focus:outline-none transition ease-in-out duration-150"
-              >
-                <span class="truncate">
-                  Dashboard
-                </span>
-              </a>
-              <a
-                href="#"
-                class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-500 rounded-md hover:text-gray-700 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
-              >
-                <span class="truncate">
-                  Team
-                </span>
-              </a>
-              <a
-                href="#"
-                class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
-              >
-                <span class="truncate">
-                  Projects
-                </span>
-              </a>
-              <a
-                href="#"
-                class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
-              >
-                <span class="truncate">
-                  Calendar
-                </span>
-              </a>
-              <a
-                href="#"
-                class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
-              >
-                <span class="truncate">
-                  Documents
-                </span>
-              </a>
-              <a
-                href="#"
-                class="mt-1 group flex items-center px-3 py-2 text-sm leading-5 font-medium text-gray-600 rounded-md hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:bg-gray-100 transition ease-in-out duration-150"
-              >
-                <span class="truncate">
-                  Reports
-                </span>
-              </a> -->
             </nav>
           </div>
         </div>
@@ -259,18 +211,18 @@ export default {
     return {
       mobileMenu: false,
       sidebarContent: [
-        "Atal'Dazar",
-        'Freehold',
-        "Kings'Rest",
-        'Shrine of the Storm',
-        'Siege of Boralus',
-        'Temple of Sethraliss',
-        'The MOTHERLODE!!',
-        'The Underrot',
-        'Tol Dagor',
-        'Waycrest Manor',
-        'Operation: Mechagon - Junkyard',
-        'Operation: Mechagon - Workshop'
+        { name: "Atal'Dazar", id: 2144 },
+        { name: 'Freehold', id: 2145 }
+        // "Kings'Rest",
+        // 'Shrine of the Storm',
+        // 'Siege of Boralus',
+        // 'Temple of Sethraliss',
+        // 'The MOTHERLODE!!',
+        // 'The Underrot',
+        // 'Tol Dagor',
+        // 'Waycrest Manor',
+        // 'Operation: Mechagon - Junkyard',
+        // 'Operation: Mechagon - Workshop'
       ]
     }
   },
