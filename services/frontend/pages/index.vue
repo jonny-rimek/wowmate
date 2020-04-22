@@ -7,9 +7,7 @@
 <script>
 // import Logo from '~/components/Logo.vue'
 
-export default {
-  layout: 'navbar'
-}
+export default {}
 </script>
 
 <style>

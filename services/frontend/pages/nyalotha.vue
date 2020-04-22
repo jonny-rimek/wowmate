@@ -3,9 +3,7 @@
 </template>
 
 <script>
-export default {
-  layout: 'navbar'
-}
+export default {}
 </script>
 
 <style></style>

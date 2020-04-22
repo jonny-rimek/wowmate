@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen">
+  <div class="">
     <nav class="bg-white border-b">
       <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div class="flex justify-between h-16">
@@ -162,67 +162,22 @@
         </div>
       </div>
     </nav>
-    <!-- END TOP NAVBARR -->
-
-    <!-- BODY -->
-
-    <div class="max-w-7xl mx-auto md:px-6 lg:px-9">
-      <div class="flex flex-shrink-0">
-        <!-- SIDEBAR -->
-        <!-- NOTE: md:hidden to hide sidebar -->
-        <div class="hidden md:flex flex-col w-64">
-          <div class="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <nav>
-              <SidebarLink
-                v-for="item in sidebarContent"
-                :link="item.id"
-                :key="item.id"
-              >
-                {{ item.name }}
-              </SidebarLink>
-            </nav>
-          </div>
-        </div>
-
-        <nuxt />
-      </div>
-    </div>
   </div>
+  <!-- END TOP NAVBARR -->
 </template>
 
 <script>
 import NavbarLink from '~/components/NavbarLink.vue'
-import SidebarLink from '~/components/SidebarLink.vue'
 import { mixin as clickaway } from 'vue-clickaway' //IMPROVE: find a native solution
 
 export default {
   mixins: [clickaway],
   components: {
-    NavbarLink,
-    SidebarLink
-  },
-  head() {
-    return {
-      title: 'wowmate'
-    }
+    NavbarLink
   },
   data() {
     return {
-      mobileMenu: false,
-      sidebarContent: [
-        { name: "Atal'Dazar", id: 2144 },
-        { name: 'Freehold', id: 2145 }
-        // "Kings'Rest",
-        // 'Shrine of the Storm',
-        // 'Siege of Boralus',
-        // 'Temple of Sethraliss',
-        // 'The MOTHERLODE!!',
-        // 'The Underrot',
-        // 'Tol Dagor',
-        // 'Waycrest Manor',
-        // 'Operation: Mechagon - Junkyard',
-        // 'Operation: Mechagon - Workshop'
-      ]
+      mobileMenu: false
     }
   },
   methods: {
