@@ -8,7 +8,6 @@
             <div class="flex-shrink-0 flex items-center">
               <nuxt-link
                 :to="{ name: 'index' }"
-                :prefetch="false"
                 class="block focus:outline-none lg:hidden"
               >
                 <img
