@@ -134,30 +134,24 @@
       <!--MOBILE MENU-->
       <div :class="mobileMenu ? 'block' : 'hidden'" class="lg:hidden">
         <div class="pt-2 pb-3">
-          <NavbarLink
-            link="mythicplus"
-            class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-          >
+          <MobileNavbarLink link="mythicplus">
             Mythic+
-          </NavbarLink>
-          <NavbarLink
-            link="nyalotha"
-            class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-          >
-            Ny'alotha
-          </NavbarLink>
-          <NavbarLink
-            link="news"
-            class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-          >
+          </MobileNavbarLink>
+          <MobileNavbarLink link="nyalotha">
+            Nyalotha
+          </MobileNavbarLink>
+          <MobileNavbarLink link="news">
             News
-          </NavbarLink>
-          <NavbarLink
-            link="upload"
-            class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-          >
+          </MobileNavbarLink>
+          <MobileNavbarLink link="upload">
             Upload
-          </NavbarLink>
+          </MobileNavbarLink>
+          <!-- TODO:
+		  - wrapper for MobilNavbarLink
+		  - Add slot
+		  - pass in sidemenu as MobilNavbarLink
+
+		   -->
         </div>
       </div>
     </nav>
@@ -167,12 +161,14 @@
 
 <script>
 import NavbarLink from '~/components/NavbarLink.vue'
+import MobileNavbarLink from '~/components/MobileNavbarLink.vue'
 import { mixin as clickaway } from 'vue-clickaway' //IMPROVE: find a native solution
 
 export default {
   mixins: [clickaway],
   components: {
-    NavbarLink
+    NavbarLink,
+    MobileNavbarLink
   },
   data() {
     return {
