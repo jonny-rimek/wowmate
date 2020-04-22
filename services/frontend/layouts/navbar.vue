@@ -20,7 +20,6 @@
               <!-- TODO: make a icon only version -->
               <nuxt-link
                 :to="{ name: 'index' }"
-                :prefetch="false"
                 class="hidden focus:outline-none lg:block"
               >
                 <img
