@@ -9,6 +9,7 @@
               <SidebarLink
                 v-for="item in dungeons"
                 :link="item.id"
+                :pathName="pathName"
                 :key="item.id"
               >
                 {{ item.name }}
@@ -53,20 +54,7 @@ export default {
         { name: 'Operation: Mechagon - Junkyard', id: 2194 },
         { name: 'Operation: Mechagon - Workshop', id: 2104 }
       ],
-      nyalotha: [
-        { name: 'Wrathion', id: 2329 },
-        { name: 'Maut', id: 2327 },
-        { name: 'Prophet Skitra', id: 2334 },
-        { name: 'Dark Inquisitor Xanesh', id: 2328 },
-        { name: 'The Hivemind', id: 2333 },
-        { name: "Shad'har the Insatiable", id: 2335 },
-        { name: "Drest'agath", id: 2343 },
-        { name: 'Vexiona', id: 2336 },
-        { name: 'Ra-den the Despoiled', id: 2331 },
-        { name: "Il'ganoth, Corruption Reborn", id: 2345 },
-        { name: "Carapace of N'Zoth", id: 2337 },
-        { name: "N'Zoth the Corruptor", id: 2344 }
-      ]
+      pathName: 'mythicplus-id'
     }
   }
 }

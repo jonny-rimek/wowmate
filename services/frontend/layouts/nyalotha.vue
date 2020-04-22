@@ -9,6 +9,7 @@
               <SidebarLink
                 v-for="item in nyalotha"
                 :link="item.id"
+                :pathName="pathName"
                 :key="item.id"
               >
                 {{ item.name }}
@@ -39,20 +40,6 @@ export default {
   },
   data() {
     return {
-      dungeons: [
-        { name: "Atal'Dazar", id: 2144 },
-        { name: 'Freehold', id: 2145 },
-        { name: "Kings'Rest", id: 2146 },
-        { name: 'Shrine of the Storm', id: 2147 },
-        { name: 'Siege of Boralus', id: 2148 },
-        { name: 'Temple of Sethraliss', id: 2149 },
-        { name: 'The MOTHERLODE!!', id: 2154 },
-        { name: 'The Underrot', id: 2164 },
-        { name: 'Tol Dagor', id: 2174 },
-        { name: 'Waycrest Manor', id: 2184 },
-        { name: 'Operation: Mechagon - Junkyard', id: 2194 },
-        { name: 'Operation: Mechagon - Workshop', id: 2104 }
-      ],
       nyalotha: [
         { name: 'Wrathion', id: 2329 },
         { name: 'Maut', id: 2327 },
@@ -66,7 +53,8 @@ export default {
         { name: "Il'ganoth, Corruption Reborn", id: 2345 },
         { name: "Carapace of N'Zoth", id: 2337 },
         { name: "N'Zoth the Corruptor", id: 2344 }
-      ]
+      ],
+      pathName: 'nyalotha-id'
     }
   }
 }
