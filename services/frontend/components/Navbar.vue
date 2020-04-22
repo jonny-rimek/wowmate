@@ -13,7 +13,7 @@
               >
                 <img
                   class="h-12 focus:outline-none w-auto"
-                  src="/wowmate_logo_full_transparent.png"
+                  src="/wowmate_logo_only_transparent.png"
                   alt=""
                 />
               </nuxt-link>
