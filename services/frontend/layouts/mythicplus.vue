@@ -8,7 +8,7 @@
             <nav>
               <SidebarLink
                 v-for="item in dungeons"
-                :link="item.id"
+                :param="item.id"
                 :pathName="pathName"
                 :key="item.id"
               >
