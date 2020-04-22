@@ -5,6 +5,7 @@
         <div
           class="align-middle inline-block min-w-full shadow overflow-hidden sm:rounded-lg border-b border-gray-200"
         >
+          <!-- TODO: column ilvl dungeon level bar for damage -->
           <table class="min-w-full">
             <thead>
               <tr>
@@ -13,6 +14,14 @@
                 >
                   Name
                 </th>
+                <th
+                  class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  M+ stufe
+                </th>
+                <th
+                  class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"
+                ></th>
                 <th
                   class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"
                 >
@@ -25,12 +34,12 @@
                 <td
                   class="px-6 py-4 whitespace-no-wrap text-sm leading-5 font-medium text-gray-900"
                 >
-                  Bernard Lane
+                  Reinhart
                 </td>
                 <td
                   class="px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-500"
                 >
-                  Director, Human Resources
+                  22
                 </td>
               </tr>
             </tbody>
