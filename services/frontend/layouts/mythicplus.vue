@@ -1,6 +1,14 @@
 <template>
   <div>
-    <Navbar />
+    <Navbar>
+      <MobileNavbarLink
+        v-for="item in dungeons"
+        :key="item.id"
+        link="mythicplus-id"
+      >
+        {{ item.name }}
+      </MobileNavbarLink>
+    </Navbar>
     <div class="max-w-7xl mx-auto md:px-6 lg:px-9">
       <div class="flex flex-shrink-0">
         <div class="hidden md:flex flex-col w-64">
@@ -9,7 +17,7 @@
               <SidebarLink
                 v-for="item in dungeons"
                 :param="item.id"
-                :pathName="pathName"
+                pathName="mythicplus-id"
                 :key="item.id"
               >
                 {{ item.name }}
@@ -26,11 +34,13 @@
 
 <script>
 import Navbar from '~/components/Navbar.vue'
+import MobileNavbarLink from '~/components/MobileNavbarLink.vue'
 import SidebarLink from '~/components/SidebarLink.vue'
 
 export default {
   components: {
     Navbar,
+    MobileNavbarLink,
     SidebarLink
   },
   head() {
@@ -53,8 +63,7 @@ export default {
         { name: 'Waycrest Manor', id: 2184 },
         { name: 'Operation: Mechagon - Junkyard', id: 2194 },
         { name: 'Operation: Mechagon - Workshop', id: 2104 }
-      ],
-      pathName: 'mythicplus-id'
+      ]
     }
   }
 }

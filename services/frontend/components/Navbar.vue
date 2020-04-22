@@ -152,6 +152,7 @@
 		  - pass in sidemenu as MobilNavbarLink
 
 		   -->
+          <slot></slot>
         </div>
       </div>
     </nav>
