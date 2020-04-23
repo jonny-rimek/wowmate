@@ -136,8 +136,10 @@
         <div class="pt-2 pb-3">
           <MobileNavbarLink link="mythicplus">
             Mythic+
+            <!--get from vuex Add all m+ links and expand on click, add overall option  -->
           </MobileNavbarLink>
           <MobileNavbarLink link="nyalotha">
+            <!-- Add all nylaotha links and expand on click, add overall option  -->
             Nyalotha
           </MobileNavbarLink>
           <MobileNavbarLink link="news">
@@ -146,13 +148,6 @@
           <MobileNavbarLink link="upload">
             Upload
           </MobileNavbarLink>
-          <!-- TODO:
-		  - wrapper for MobilNavbarLink
-		  - Add slot
-		  - pass in sidemenu as MobilNavbarLink
-
-		   -->
-          <slot></slot>
         </div>
       </div>
     </nav>
