@@ -37,12 +37,6 @@
                 Mythic+
               </NavbarLink>
               <NavbarLink
-                link="nyalotha"
-                class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5"
-              >
-                Ny'alotha
-              </NavbarLink>
-              <NavbarLink
                 link="news"
                 class="ml-8 inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5"
               >
@@ -137,10 +131,6 @@
           <MobileNavbarLink link="mythicplus">
             Mythic+
             <!--get from vuex Add all m+ links and expand on click, add overall option  -->
-          </MobileNavbarLink>
-          <MobileNavbarLink link="nyalotha">
-            <!-- Add all nylaotha links and expand on click, add overall option  -->
-            Nyalotha
           </MobileNavbarLink>
           <MobileNavbarLink link="news">
             News
