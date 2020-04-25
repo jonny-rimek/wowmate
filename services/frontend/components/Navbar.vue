@@ -82,9 +82,10 @@
             </div>
           </div>
           <!-- MOBILE MENU BUTTON -->
+          <!--  -->
           <div
-            @click="toggleMobileMenu"
             v-on-clickaway="hideMobileMenu"
+            @click="toggleMobileMenu"
             class="flex items-center lg:hidden"
           >
             <button
@@ -128,9 +129,9 @@
       <!--MOBILE MENU-->
       <div :class="mobileMenu ? 'block' : 'hidden'" class="lg:hidden">
         <div class="pt-2 pb-3">
-          <MobileNavbarLink link="mythicplus">
+          <MobileNavbarLink link="mythicplus-mobile">
             Mythic+
-            <!--get from vuex Add all m+ links and expand on click, add overall option  -->
+            <!--TODO: Add all m+ links and expand on click, add overall option  -->
           </MobileNavbarLink>
           <MobileNavbarLink link="news">
             News

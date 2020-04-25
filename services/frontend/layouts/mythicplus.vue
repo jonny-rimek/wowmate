@@ -1,16 +1,10 @@
 <template>
   <div>
-    <Navbar>
-      <MobileNavbarLink
-        v-for="item in dungeons"
-        :key="item.id"
-        link="mythicplus-id"
-      >
-        {{ item.name }}
-      </MobileNavbarLink>
-    </Navbar>
+    <Navbar> </Navbar>
     <div class="max-w-7xl mx-auto md:px-6 lg:px-9">
       <div class="flex flex-shrink-0">
+        <!-- DESKTOP ONLY SIDEBAR -->
+        <!-- THE MOBILE VERSION OF THE SIDEBAR IS PART OF NAVBAR COMPONENT -->
         <div class="hidden md:flex flex-col w-64">
           <div class="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <nav>
