@@ -13,8 +13,7 @@
 export default {
   props: {
     param: {
-      type: Number,
-      required: true
+      type: Number
     },
     pathName: {
       type: String,
