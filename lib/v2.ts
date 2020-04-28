@@ -16,14 +16,6 @@ export class V2 extends cdk.Construct {
 			}],
 			natGateways: 0
 		})
-		let mySecurityGroup = new ec2.SecurityGroup(this, 'NewSecurityGroup', {
-			description: 'Allow 5432 from any ip',
-			vpc: vpc
-		});
-		mySecurityGroup.addIngressRule(
-			ec2.Peer.anyIpv4(), 
-			ec2.Port.tcp(5432),
-			'allow ssh access from any ipv4 ip');
 
 		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
 			engine: rds.DatabaseInstanceEngine.POSTGRES,
@@ -32,5 +24,7 @@ export class V2 extends cdk.Construct {
 			vpc,
 			vpcPlacement: { subnetType: ec2.SubnetType.PUBLIC }
 		})
+
+		postgres.connections.allowDefaultPortFromAnyIpv4
 	}
 }
