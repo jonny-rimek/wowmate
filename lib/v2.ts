@@ -7,10 +7,10 @@ export class V2 extends cdk.Construct {
 		super(scope, id)
 
 		const vpc = new ec2.Vpc(this, 'Vpc', {
-			subnetConfiguration: [{
-				subnetType: ec2.SubnetType.PUBLIC,
-				name: 'publicsubnet'
-			}]
+			// subnetConfiguration: [{
+			// 	subnetType: ec2.SubnetType.PUBLIC,
+			// 	name: 'publicsubnet'
+			// }]
 		})
 
 		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
@@ -18,6 +18,7 @@ export class V2 extends cdk.Construct {
 			instanceClass: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO),
 			masterUsername: 'postgres',
 			vpc,
+			vpcPlacement: {subnetType: ec2.SubnetType.PUBLIC}
 		})
 	}
 }
