@@ -25,6 +25,6 @@ export class V2 extends cdk.Construct {
 			vpcPlacement: { subnetType: ec2.SubnetType.PUBLIC }
 		})
 
-		postgres.connections.allowDefaultPortFromAnyIpv4
+		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
 	}
 }
