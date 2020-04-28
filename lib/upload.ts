@@ -57,7 +57,7 @@ export class Upload extends cdk.Construct {
 			tableName: 'combatlogs',
 			s3Prefix: '',
 			bucket: parquetBucket,
-			dataFormat: glue.DataFormat.Parquet,
+			dataFormat: glue.DataFormat.PARQUET,
 			storedAsSubDirectories: true,
 			// compressed: true,
 			columns: [{

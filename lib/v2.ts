@@ -7,5 +7,11 @@ export class V2 extends cdk.Construct {
 		super(scope, id)
 
 		const vpc = new ec2.Vpc(this, 'Vpc')
+		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
+			engine: rds.DatabaseInstanceEngine.POSTGRES,
+			instanceClass: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.SMALL),
+			masterUsername: 'postgres',
+			vpc,
+		})
 	}
 }
