@@ -20,7 +20,10 @@ export class V2 extends cdk.Construct {
 			description: 'Allow 5432 from any ip',
 			vpc: vpc
 		});
-		// mySecurityGroup.addIngressRule(new ec2.Peer.anyIpv4(), new ec2.TcpPort(22), 'allow ssh access from any ipv4 ip');
+		mySecurityGroup.addIngressRule(
+			ec2.Peer.anyIpv4(), 
+			ec2.Port.tcp(5432),
+			'allow ssh access from any ipv4 ip');
 
 		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
 			engine: rds.DatabaseInstanceEngine.POSTGRES,
