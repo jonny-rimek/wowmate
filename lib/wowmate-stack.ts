@@ -3,6 +3,7 @@ import { Database } from './database';
 import { Upload } from './upload';
 import { Api } from './api';
 import { Frontend } from './frontend';
+import { V2 } from './v2';
 
 export class Wowmate extends cdk.Stack {
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -19,5 +20,7 @@ export class Wowmate extends cdk.Stack {
 		new Upload(this, 'Upload', {
 			dynamoDB: db.dynamoDB,
 		})
+
+		new V2(this, 'V2')
 	}
 }
