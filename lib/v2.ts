@@ -18,7 +18,7 @@ export class V2 extends cdk.Construct {
 			instanceClass: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO),
 			masterUsername: 'postgres',
 			vpc,
-			vpcPlacement: {subnetType: ec2.SubnetType.PUBLIC}
+			// vpcPlacement: {subnetType: ec2.SubnetType.PUBLIC}
 		})
 	}
 }
