@@ -1,4 +1,4 @@
-FROM scratch
+FROM alpine
 
 ADD main /
 CMD ["/main"]
