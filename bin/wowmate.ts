@@ -13,6 +13,6 @@ constructor(scope: Construct, id: string, props?: EnvProps) {
 	*/
 
 const app = new cdk.App();
-new Wowmate(app, 'WoWM2', {
+new Wowmate(app, 'WoWM', {
 	env: {region: "us-east-1"}
 });
