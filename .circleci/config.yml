@@ -40,7 +40,7 @@ jobs:
 
       # CDK
 
-      - run : cd services/api && go build -ldflags='-s -w' -o main . && ls
+      - run : cd services/api && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags='-s -w' -o main . && ls
 
       - restore_cache:
           keys: 
