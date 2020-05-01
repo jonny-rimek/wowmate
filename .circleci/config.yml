@@ -40,6 +40,8 @@ jobs:
 
       # CDK
 
+      -run : cd services/api && go build -ldflags='-s -w' -o main .
+
       - restore_cache:
           keys: 
             - cdk_out
