@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: 45635463452425452/cdk-mage:0.7
+      - image: 45635463452425452/cdk-mage:0.8
     resource_class: small
     working_directory: ~/dev/wowmate
     steps:
@@ -40,7 +40,7 @@ jobs:
 
       # CDK
 
-      - run : cd services/api && go build -ldflags='-s -w' -o main .
+      - run : cd services/api && go build -ldflags='-s -w' -o main . && ls
 
       - restore_cache:
           keys: 
