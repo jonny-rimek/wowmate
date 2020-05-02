@@ -2,7 +2,8 @@ import cdk = require('@aws-cdk/core');
 import ec2 = require('@aws-cdk/aws-ec2');
 import rds = require('@aws-cdk/aws-rds');
 import ecs = require('@aws-cdk/aws-ecs');
-import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
+import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
+// import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
 
 export class V2 extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string) {
@@ -33,7 +34,9 @@ export class V2 extends cdk.Construct {
 		})
 
 		fargateTask.addContainer("GinContainer", {
-			image: ecs.ContainerImage.fromAsset('services/api')
+			image: ecs.ContainerImage.fromAsset('services/api'),
+			cpu: 256,
+			memoryLimitMiB: 512
 		})
 
 		const cluster = new ecs.Cluster(this, 'Cluster', {
@@ -45,8 +48,16 @@ export class V2 extends cdk.Construct {
 			cluster,
 			taskDefinition: fargateTask,
 			desiredCount: 1,
+			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
 			assignPublicIp: true,
 		})
+
+		const lb = new elbv2.ApplicationLoadBalancer(this, 'LB', { vpc, internetFacing: true });
+		const listener = lb.addListener('Listener', { port: 80 });
+		const targetGroup1 = listener.addTargets('ECS1', {
+			port: 80,
+			targets: [fargateService]
+		});
 
 		/*
 		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {

@@ -25,6 +25,7 @@
     "@aws-cdk/aws-cloudtrail": "^1.36.1",
     "@aws-cdk/aws-dynamodb": "^1.36.1",
     "@aws-cdk/aws-ecs-patterns": "^1.36.1",
+    "@aws-cdk/aws-elasticloadbalancingv2": "^1.36.1",
     "@aws-cdk/aws-events-targets": "^1.36.1",
     "@aws-cdk/aws-lambda": "^1.36.1",
     "@aws-cdk/aws-rds": "^1.36.1",
