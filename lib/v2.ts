@@ -27,14 +27,37 @@ export class V2 extends cdk.Construct {
 
 		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
 
+		const fargateTask = new ecs.FargateTaskDefinition(this, 'FargateTask', {
+			cpu: 256,
+			memoryLimitMiB: 512,
+		})
+
+		fargateTask.addContainer("GinContainer", {
+			image: ecs.ContainerImage.fromAsset('services/api')
+		})
+
+		const cluster = new ecs.Cluster(this, 'Cluster', {
+			containerInsights: true,
+			vpc
+		})
+
+		const fargateService = new ecs.FargateService(this, 'FargateService', {
+			cluster,
+			taskDefinition: fargateTask,
+			desiredCount: 1,
+			assignPublicIp: true,
+		})
+
+		/*
 		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
-		vpc,
-		memoryLimitMiB: 512,
-		cpu: 256,
-		desiredCount: 1,
-		taskImageOptions: {
-			image: ecs.ContainerImage.fromAsset('services/api'),
-		},
+			vpc,
+			memoryLimitMiB: 512,
+			cpu: 256,
+			desiredCount: 1,
+			taskImageOptions: {
+				image: ecs.ContainerImage.fromAsset('services/api'),
+			},
 		});
+		*/
 	}
 }
