@@ -6,7 +6,7 @@ RUN go run bootstrap.go
 
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get install -y nodejs
-RUN npm i -g aws-cdk@1.36.x
+RUN npm i -g aws-cdk@1.53.x
 RUN npm i -g typescript
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
