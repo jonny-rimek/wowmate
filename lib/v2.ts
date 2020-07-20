@@ -33,11 +33,12 @@ export class V2 extends cdk.Construct {
 			memoryLimitMiB: 512,
 		})
 
-		fargateTask.addContainer("GinContainer", {
+		const container = fargateTask.addContainer("GinContainer", {
 			image: ecs.ContainerImage.fromAsset('services/api'),
 			cpu: 256,
 			memoryLimitMiB: 512
 		})
+		container.addPortMappings({containerPort: 80})
 
 		const cluster = new ecs.Cluster(this, 'Cluster', {
 			containerInsights: true,
