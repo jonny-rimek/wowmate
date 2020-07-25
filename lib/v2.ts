@@ -18,7 +18,9 @@ export class V2 extends cdk.Construct {
 		})
 
 		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
-			engine: rds.DatabaseInstanceEngine.POSTGRES,
+			engine: rds.DatabaseInstanceEngine.postgres({
+				version: rds.PostgresEngineVersion.VER_11_7,
+			}),
 			instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO),
 			masterUsername: 'postgres',
 			deletionProtection: false,
