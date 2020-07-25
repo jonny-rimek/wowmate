@@ -22,5 +22,6 @@ export class Wowmate extends cdk.Stack {
 		// })
 
 		new V2(this, 'V2')
+		new Frontend(this, 'frontend')
 	}
 }
