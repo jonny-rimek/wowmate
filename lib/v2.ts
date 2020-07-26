@@ -3,7 +3,7 @@ import ec2 = require('@aws-cdk/aws-ec2');
 import rds = require('@aws-cdk/aws-rds');
 import ecs = require('@aws-cdk/aws-ecs');
 import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
-// import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
+import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
 
 export class V2 extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string) {
@@ -29,7 +29,7 @@ export class V2 extends cdk.Construct {
 		})
 
 		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
-
+		/*
 		const fargateTask = new ecs.FargateTaskDefinition(this, 'FargateTask', {
 			cpu: 256,
 			memoryLimitMiB: 512,
@@ -61,17 +61,19 @@ export class V2 extends cdk.Construct {
 			port: 80,
 			targets: [fargateService]
 		});
-
-		/*
+		*/
 		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
-			vpc,
+			// vpc,
 			memoryLimitMiB: 512,
 			cpu: 256,
 			desiredCount: 1,
+			publicLoadBalancer: true,
+			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
+			// enableECSManagedTags: true,
+			// propagateTags: ecs.PropagatedTagSource.SERVICE,
 			taskImageOptions: {
 				image: ecs.ContainerImage.fromAsset('services/api'),
 			},
 		});
-		*/
 	}
 }

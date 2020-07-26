@@ -13,8 +13,11 @@ func main() {
 
 	router.MaxMultipartMemory = 8 << 20
 
+	router.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong2")
+	})
 	router.GET("/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong")
+		c.String(http.StatusOK, "pong2")
 	})
 	router.POST("/upload", func(c *gin.Context) {
 		file, err := c.FormFile("file")
@@ -31,8 +34,5 @@ func main() {
 
 		c.String(http.StatusOK, fmt.Sprintf("File %s uploaded successfully", file.Filename))
 	})
-	err := router.Run(":8080")
-	if err != nil {
-		fmt.Println(err)
-	}
+	router.Run(":80")
 }
