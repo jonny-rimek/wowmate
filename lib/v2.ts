@@ -62,6 +62,7 @@ export class V2 extends cdk.Construct {
 			targets: [fargateService]
 		});
 		*/
+		/*
 		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
 			// vpc,
 			memoryLimitMiB: 512,
@@ -75,5 +76,6 @@ export class V2 extends cdk.Construct {
 				image: ecs.ContainerImage.fromAsset('services/api'),
 			},
 		});
+		*/
 	}
 }
