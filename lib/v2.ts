@@ -9,7 +9,7 @@ export class V2 extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string) {
 		super(scope, id)
 
-		const vpc = new ec2.Vpc(this, 'VpcDatabase', {
+		const vpc = new ec2.Vpc(this, 'Vpc', {
 			subnetConfiguration: [{
 				name: 'publicSubnet',
 				subnetType: ec2.SubnetType.PUBLIC,
