@@ -9,12 +9,12 @@ export class V2 extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string) {
 		super(scope, id)
 
-		const vpc = new ec2.Vpc(this, 'Vpc', {
-			subnetConfiguration: [{
-				name: 'publicSubnet',
-				subnetType: ec2.SubnetType.PUBLIC,
-			}],
-			natGateways: 0,
+		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
+			// subnetConfiguration: [{
+			// 	name: 'publicSubnet',
+			// 	subnetType: ec2.SubnetType.PUBLIC,
+			// }],
+			natGateways: 1,
 		})
 
 		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
@@ -23,9 +23,11 @@ export class V2 extends cdk.Construct {
 			}),
 			instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO),
 			masterUsername: 'postgres',
-			deletionProtection: false,
 			vpc,
-			vpcPlacement: { subnetType: ec2.SubnetType.PUBLIC }
+			// vpcPlacement: { subnetType: ec2.SubnetType.PUBLIC },
+			//NOTE: remove in production
+			removalPolicy: cdk.RemovalPolicy.DESTROY,
+			deletionProtection: false,
 		})
 
 		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
@@ -62,20 +64,18 @@ export class V2 extends cdk.Construct {
 			targets: [fargateService]
 		});
 		*/
-		/*
+		// /*
 		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
-			// vpc,
+			vpc,
 			memoryLimitMiB: 512,
 			cpu: 256,
 			desiredCount: 1,
 			publicLoadBalancer: true,
 			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
-			// enableECSManagedTags: true,
-			// propagateTags: ecs.PropagatedTagSource.SERVICE,
 			taskImageOptions: {
 				image: ecs.ContainerImage.fromAsset('services/api'),
 			},
 		});
-		*/
+		// */
 	}
 }
