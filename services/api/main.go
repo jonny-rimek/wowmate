@@ -14,10 +14,10 @@ func main() {
 	router.MaxMultipartMemory = 8 << 20
 
 	router.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong2")
+		c.String(http.StatusOK, "pong3")
 	})
 	router.GET("/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong2")
+		c.String(http.StatusOK, "pong3")
 	})
 	router.POST("/upload", func(c *gin.Context) {
 		file, err := c.FormFile("file")

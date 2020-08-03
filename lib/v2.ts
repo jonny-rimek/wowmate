@@ -8,7 +8,6 @@ import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
 export class V2 extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string) {
 		super(scope, id)
-
 		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
 			// subnetConfiguration: [{
 			// 	name: 'publicSubnet',
@@ -17,6 +16,7 @@ export class V2 extends cdk.Construct {
 			natGateways: 1,
 		})
 
+		/*
 		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
 			engine: rds.DatabaseInstanceEngine.postgres({
 				version: rds.PostgresEngineVersion.VER_11_7,
@@ -29,8 +29,8 @@ export class V2 extends cdk.Construct {
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			deletionProtection: false,
 		})
-
 		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
+		*/
 		/*
 		const fargateTask = new ecs.FargateTaskDefinition(this, 'FargateTask', {
 			cpu: 256,
@@ -65,6 +65,9 @@ export class V2 extends cdk.Construct {
 		});
 		*/
 		// /*
+
+		//TODO: add api.wowmate.io domain and https
+		//need to define the cluster seperately and in it the VPC i think
 		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
 			vpc,
 			memoryLimitMiB: 512,
