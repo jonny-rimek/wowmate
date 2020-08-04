@@ -3,6 +3,7 @@ import ec2 = require('@aws-cdk/aws-ec2');
 import rds = require('@aws-cdk/aws-rds');
 import ecs = require('@aws-cdk/aws-ecs');
 import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
+import route53= require('@aws-cdk/aws-route53');
 import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
 
 export class V2 extends cdk.Construct {
@@ -66,11 +67,19 @@ export class V2 extends cdk.Construct {
 		*/
 		// /*
 
+		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+			zoneName: 'wowmate.io',
+			hostedZoneId: 'Z3LVG9ZF2H87DX',
+		});
+
 		//TODO: add api.wowmate.io domain and https
 		//need to define the cluster seperately and in it the VPC i think
 		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
 			vpc,
+			domainName: 'api.wowmate.io',
+			domainZone: hostedZone,
 			memoryLimitMiB: 512,
+			protocol: elbv2.ApplicationProtocol.HTTPS,
 			cpu: 256,
 			desiredCount: 1,
 			publicLoadBalancer: true,

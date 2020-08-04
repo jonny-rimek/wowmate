@@ -16,6 +16,9 @@ func main() {
 	router.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong3")
 	})
+	router.GET("/api/ping", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong3")
+	})
 	router.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong3")
 	})
