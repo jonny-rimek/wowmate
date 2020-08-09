@@ -1,21 +1,66 @@
 import cdk = require('@aws-cdk/core');
+import targets = require('@aws-cdk/aws-route53-targets');
 import ec2 = require('@aws-cdk/aws-ec2');
 import rds = require('@aws-cdk/aws-rds');
 import ecs = require('@aws-cdk/aws-ecs');
 import elbv2 = require('@aws-cdk/aws-elasticloadbalancingv2');
 import route53= require('@aws-cdk/aws-route53');
 import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
+import * as lambda from '@aws-cdk/aws-lambda';
+import apigateway = require('@aws-cdk/aws-apigateway');
+import acm = require('@aws-cdk/aws-certificatemanager');
+import { BaseLoadBalancer } from '@aws-cdk/aws-elasticloadbalancingv2';
 
 export class V2 extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string) {
 		super(scope, id)
+
+		const presignLambda = new lambda.Function(this, 'presignLambda', {
+			runtime: lambda.Runtime.NODEJS_12_X,
+			code: lambda.Code.asset('services/presign'),
+			handler: 'index.handler',
+		});
+
+		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+			zoneName: 'wowmate.io',
+			hostedZoneId: 'Z3LVG9ZF2H87DX',
+		});
+
+		const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
+			domainName: 'presign.wowmate.io',
+			hostedZone: hostedZone,
+		});
+
+		const api = new apigateway.LambdaRestApi(this, 'api', {
+			handler: presignLambda,
+			proxy: false,
+			endpointTypes: [apigateway.EndpointType.REGIONAL],
+			domainName: {
+				domainName: 'presign.wowmate.io',
+				certificate: cert,
+				securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
+			}
+		});
+		const basePath = api.root.addResource('api');
+		basePath.addMethod('GET')
+
+		//NOTE: does it make sense to an aaaa record?
+		new route53.ARecord(this, 'CustomDomainAliasRecord', {
+			zone: hostedZone,
+			target: route53.RecordTarget.fromAlias(new targets.ApiGateway(api)),
+			recordName: 'presign.wowmate.io',
+		});
+		new cdk.CfnOutput(this, 'HTTP API Url', {
+			value: api.url ?? 'Something went wrong with the deploy'
+		});
+
 		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
 			// subnetConfiguration: [{
 			// 	name: 'publicSubnet',
 			// 	subnetType: ec2.SubnetType.PUBLIC,
 			// }],
 			natGateways: 1,
-		})
+		});
 
 		/*
 		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
@@ -67,10 +112,10 @@ export class V2 extends cdk.Construct {
 		*/
 		// /*
 
-		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
-			zoneName: 'wowmate.io',
-			hostedZoneId: 'Z3LVG9ZF2H87DX',
-		});
+		// const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+		// 	zoneName: 'wowmate.io',
+		// 	hostedZoneId: 'Z3LVG9ZF2H87DX',
+		// });
 
 		//TODO: add api.wowmate.io domain and https
 		//need to define the cluster seperately and in it the VPC i think
