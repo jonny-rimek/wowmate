@@ -66,10 +66,6 @@ export class V2 extends cdk.Construct {
 		});
 
 		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
-			// subnetConfiguration: [{
-			// 	name: 'publicSubnet',
-			// 	subnetType: ec2.SubnetType.PUBLIC,
-			// }],
 			natGateways: 1,
 		});
 
@@ -88,47 +84,9 @@ export class V2 extends cdk.Construct {
 		})
 		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
 		*/
-		/*
-		const fargateTask = new ecs.FargateTaskDefinition(this, 'FargateTask', {
-			cpu: 256,
-			memoryLimitMiB: 512,
-		})
+	
 
-		const container = fargateTask.addContainer("GinContainer", {
-			image: ecs.ContainerImage.fromAsset('services/api'),
-			cpu: 256,
-			memoryLimitMiB: 512
-		})
-		container.addPortMappings({containerPort: 80})
-
-		const cluster = new ecs.Cluster(this, 'Cluster', {
-			containerInsights: true,
-			vpc
-		})
-
-		const fargateService = new ecs.FargateService(this, 'FargateService', {
-			cluster,
-			taskDefinition: fargateTask,
-			desiredCount: 1,
-			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
-			assignPublicIp: true,
-		})
-
-		const lb = new elbv2.ApplicationLoadBalancer(this, 'LB', { vpc, internetFacing: true });
-		const listener = lb.addListener('Listener', { port: 80 });
-		const targetGroup1 = listener.addTargets('ECS1', {
-			port: 80,
-			targets: [fargateService]
-		});
-		*/
-		// /*
-
-		// const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
-		// 	zoneName: 'wowmate.io',
-		// 	hostedZoneId: 'Z3LVG9ZF2H87DX',
-		// });
-
-		//TODO: add api.wowmate.io domain and https
+		//IMPROVE: add https redirect
 		//need to define the cluster seperately and in it the VPC i think
 		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
 			vpc,
