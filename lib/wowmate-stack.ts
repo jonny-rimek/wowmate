@@ -1,16 +1,13 @@
-// import { Frontend } from './frontend';
+import { Frontend } from './frontend';
 import { V2 } from './v2';
 import { Construct, Stage, Stack, StackProps, StageProps, SecretValue } from '@aws-cdk/core';
-import { CdkPipeline, SimpleSynthAction } from '@aws-cdk/pipelines';
-import * as codepipeline from '@aws-cdk/aws-codepipeline';
-import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions'
 
 export class Wowmate extends Stack {
 	constructor(scope: Construct, id: string, props?: StageProps) {
 		super(scope, id, props);
 
 		new V2(this, 'V2')
-		// new Frontend(this, 'frontend')
+		new Frontend(this, 'frontend')
 	}
 }
 /* 
