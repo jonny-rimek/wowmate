@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: 45635463452425452/cdk-mage:0.6
+      - image: 45635463452425452/cdk-mage:0.8
     resource_class: small
     working_directory: ~/dev/wowmate
     steps:
@@ -11,19 +11,19 @@ jobs:
 
       # GO
 
-      - restore_cache:
-          keys: 
-            - go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/partitions/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}-{{ checksum "services/upload/athena-repair/go.sum" }}
+      # - restore_cache:
+      #     keys: 
+      #       - go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/partitions/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}-{{ checksum "services/upload/athena-repair/go.sum" }}
 
 
-      - run:  mage go
-      - run:  du -hcs ~/.cache/go-build
+      # - run:  mage go
+      # - run:  du -hcs ~/.cache/go-build
 
-      - save_cache:
-          key: go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/partitions/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}-{{ checksum "services/upload/athena-repair/go.sum" }}
-          paths: 
-            - /go/pkg
-            - /root/.cache/go-build 
+      # - save_cache:
+      #     key: go_pkg_{{ checksum "services/api/damage-boss-fight-uuid/go.sum" }}-{{ checksum "services/api/damage-encounter-id/go.sum" }}-{{ checksum "services/golib/go.sum" }}-{{ checksum "services/upload/athena/go.sum" }}-{{ checksum "services/upload/check/go.sum" }}-{{ checksum "services/upload/import/go.sum" }}-{{ checksum "services/upload/parquet/go.sum" }}-{{ checksum "services/upload/partitions/go.sum" }}-{{ checksum "services/upload/size/go.sum" }}-{{ checksum "services/upload/athena-repair/go.sum" }}
+      #     paths: 
+      #       - /go/pkg
+      #       - /root/.cache/go-build 
 
       # FRONTEND
 
@@ -39,6 +39,8 @@ jobs:
             -  services/frontend/node_modules
 
       # CDK
+
+      - run : cd services/api && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags='-s -w' -o main . && ls
 
       - restore_cache:
           keys: 

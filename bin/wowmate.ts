@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import cdk = require('@aws-cdk/core');
-import { Wowmate } from '../lib/wowmate-stack';
+import { WowmatePipelineStack } from '../lib/wowmate-stack';
 
 /*
 TODO: add 
@@ -13,6 +13,6 @@ constructor(scope: Construct, id: string, props?: EnvProps) {
 	*/
 
 const app = new cdk.App();
-new Wowmate(app, 'WoWM', {
+new WowmatePipelineStack(app, 'WoWM', {
 	env: {region: "us-east-1"}
 });

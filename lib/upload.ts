@@ -34,10 +34,10 @@ export class Upload extends cdk.Construct {
 			removalPolicy: RemovalPolicy.DESTROY,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
 		})
-
-		trail.addS3EventSelector([uploadBucket.bucketArn + "/new/"], {
-			readWriteType: cloudtrail.ReadWriteType.WRITE_ONLY,
-		})
+		// code not used currently, but invalid thats why commented out
+		// trail.addS3EventSelector([uploadBucket.bucketArn + "/new/"], {
+		// 	readWriteType: cloudtrail.ReadWriteType.WRITE_ONLY,
+		// })
 		const parquetBucket = new s3.Bucket(this, 'Parquet', {
 			removalPolicy: RemovalPolicy.DESTROY,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
@@ -57,7 +57,7 @@ export class Upload extends cdk.Construct {
 			tableName: 'combatlogs',
 			s3Prefix: '',
 			bucket: parquetBucket,
-			dataFormat: glue.DataFormat.Parquet,
+			dataFormat: glue.DataFormat.PARQUET,
 			storedAsSubDirectories: true,
 			// compressed: true,
 			columns: [{
