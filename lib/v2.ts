@@ -63,6 +63,7 @@ export class V2 extends cdk.Construct {
 		new cdk.CfnOutput(this, 'HTTP API Url', {
 			value: api.url ?? 'Something went wrong with the deploy'
 		});
+ */
 		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
 			natGateways: 1,
 		});
@@ -81,6 +82,7 @@ export class V2 extends cdk.Construct {
 			deletionProtection: false,
 		})
 		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
+		*/
 
 		//IMPROVE: add https redirect
 		//need to define the cluster seperately and in it the VPC i think
