@@ -71,7 +71,6 @@ export class V2 extends cdk.Construct {
 			natGateways: 1,
 		});
 
-		/*
 		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
 			engine: rds.DatabaseInstanceEngine.postgres({
 				version: rds.PostgresEngineVersion.VER_11_7,
@@ -85,7 +84,7 @@ export class V2 extends cdk.Construct {
 			deletionProtection: false,
 		})
 		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
-		*/
+
 		//IMPROVE: add https redirect
 		//need to define the cluster seperately and in it the VPC i think
 		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
