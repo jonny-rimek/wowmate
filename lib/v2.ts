@@ -83,7 +83,6 @@ export class V2 extends cdk.Construct {
 		})
 		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
 		*/
-	
 
 		//IMPROVE: add https redirect
 		//need to define the cluster seperately and in it the VPC i think

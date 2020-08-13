@@ -27,9 +27,10 @@ export class WowmatePipelineStack extends Stack {
       cloudAssemblyArtifact,
 
       sourceAction: new codepipeline_actions.GitHubSourceAction({
-        actionName: 'GitHub',
+		actionName: 'GitHub',
         output: sourceArtifact,
 		oauthToken: SecretValue.secretsManager('github-personal-access-token'),
+		//TODO: switch to webhook, might need to update the oath token
         trigger: codepipeline_actions.GitHubTrigger.POLL,
         // Replace these with your actual GitHub project name
         owner: 'jonny-rimek',
