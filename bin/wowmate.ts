@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import cdk = require('@aws-cdk/core');
-// import { WowmatePipelineStack } from '../lib/wowmate-stack';
 import { V2 } from '../lib/v2';
 import { Construct, Stage, Stack, StackProps, StageProps, SecretValue } from '@aws-cdk/core';
 import { CdkPipeline, SimpleSynthAction } from '@aws-cdk/pipelines';
