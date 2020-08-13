@@ -40,8 +40,6 @@ export class WowmatePipelineStack extends Stack {
         sourceArtifact,
         cloudAssemblyArtifact,
 
-        // Use this if you need a build step (if you're not using ts-node
-        // or if you have TypeScript Lambdas that need to be compiled).
         buildCommand: 'npm run build',
       }),
     });
