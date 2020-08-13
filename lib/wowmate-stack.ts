@@ -11,7 +11,7 @@ export class Wowmate extends Stage {
 		super(scope, id, props);
 
 		new V2(this, 'V2')
-		new Frontend(this, 'frontend')
+		// new Frontend(this, 'frontend')
 	}
 }
 
@@ -45,7 +45,8 @@ export class WowmatePipelineStack extends Stack {
       }),
     });
 
-    pipeline.addApplicationStage(new Wowmate(this, 'Prod'));
+	const wmp = pipeline.addApplicationStage(new Wowmate(this, 'Prod'));
+	wmp.addManualApprovalAction();
   }
 }
 /* 

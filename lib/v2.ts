@@ -21,7 +21,7 @@ export class V2 extends cdk.Construct {
 			removalPolicy: RemovalPolicy.DESTROY,
 			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 		})
-
+/* 
 		//TODO: create bucket and pass to lambda
 		const presignLambda = new lambda.Function(this, 'PresignLambda', {
 			runtime: lambda.Runtime.NODEJS_12_X,
@@ -31,12 +31,11 @@ export class V2 extends cdk.Construct {
 		});
 
 		uploadBucket.grantWrite(presignLambda);
-		
 		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
 			zoneName: 'wowmate.io',
 			hostedZoneId: 'Z3LVG9ZF2H87DX',
 		});
-		
+
 		const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
 			domainName: 'presign.wowmate.io',
 			hostedZone: hostedZone,
@@ -64,7 +63,7 @@ export class V2 extends cdk.Construct {
 		new cdk.CfnOutput(this, 'HTTP API Url', {
 			value: api.url ?? 'Something went wrong with the deploy'
 		});
-
+ */
 		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
 			natGateways: 1,
 		});
@@ -90,10 +89,10 @@ export class V2 extends cdk.Construct {
 		//need to define the cluster seperately and in it the VPC i think
 		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
 			vpc,
-			domainName: 'api.wowmate.io',
-			domainZone: hostedZone,
+			// domainName: 'api.wowmate.io',
+			// domainZone: hostedZone,
 			memoryLimitMiB: 512,
-			protocol: elbv2.ApplicationProtocol.HTTPS,
+			// protocol: elbv2.ApplicationProtocol.HTTPS,
 			cpu: 256,
 			desiredCount: 1,
 			publicLoadBalancer: true,
