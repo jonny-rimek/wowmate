@@ -2,7 +2,7 @@ import cdk = require('@aws-cdk/core');
 import { Frontend } from './frontend';
 import { V2 } from './v2';
 import { Construct, Stage, Stack, StackProps, StageProps, SecretValue } from '@aws-cdk/core';
-import { CdkPipeline, SimpleSynthAction } from '@aws-cdk/pipelines';
+import { CdkPipeline, SimpleSynthAction, DeployCdkStackAction } from '@aws-cdk/pipelines';
 import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import * as codepipeline_actions from '@aws-cdk/aws-codepipeline-actions'
 
@@ -33,7 +33,6 @@ export class WowmatePipelineStack extends Stack {
 		oauthToken: SecretValue.secretsManager('github-personal-access-token'),
 		//TODO: switch to webhook, might need to update the oath token
         trigger: codepipeline_actions.GitHubTrigger.POLL,
-        // Replace these with your actual GitHub project name
         owner: 'jonny-rimek',
         repo: 'wowmate',
       }),
