@@ -7,7 +7,7 @@ export class Wowmate extends Stack {
 		super(scope, id, props);
 
 		new V2(this, 'V2')
-		new Frontend(this, 'frontend')
+		// new Frontend(this, 'frontend')
 	}
 }
 /* 
