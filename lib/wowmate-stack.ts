@@ -3,6 +3,7 @@ import { Api } from './api';
 import { Construct, Stack, StackProps } from '@aws-cdk/core';
 import { Converter } from './converter';
 import { Vpc } from './vpc';
+import { Postgres } from './postgres';
 
 export class Wowmate extends Stack {
 	constructor(scope: Construct, id: string, props?: StackProps) {
@@ -10,9 +11,14 @@ export class Wowmate extends Stack {
 
 		const vpc = new Vpc(this, 'Vpc')
 
+		new Postgres(this, 'Postgres', {
+			vpc: vpc.vpc
+		})
+
 		new Api(this, 'Api', {
 			vpc: vpc.vpc
 		})
+
 		new Converter(this, 'Converter', {
 			vpc: vpc.vpc
 		})
