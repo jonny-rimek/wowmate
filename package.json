@@ -5,7 +5,7 @@
     "wowmate": "bin/wowmate.js"
   },
   "scripts": {
-    "build": "cd services/api && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags='-s -w' -o main . && cd ../presign && npm install && cd ../frontend && yarn install && npx nuxt generate && cd ../.. && tsc && cdk synth",
+	"build": "cd services/api && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags='-s -w' -o main . && cd ../converter && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags='-s -w' -o main . && cd ../presign && npm install && cd ../frontend && yarn install && npx nuxt generate && cd ../.. && tsc && cdk synth",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"
