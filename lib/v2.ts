@@ -17,14 +17,10 @@ export class V2 extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string) {
 		super(scope, id)
 		
-		// const test = new s3.Bucket(this, 'Test', {
+		// const uploadBucket = new s3.Bucket(this, 'Upload', {
 		// 	removalPolicy: RemovalPolicy.DESTROY,
 		// 	blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 		// })
-		const uploadBucket = new s3.Bucket(this, 'Upload', {
-			removalPolicy: RemovalPolicy.DESTROY,
-			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-		})
 /* 
 		//TODO: create bucket and pass to lambda
 		const presignLambda = new lambda.Function(this, 'PresignLambda', {
