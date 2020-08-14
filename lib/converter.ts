@@ -16,6 +16,7 @@ export class Converter extends cdk.Construct {
 			memoryLimitMiB: 512,
 			cpu: 256,
 			image: ecs.ContainerImage.fromAsset('services/converter'),
+			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
 			// (optional, default: CMD value built into container image.)
 			// command: ["-c", "4", "amazon.com"],
 			desiredTaskCount: 1,
