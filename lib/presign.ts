@@ -17,11 +17,11 @@ export class V2 extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string) {
 		super(scope, id)
 		
-		// const uploadBucket = new s3.Bucket(this, 'Upload', {
-		// 	removalPolicy: RemovalPolicy.DESTROY,
-		// 	blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-		// })
-/* 
+		const uploadBucket = new s3.Bucket(this, 'Upload', {
+			removalPolicy: RemovalPolicy.DESTROY,
+			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+		})
+		
 		//TODO: create bucket and pass to lambda
 		const presignLambda = new lambda.Function(this, 'PresignLambda', {
 			runtime: lambda.Runtime.NODEJS_12_X,
@@ -62,41 +62,5 @@ export class V2 extends cdk.Construct {
 		new cdk.CfnOutput(this, 'HTTP API Url', {
 			value: api.url ?? 'Something went wrong with the deploy'
 		});
-*/
-		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
-			natGateways: 1,
-		});
-
-		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
-			engine: rds.DatabaseInstanceEngine.postgres({
-				version: rds.PostgresEngineVersion.VER_11_7,
-			}),
-			instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO),
-			masterUsername: 'postgres',
-			vpc,
-			// vpcPlacement: { subnetType: ec2.SubnetType.PUBLIC },
-			//NOTE: remove in production
-			removalPolicy: cdk.RemovalPolicy.DESTROY,
-			deletionProtection: false,
-		})
-		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
-
-		//IMPROVE: add https redirect
-		//need to define the cluster seperately and in it the VPC i think
-		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
-			vpc,
-			// domainName: 'api.wowmate.io',
-			// domainZone: hostedZone,
-			memoryLimitMiB: 512,
-			// protocol: elbv2.ApplicationProtocol.HTTPS,
-			cpu: 256,
-			desiredCount: 1,
-			publicLoadBalancer: true,
-			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
-			taskImageOptions: {
-				image: ecs.ContainerImage.fromAsset('services/api'),
-			},
-		});
-		// */
 	}
 }

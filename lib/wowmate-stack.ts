@@ -1,14 +1,21 @@
 import { Frontend } from './frontend';
-import { V2 } from './v2';
-import { Construct, Stage, Stack, StackProps, StageProps, SecretValue } from '@aws-cdk/core';
+import { Api } from './api';
+import { Construct, Stack, StackProps } from '@aws-cdk/core';
 import { Converter } from './converter';
+import { Vpc } from './vpc';
 
 export class Wowmate extends Stack {
-	constructor(scope: Construct, id: string, props?: StageProps) {
+	constructor(scope: Construct, id: string, props?: StackProps) {
 		super(scope, id, props);
 
-		new V2(this, 'V2')
-		new Converter(this, 'Converter')
+		const vpc = new Vpc(this, 'Vpc')
+
+		new Api(this, 'Api', {
+			vpc: vpc.vpc
+		})
+		new Converter(this, 'Converter', {
+			vpc: vpc.vpc
+		})
 		// new Frontend(this, 'frontend')
 	}
 }

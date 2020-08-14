@@ -1,5 +1,6 @@
 bin/*.js
 lib/*.js
+lib/legacy/*.js
 
 !jest.config.js
 *.d.ts
