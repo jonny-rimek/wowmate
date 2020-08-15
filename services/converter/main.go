@@ -1,8 +1,14 @@
 package main
 
-import "log"
+import (
+	"log"
+	"time"
+)
 
 func main() {
-	log.Println("lol")
+	for {
+		log.Println("lol")
+		time.Sleep(time.Duration(1)*time.Minute)
+	}
 }
 
