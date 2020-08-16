@@ -30,6 +30,7 @@ export class Converter extends cdk.Construct {
 
 		const uploadBucket = new s3.Bucket(this, 'Upload', {
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
+			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 		})
 
 		uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(queueFargate.sqsQueue))
