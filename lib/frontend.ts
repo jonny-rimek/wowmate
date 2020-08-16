@@ -38,6 +38,7 @@ export class Frontend extends cdk.Construct {
 		const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
 			websiteIndexDocument: 'index.html',
 			publicReadAccess: true,
+			removalPolicy: cdk.RemovalPolicy.DESTROY,
 		});
 
 		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
