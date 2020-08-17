@@ -27,7 +27,7 @@ func main() {
 		})
 
 		if len(msgResult.Messages) > 0 {
-			log.Println(msgResult.Messages[0].Body)
+			log.Println(*msgResult.Messages[0].Body)
 		}
 	}
 }
