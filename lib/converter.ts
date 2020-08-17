@@ -19,12 +19,10 @@ export class Converter extends cdk.Construct {
 			cpu: 256,
 			image: ecs.ContainerImage.fromAsset('services/converter'),
 			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
-			// (optional, default: CMD value built into container image.)
-			// command: ["-c", "4", "amazon.com"],
 			desiredTaskCount: 1,
 			environment: {
 				TEST_ENVIRONMENT_VARIABLE1: "test environment variable 1 value",
-				TEST_ENVIRONMENT_VARIABLE2: "test environment variable 2 value"
+				TEST_ENVIRONMENT_VARIABLE2: "test environment variable 2 value",
 			},
 		});
 
@@ -34,5 +32,9 @@ export class Converter extends cdk.Construct {
 		})
 
 		uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(queueFargate.sqsQueue))
+		uploadBucket.grantRead(queueFargate.service.taskDefinition.taskRole)
+
+		//add read from upload bucket
+		// queueFargate.taskDefinition.addToTaskRolePolicy
 	}
 }
