@@ -45,8 +45,5 @@ export class Converter extends cdk.Construct {
 
 		uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(queueFargate.sqsQueue))
 		uploadBucket.grantRead(queueFargate.service.taskDefinition.taskRole)
-
-		//add read from upload bucket
-		// queueFargate.taskDefinition.addToTaskRolePolicy
 	}
 }
