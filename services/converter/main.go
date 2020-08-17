@@ -28,6 +28,17 @@ func main() {
 
 		if len(msgResult.Messages) > 0 {
 			log.Println(*msgResult.Messages[0].Body)
+
+			_, err := svc.DeleteMessage(&sqs.DeleteMessageInput{
+				QueueUrl: aws.String(queueURL),
+				ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
+			})
+
+			if err != nil {
+				log.Println("delete failed")
+				continue;
+			}
+			log.Println("delete succeeded, unless failed")
 		}
 	}
 }
