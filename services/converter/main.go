@@ -26,7 +26,9 @@ func main() {
 			QueueUrl: aws.String(queueURL),
 		})
 
-		log.Println(msgResult.Messages[0].Body)
+		if len(msgResult.Messages) > 0 {
+			log.Println(msgResult.Messages[0].Body)
+		}
 	}
 }
 
