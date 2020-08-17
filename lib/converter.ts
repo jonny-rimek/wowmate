@@ -3,6 +3,7 @@ import ecs = require('@aws-cdk/aws-ecs');
 import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
 import ec2 = require('@aws-cdk/aws-ec2');
 import s3 = require('@aws-cdk/aws-s3');
+import sqs = require('@aws-cdk/aws-sqs');
 import s3n = require('@aws-cdk/aws-s3-notifications');
 
 interface VpcProps extends cdk.StackProps {
@@ -13,7 +14,19 @@ export class Converter extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
+		const dlq = new sqs.Queue(this, 'EcsProcessingDeadLetterQueue', {
+			retentionPeriod: cdk.Duration.days(14),
+		});
+
+		const q = new sqs.Queue(this, 'EcsProcessingQueue', {
+			deadLetterQueue: {
+				queue: dlq,
+				maxReceiveCount: 3,
+			},
+		});
+
 		const queueFargate = new ecsPatterns.QueueProcessingFargateService(this, 'Service', {
+			queue: q,
 			vpc: props.vpc,
 			memoryLimitMiB: 512,
 			cpu: 256,
@@ -21,8 +34,7 @@ export class Converter extends cdk.Construct {
 			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
 			desiredTaskCount: 1,
 			environment: {
-				TEST_ENVIRONMENT_VARIABLE1: "test environment variable 1 value",
-				TEST_ENVIRONMENT_VARIABLE2: "test environment variable 2 value",
+				QUEUE_URL: q.queueUrl
 			},
 		});
 
