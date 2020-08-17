@@ -33,9 +33,10 @@ export class Converter extends cdk.Construct {
 			image: ecs.ContainerImage.fromAsset('services/converter'),
 			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
 			desiredTaskCount: 1,
-			environment: {
-				QUEUE_URL: q.queueUrl
-			},
+			// this is created by default
+			// environment: {
+			// 	QUEUE_URL: q.queueUrl
+			// },
 		});
 
 		const uploadBucket = new s3.Bucket(this, 'Upload', {

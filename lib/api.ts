@@ -27,6 +27,9 @@ export class Api extends cdk.Construct {
 			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
 			taskImageOptions: {
 				image: ecs.ContainerImage.fromAsset('services/api'),
+				environment: {
+					GIN_MODE: "release"
+				}
 			},
 		});
 	}
