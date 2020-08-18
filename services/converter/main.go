@@ -28,6 +28,7 @@ func main() {
 
 		if len(msgResult.Messages) > 0 {
 			log.Println(*msgResult.Messages[0].Body)
+			//TODO: download from s3
 
 			_, err := svc.DeleteMessage(&sqs.DeleteMessageInput{
 				QueueUrl: aws.String(queueURL),
