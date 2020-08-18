@@ -73,11 +73,11 @@ export class Frontend extends cdk.Construct {
 			}
 		});
 
-		// new s3deploy.BucketDeployment(this, 'DeployWebsite', {
-		// 	sources: [s3deploy.Source.asset('services/frontend/dist')],
-		// 	destinationBucket: frontendBucket,
-		// 	distribution,
-		// });
+		new s3deploy.BucketDeployment(this, 'DeployWebsite', {
+			sources: [s3deploy.Source.asset('services/frontend/dist')],
+			destinationBucket: frontendBucket,
+			distribution,
+		});
 
 		new route53.ARecord(this, 'Alias', {
 			zone: hostedZone,
