@@ -22,7 +22,7 @@ export class Wowmate extends Stack {
 		new Converter(this, 'Converter', {
 			vpc: vpc.vpc
 		})
-		// new Frontend(this, 'frontend')
+		new Frontend(this, 'frontend')
 	}
 }
 /* 
