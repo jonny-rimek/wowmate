@@ -2,25 +2,15 @@ import { Frontend } from './frontend';
 import { Api } from './api';
 import { Construct, Stack, StackProps } from '@aws-cdk/core';
 import { Converter } from './converter';
-import { Vpc } from './vpc';
-import { Postgres } from './postgres';
 
 export class Wowmate extends Stack {
 	constructor(scope: Construct, id: string, props?: StackProps) {
 		super(scope, id, props);
 
-		const vpc = new Vpc(this, 'Vpc')
-
-		new Postgres(this, 'Postgres', {
-			vpc: vpc.vpc
-		})
-
-		new Api(this, 'Api', {
-			vpc: vpc.vpc
-		})
+		const api = new Api(this, 'Api')
 
 		new Converter(this, 'Converter', {
-			vpc: vpc.vpc
+			vpc: api.vpc
 		})
 		new Frontend(this, 'frontend')
 	}

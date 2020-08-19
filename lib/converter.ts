@@ -19,11 +19,11 @@ export class Converter extends cdk.Construct {
 			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 		})
 
-		const dlq = new sqs.Queue(this, 'EcsProcessingDeadLetterQueue', {
+		const dlq = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
 		});
 
-		const q = new sqs.Queue(this, 'EcsProcessingQueue', {
+		const q = new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
 				queue: dlq,
 				maxReceiveCount: 3,
