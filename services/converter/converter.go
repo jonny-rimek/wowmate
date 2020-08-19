@@ -51,10 +51,10 @@ func main() {
 				return
 			}
 
-			_, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
-				QueueUrl:      aws.String(queueURL),
-				ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
-			})
+			// _, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
+			// 	QueueUrl:      aws.String(queueURL),
+			// 	ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
+			// })
 
 			if err != nil {
 				log.Println("delete failed")
