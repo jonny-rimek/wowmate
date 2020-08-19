@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -95,6 +96,7 @@ type Request struct {
 
 func main() {
 	queueURL := os.Getenv("QUEUE_URL")
+	csvBucket := os.Getenv("CSV_BUCKET_NAME")
 	log.Println(queueURL)
 
 	for {
@@ -115,7 +117,6 @@ func main() {
 
 			req := Request{}
 			err := json.Unmarshal([]byte(body), &req)
-
 			if err != nil {
 				log.Println("Unmarshal failed")
 				return
@@ -123,11 +124,10 @@ func main() {
 
 			downloader := s3manager.NewDownloader(sess)
 
-			file := &aws.WriteAtBuffer{}
+			fileContent := &aws.WriteAtBuffer{}
 
-			//bytes unused
 			_, err = downloader.Download(
-				file,
+				fileContent,
 				&s3.GetObjectInput{
 					Bucket: aws.String(req.Records[0].S3.Bucket.Name),
 					Key:    aws.String(req.Records[0].S3.Object.Key),
@@ -138,6 +138,19 @@ func main() {
 				// fmt.Printf("Unable to download item %v from bucket %v: %v", key, bucket, err)
 				return
 			}
+
+			uploader := s3manager.NewUploader(sess)
+			result, err := uploader.Upload(&s3manager.UploadInput{
+				Bucket: aws.String(csvBucket),
+				Key:    aws.String("converted.csv"),
+				Body:   bytes.NewReader(fileContent.Bytes()),
+			})
+			if err != nil {
+				log.Println("Failed to upload to S3: " + err.Error())
+				return 
+			}
+
+			log.Println("Upload finished! location: " + result.Location)
 
 			_, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
 				QueueUrl:      aws.String(queueURL),
