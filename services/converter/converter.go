@@ -16,12 +16,12 @@ func main() {
 
 	for {
 		log.Println("lol")
-		time.Sleep(time.Duration(10)*time.Second)
+		time.Sleep(time.Duration(10) * time.Second)
 
-		sess,_ := session.NewSession()
+		sess, _ := session.NewSession()
 		//TODO: check and handle error
 		svc := sqs.New(sess)
-		
+
 		msgResult, _ := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
 			QueueUrl: aws.String(queueURL),
 		})
@@ -31,16 +31,15 @@ func main() {
 			//TODO: download from s3
 
 			_, err := svc.DeleteMessage(&sqs.DeleteMessageInput{
-				QueueUrl: aws.String(queueURL),
+				QueueUrl:      aws.String(queueURL),
 				ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
 			})
 
 			if err != nil {
 				log.Println("delete failed")
-				continue;
+				continue
 			}
 			log.Println("delete succeeded, unless failed")
 		}
 	}
 }
-
