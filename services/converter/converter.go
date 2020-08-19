@@ -100,7 +100,7 @@ func main() {
 	log.Println(queueURL)
 
 	for {
-		log.Println("lol")
+		// log.Println("lol")
 		time.Sleep(time.Duration(10) * time.Second)
 
 		sess, _ := session.NewSession()
