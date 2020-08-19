@@ -147,7 +147,7 @@ func main() {
 			})
 			if err != nil {
 				log.Println("Failed to upload to S3: " + err.Error())
-				return 
+				return
 			}
 
 			log.Println("Upload finished! location: " + result.Location)
