@@ -5,6 +5,7 @@ import sqs = require('@aws-cdk/aws-sqs');
 import s3n = require('@aws-cdk/aws-s3-notifications');
 import lambda = require('@aws-cdk/aws-lambda');
 import { RetentionDays } from '@aws-cdk/aws-logs';
+import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc
@@ -43,5 +44,6 @@ export class Import extends cdk.Construct {
 			tracing: lambda.Tracing.ACTIVE,
 		})
 		bucket.grantRead(importFunc)
+		importFunc.addEventSource(new SqsEventSource(q))
 	}
 }

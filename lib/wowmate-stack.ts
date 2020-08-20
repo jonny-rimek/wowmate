@@ -10,10 +10,10 @@ export class Wowmate extends Stack {
 
 		const api = new Api(this, 'Api')
 
-		const convert = new Convert(this, 'Converter', {
+		const convert = new Convert(this, 'Convert', {
 			vpc: api.vpc
 		})
-		new Frontend(this, 'frontend')
+		new Frontend(this, 'Frontend')
 
 		new Import(this, 'Import', {
 			vpc: api.vpc,
