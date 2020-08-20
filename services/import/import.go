@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func handle() () {
+func handle() {
 	log.Println("such invovation")
 }
 
