@@ -6,10 +6,13 @@ import s3n = require('@aws-cdk/aws-s3-notifications');
 import lambda = require('@aws-cdk/aws-lambda');
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
+import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc
 	bucket: s3.Bucket
+	securityGroup: ec2.SecurityGroup
+	secret : secretsmanager.ISecret | undefined
 }
 
 export class Import extends cdk.Construct {
@@ -44,8 +47,10 @@ export class Import extends cdk.Construct {
 			logRetention: RetentionDays.ONE_MONTH,
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
+			securityGroups: [props.securityGroup],
 		})
 		bucket.grantRead(importFunc)
 		importFunc.addEventSource(new SqsEventSource(q))
+		props.secret?.grantRead(importFunc)
 	}
 }

@@ -6,10 +6,13 @@ import rds = require('@aws-cdk/aws-rds');
 import ecs = require('@aws-cdk/aws-ecs');
 import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
 import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
+import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 
 export class Api extends cdk.Construct {
 	public readonly vpc: ec2.Vpc;
 	public readonly securityGrp: ec2.SecurityGroup;
+	public readonly dbCreds: secretsmanager.ISecret | undefined;
+
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id)
 
@@ -25,7 +28,7 @@ export class Api extends cdk.Construct {
 		this.vpc = vpc
 		this.securityGrp = dbGroup
 
-		new rds.DatabaseInstance(this, 'Postgres', {
+		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
 			vpc: vpc,
 			securityGroups: [dbGroup],
 
@@ -47,6 +50,8 @@ export class Api extends cdk.Construct {
 			//improve set max duration of log
 			// cloudwatchLogsRetention
 		})
+		const dbCreds = postgres.secret
+		this.dbCreds = dbCreds
 
 		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
 			zoneName: 'wowmate.io',

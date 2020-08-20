@@ -18,6 +18,8 @@ export class Wowmate extends Stack {
 		new Import(this, 'Import', {
 			vpc: api.vpc,
 			bucket: convert.bucket,
+			securityGroup: api.securityGrp,
+			secret: api.dbCreds,
 		})
 	}
 }
