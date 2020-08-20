@@ -10,7 +10,8 @@ interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc;
 }
 
-export class Converter extends cdk.Construct {
+export class Convert extends cdk.Construct {
+	public readonly bucket: s3.Bucket;
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
@@ -51,5 +52,7 @@ export class Converter extends cdk.Construct {
 		uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(queueFargate.sqsQueue))
 		uploadBucket.grantRead(queueFargate.service.taskDefinition.taskRole)
 		csvBucket.grantWrite(queueFargate.service.taskDefinition.taskRole)
+
+		this.bucket = csvBucket
 	}
 }

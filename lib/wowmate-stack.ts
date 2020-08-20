@@ -1,7 +1,8 @@
 import { Frontend } from './frontend';
 import { Api } from './api';
 import { Construct, Stack, StackProps } from '@aws-cdk/core';
-import { Converter } from './converter';
+import { Convert } from './convert';
+import { Import } from './import';
 
 export class Wowmate extends Stack {
 	constructor(scope: Construct, id: string, props?: StackProps) {
@@ -9,10 +10,15 @@ export class Wowmate extends Stack {
 
 		const api = new Api(this, 'Api')
 
-		new Converter(this, 'Converter', {
+		const convert = new Convert(this, 'Converter', {
 			vpc: api.vpc
 		})
 		new Frontend(this, 'frontend')
+
+		new Import(this, 'Import', {
+			vpc: api.vpc,
+			bucket: convert.bucket,
+		})
 	}
 }
 /* 

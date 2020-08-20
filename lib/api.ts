@@ -1,13 +1,11 @@
 import cdk = require('@aws-cdk/core');
+import route53= require('@aws-cdk/aws-route53');
 import targets = require('@aws-cdk/aws-route53-targets');
 import ec2 = require('@aws-cdk/aws-ec2');
 import rds = require('@aws-cdk/aws-rds');
 import ecs = require('@aws-cdk/aws-ecs');
 import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
-
-// interface VpcProps extends cdk.StackProps {
-// 	vpc: ec2.IVpc;
-// }
+import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 
 export class Api extends cdk.Construct {
 	public readonly vpc: ec2.Vpc;
@@ -32,15 +30,18 @@ export class Api extends cdk.Construct {
 		})
 		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
 
+		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+			zoneName: 'wowmate.io',
+			hostedZoneId: 'Z3LVG9ZF2H87DX',
+		});
+
 		//IMPROVE: add https redirect
-		//need to define the cluster seperately and in it the VPC i think
-		const loadBalancedFargateService = new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
+		new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
 			vpc: vpc,
-			//TODO: reactivate
-			// domainName: 'api.wowmate.io',
-			// domainZone: hostedZone,
+			domainName: 'api.wowmate.io',
+			domainZone: hostedZone,
 			memoryLimitMiB: 512,
-			// protocol: elbv2.ApplicationProtocol.HTTPS,
+			protocol: elbv2.ApplicationProtocol.HTTPS,
 			cpu: 256,
 			desiredCount: 1,
 			publicLoadBalancer: true,

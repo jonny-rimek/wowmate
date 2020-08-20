@@ -7,12 +7,15 @@ import sqs = require('@aws-cdk/aws-sqs');
 import s3n = require('@aws-cdk/aws-s3-notifications');
 
 interface VpcProps extends cdk.StackProps {
-	vpc: ec2.IVpc;
+	vpc: ec2.IVpc
+	bucket: s3.Bucket
 }
 
 export class Import extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
+
+		const b = props.bucket
 
 		const dlq = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
