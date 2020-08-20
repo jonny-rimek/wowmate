@@ -27,6 +27,7 @@ export class Import extends cdk.Construct {
 				queue: dlq,
 				maxReceiveCount: 3,
 			},
+			visibilityTimeout: cdk.Duration.minutes(15)
 		});
 
 		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
