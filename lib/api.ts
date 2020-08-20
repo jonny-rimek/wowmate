@@ -23,9 +23,9 @@ export class Api extends cdk.Construct {
 			}),
 			instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO),
 			masterUsername: 'postgres',
-			// vpcPlacement: { subnetType: ec2.SubnetType.PUBLIC },
 
 			//NOTE: remove in production
+			vpcPlacement: { subnetType: ec2.SubnetType.PUBLIC },
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			deletionProtection: false,
 			//NOTE: remove in production
