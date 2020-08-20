@@ -15,7 +15,7 @@ export class Import extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
-		const b = props.bucket
+		const bucket = props.bucket
 
 		const dlq = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
@@ -28,9 +28,8 @@ export class Import extends cdk.Construct {
 			},
 		});
 
+		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
 		// CSV_BUCKET_NAME: csvBucket.bucketName,
-
-		// uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(queueFargate.sqsQueue))
 		// csvBucket.grantRead(queueFargate.service.taskDefinition.taskRole)
 	}
 }
