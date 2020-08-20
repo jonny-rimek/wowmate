@@ -24,9 +24,14 @@ export class Api extends cdk.Construct {
 			instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO),
 			masterUsername: 'postgres',
 			// vpcPlacement: { subnetType: ec2.SubnetType.PUBLIC },
+
 			//NOTE: remove in production
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			deletionProtection: false,
+			//NOTE: remove in production
+
+			enablePerformanceInsights: true,
+			monitoringInterval: cdk.Duration.seconds(60),
 			cloudwatchLogsExports: ['postgresql'],
 			//improve set max duration of log
 			// cloudwatchLogsRetention
