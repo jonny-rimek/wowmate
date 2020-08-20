@@ -9,23 +9,34 @@ import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 
 export class Api extends cdk.Construct {
 	public readonly vpc: ec2.Vpc;
+	public readonly securityGrp: ec2.SecurityGroup;
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id)
 
 		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
 			natGateways: 1,
-		});
+		})
 
-		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
+		let dbGroup = new ec2.SecurityGroup(this, 'DBAccess', {
+			vpc
+		})
+		dbGroup.addIngressRule(dbGroup, ec2.Port.tcp(5432), 'allow db connection')
+
+		this.vpc = vpc
+		this.securityGrp = dbGroup
+
+		new rds.DatabaseInstance(this, 'Postgres', {
 			vpc: vpc,
+			securityGroups: [dbGroup],
+
 			engine: rds.DatabaseInstanceEngine.postgres({
 				version: rds.PostgresEngineVersion.VER_11_7,
 			}),
 			instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO),
 			masterUsername: 'postgres',
+			databaseName: 'wm',
 
 			//NOTE: remove in production
-			vpcPlacement: { subnetType: ec2.SubnetType.PUBLIC },
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			deletionProtection: false,
 			//NOTE: remove in production
@@ -36,7 +47,6 @@ export class Api extends cdk.Construct {
 			//improve set max duration of log
 			// cloudwatchLogsRetention
 		})
-		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
 
 		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
 			zoneName: 'wowmate.io',

@@ -12,4 +12,6 @@ func handle() {
 
 func main() {
 	lambda.Start(handle)
+	
+	//TODO: connect to db with hardcoded creds and run SELECT 1
 }

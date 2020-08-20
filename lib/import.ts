@@ -43,6 +43,7 @@ export class Import extends cdk.Construct {
 			},
 			logRetention: RetentionDays.ONE_MONTH,
 			tracing: lambda.Tracing.ACTIVE,
+			vpc: props.vpc,
 		})
 		bucket.grantRead(importFunc)
 		importFunc.addEventSource(new SqsEventSource(q))
