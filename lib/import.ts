@@ -1,10 +1,10 @@
 import cdk = require('@aws-cdk/core');
-import ecs = require('@aws-cdk/aws-ecs');
-import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
 import ec2 = require('@aws-cdk/aws-ec2');
 import s3 = require('@aws-cdk/aws-s3');
 import sqs = require('@aws-cdk/aws-sqs');
 import s3n = require('@aws-cdk/aws-s3-notifications');
+import lambda = require('@aws-cdk/aws-lambda');
+import { RetentionDays } from '@aws-cdk/aws-logs';
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc
@@ -29,7 +29,19 @@ export class Import extends cdk.Construct {
 		});
 
 		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
-		// CSV_BUCKET_NAME: csvBucket.bucketName,
-		// csvBucket.grantRead(queueFargate.service.taskDefinition.taskRole)
+
+		const importFunc = new lambda.Function(this, 'F', {
+			code: lambda.Code.asset('services/import'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: cdk.Duration.seconds(180),
+			environment: {
+				CSV_BUCKET_NAME: bucket.bucketName,
+			},
+			logRetention: RetentionDays.ONE_MONTH,
+			tracing: lambda.Tracing.ACTIVE,
+		})
+		bucket.grantRead(importFunc)
 	}
 }
