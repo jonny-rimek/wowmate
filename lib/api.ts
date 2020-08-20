@@ -27,6 +27,9 @@ export class Api extends cdk.Construct {
 			//NOTE: remove in production
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			deletionProtection: false,
+			cloudwatchLogsExports: ['postgresql'],
+			//improve set max duration of log
+			// cloudwatchLogsRetention
 		})
 		postgres.connections.allowFromAnyIpv4(ec2.Port.tcp(5432))
 
@@ -40,8 +43,9 @@ export class Api extends cdk.Construct {
 			vpc: vpc,
 			domainName: 'api.wowmate.io',
 			domainZone: hostedZone,
-			memoryLimitMiB: 512,
+			redirectHTTP: true,
 			protocol: elbv2.ApplicationProtocol.HTTPS,
+			memoryLimitMiB: 512,
 			cpu: 256,
 			desiredCount: 1,
 			publicLoadBalancer: true,
