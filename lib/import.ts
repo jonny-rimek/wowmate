@@ -12,7 +12,7 @@ interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc
 	bucket: s3.Bucket
 	securityGroup: ec2.SecurityGroup
-	secret : secretsmanager.ISecret | undefined
+	secret : secretsmanager.ISecret
 }
 
 export class Import extends cdk.Construct {
@@ -43,6 +43,7 @@ export class Import extends cdk.Construct {
 			timeout: cdk.Duration.seconds(180),
 			environment: {
 				CSV_BUCKET_NAME: bucket.bucketName,
+				SECRET_ARN: props.secret.secretArn,
 			},
 			logRetention: RetentionDays.ONE_MONTH,
 			tracing: lambda.Tracing.ACTIVE,

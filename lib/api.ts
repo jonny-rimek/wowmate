@@ -11,7 +11,7 @@ import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 export class Api extends cdk.Construct {
 	public readonly vpc: ec2.Vpc;
 	public readonly securityGrp: ec2.SecurityGroup;
-	public readonly dbCreds: secretsmanager.ISecret | undefined;
+	public readonly dbCreds: secretsmanager.ISecret;
 
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id)
@@ -52,9 +52,8 @@ export class Api extends cdk.Construct {
 			//improve set max duration of log
 			// cloudwatchLogsRetention
 		})
-		const dbCreds = postgres.secret
-		this.dbCreds = dbCreds
-
+		this.dbCreds = postgres.secret!
+		
 		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
 			zoneName: 'wowmate.io',
 			hostedZoneId: 'Z3LVG9ZF2H87DX',
