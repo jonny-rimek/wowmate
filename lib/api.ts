@@ -28,6 +28,8 @@ export class Api extends cdk.Construct {
 		this.vpc = vpc
 		this.securityGrp = dbGroup
 
+		//TODO: add bastion instance to access db
+		//TODO: switch to postgres aurora and test s3 import
 		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
 			vpc: vpc,
 			securityGroups: [dbGroup],
