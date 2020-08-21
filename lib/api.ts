@@ -56,6 +56,8 @@ export class Api extends cdk.Construct {
 			// cloudwatchLogsRetention
 		})
 		this.dbCreds = postgres.secret!
+
+		new ec2.BastionHostLinux(this, 'BastionHost', { vpc });
 		
 		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
 			zoneName: 'wowmate.io',
