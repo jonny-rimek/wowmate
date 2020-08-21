@@ -33,6 +33,9 @@ export class Api extends cdk.Construct {
 		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
 			vpc: vpc,
 			securityGroups: [dbGroup],
+			//IMPROVE: move db to isolated subnet? Couldn't find any best practices
+			//most sources say that private is fine, but the database should never talk
+			//to anyone outside of the VPC, so I don't see the point
 
 			engine: rds.DatabaseInstanceEngine.postgres({
 				version: rds.PostgresEngineVersion.VER_11_7,
