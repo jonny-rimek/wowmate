@@ -10,6 +10,7 @@ import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import { CloudFrontAllowedCachedMethods } from '@aws-cdk/aws-cloudfront';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import s3 = require('@aws-cdk/aws-s3');
+import { CfnDBCluster } from '@aws-cdk/aws-rds';
 
 export class Api extends cdk.Construct {
 	public readonly vpc: ec2.Vpc;
@@ -76,7 +77,7 @@ export class Api extends cdk.Construct {
 			instanceProps: {
 				vpc: vpc,
 				securityGroups: [dbGroup],
-
+				//TODO: try small even tho it doesn't seem to exist
 				instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MEDIUM),
 			},
 			instances: 1,
@@ -91,11 +92,14 @@ export class Api extends cdk.Construct {
 			// deletionProtection: false,
 			//NOTE: remove in production
 
-			s3ImportBuckets: [csvBucket],
+			// s3ImportBuckets: [csvBucket],
 		})
-		//TODO: rotate secret
+		auroraPostgres.addRotationSingleUser();
+
 		this.dbCreds = auroraPostgres.secret!
 
+		// const cfn = auroraPostgres.node.defaultChild as CfnDBCluster
+		// cfn.associatedRoles
 
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
 			vpc,
