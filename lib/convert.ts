@@ -8,17 +8,12 @@ import s3n = require('@aws-cdk/aws-s3-notifications');
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc;
+	bucket: s3.Bucket
 }
 
 export class Convert extends cdk.Construct {
-	public readonly bucket: s3.Bucket;
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
-
-		const csvBucket = new s3.Bucket(this, 'CSV', {
-			removalPolicy: cdk.RemovalPolicy.DESTROY,
-			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-		})
 
 		const dlq = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
@@ -41,7 +36,7 @@ export class Convert extends cdk.Construct {
 			desiredTaskCount: 1,
 			environment: {
 				QUEUE_URL: q.queueUrl,
-				CSV_BUCKET_NAME: csvBucket.bucketName,
+				CSV_BUCKET_NAME: props.bucket.bucketName,
 			},
 		});
 
@@ -51,8 +46,6 @@ export class Convert extends cdk.Construct {
 		})
 		uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(queueFargate.sqsQueue))
 		uploadBucket.grantRead(queueFargate.service.taskDefinition.taskRole)
-		csvBucket.grantWrite(queueFargate.service.taskDefinition.taskRole)
-
-		this.bucket = csvBucket
+		props.bucket.grantWrite(queueFargate.service.taskDefinition.taskRole)
 	}
 }

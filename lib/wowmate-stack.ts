@@ -10,14 +10,16 @@ export class Wowmate extends Stack {
 
 		const api = new Api(this, 'Api')
 
-		const convert = new Convert(this, 'Convert', {
-			vpc: api.vpc
+		new Convert(this, 'Convert', {
+			vpc: api.vpc,
+			bucket: api.bucket,
 		})
+
 		new Frontend(this, 'Frontend')
 
 		new Import(this, 'Import', {
 			vpc: api.vpc,
-			bucket: convert.bucket,
+			bucket: api.bucket,
 			securityGroup: api.securityGrp,
 			secret: api.dbCreds,
 		})

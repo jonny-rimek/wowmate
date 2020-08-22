@@ -7,14 +7,24 @@ import ecs = require('@aws-cdk/aws-ecs');
 import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
 import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
+import { CloudFrontAllowedCachedMethods } from '@aws-cdk/aws-cloudfront';
+import { RetentionDays } from '@aws-cdk/aws-logs';
+import s3 = require('@aws-cdk/aws-s3');
 
 export class Api extends cdk.Construct {
 	public readonly vpc: ec2.Vpc;
 	public readonly securityGrp: ec2.SecurityGroup;
 	public readonly dbCreds: secretsmanager.ISecret;
+	public readonly bucket: s3.Bucket;
 
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id)
+
+		const csvBucket = new s3.Bucket(this, 'CSV', {
+			removalPolicy: cdk.RemovalPolicy.DESTROY,
+			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+		})
+		this.bucket = csvBucket
 
 		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
 			natGateways: 1,
@@ -28,8 +38,7 @@ export class Api extends cdk.Construct {
 		this.vpc = vpc
 		this.securityGrp = dbGroup
 
-		//TODO: add bastion instance to access db
-		//TODO: switch to postgres aurora and test s3 import
+		/*
 		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
 			vpc: vpc,
 			securityGroups: [dbGroup],
@@ -56,8 +65,42 @@ export class Api extends cdk.Construct {
 			// cloudwatchLogsRetention
 		})
 		this.dbCreds = postgres.secret!
+		*/
+		const auroraPostgres = new rds.DatabaseCluster(this, 'ImportDB', {
+			engine: rds.DatabaseClusterEngine.auroraPostgres({
+				version: rds.AuroraPostgresEngineVersion.VER_11_7,
+			}),
+			masterUser: {
+				username: 'clusteradmin'
+			},
+			instanceProps: {
+				vpc: vpc,
+				securityGroups: [dbGroup],
 
-		new ec2.BastionHostLinux(this, 'BastionHost', { vpc });
+				instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MEDIUM),
+			},
+			instances: 1,
+			defaultDatabaseName: 'wm',
+
+			cloudwatchLogsExports: ['postgresql'],
+			cloudwatchLogsRetention: RetentionDays.TWO_WEEKS,
+			monitoringInterval: cdk.Duration.seconds(60),
+
+			//NOTE: remove in production
+			removalPolicy: cdk.RemovalPolicy.DESTROY,
+			// deletionProtection: false,
+			//NOTE: remove in production
+
+			s3ImportBuckets: [csvBucket],
+		})
+		//TODO: rotate secret
+		this.dbCreds = auroraPostgres.secret!
+
+
+		new ec2.BastionHostLinux(this, 'BastionHost', { 
+			vpc,
+			securityGroup: dbGroup,
+		});
 		
 		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
 			zoneName: 'wowmate.io',
