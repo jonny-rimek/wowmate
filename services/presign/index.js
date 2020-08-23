@@ -11,7 +11,7 @@ exports.handler = (event, context, callback) => {
     }
     console.log(bucket);
 
-    const key = uuidv4() + '.jpg';
+    const key = uuidv4() + '.txt';
     const params = {
         'Bucket': bucket,
         'Key': key,
@@ -24,7 +24,7 @@ exports.handler = (event, context, callback) => {
 			key: key,
 		},
 		Conditions: [
-			//["content-length-range", 	0, 1000000], // content length restrictions: 0-1MB
+			// ["content-length-range", 	0, 1000000000], // content length restrictions: 0-1MB
 			//["starts-with", "$Content-Type", "image/"], // content type restriction
 		//	["eq", "$x-amz-meta-userid", userid], // tag with userid <= the user can see this!
             {'acl': 'public-read-write'},

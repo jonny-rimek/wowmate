@@ -6,6 +6,8 @@ import apigateway = require('@aws-cdk/aws-apigateway');
 import acm = require('@aws-cdk/aws-certificatemanager');
 import s3 = require('@aws-cdk/aws-s3');
 import { RemovalPolicy } from '@aws-cdk/core';
+import * as cloudtrail from '@aws-cdk/aws-cloudtrail';
+import { ReadWriteType } from '@aws-cdk/aws-cloudtrail';
 
 export class Presign extends cdk.Construct {
 	public readonly bucket: s3.Bucket;
@@ -15,9 +17,37 @@ export class Presign extends cdk.Construct {
 		
 		const uploadBucket = new s3.Bucket(this, 'Upload', {
 			removalPolicy: RemovalPolicy.DESTROY,
-			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+			// blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+			cors: [
+				{
+					allowedOrigins: [
+						"*", //if I only do wowmate.io it will not work locally
+					],
+					allowedMethods: [
+						s3.HttpMethods.POST,
+						s3.HttpMethods.GET, //should be removable
+						s3.HttpMethods.PUT,//should be removable
+						s3.HttpMethods.HEAD,
+					],
+					allowedHeaders: [
+						"*", //dunno
+					],
+				}
+			],
 		})
 		this.bucket = uploadBucket
+
+		const trail = new cloudtrail.Trail(this, 'Cloudtrail', {
+			managementEvents: ReadWriteType.WRITE_ONLY,
+
+			sendToCloudWatchLogs: true,
+			// cloudWatchLogsRetention:^
+		});
+
+		trail.addS3EventSelector([{
+			bucket: uploadBucket, 
+			
+		}]);
 		
 		//TODO: create bucket and pass to lambda
 		const presignLambda = new lambda.Function(this, 'PresignLambda', {
@@ -27,7 +57,9 @@ export class Presign extends cdk.Construct {
 			environment: {BUCKET_NAME: uploadBucket.bucketName},
 		});
 
-		uploadBucket.grantWrite(presignLambda);
+		// uploadBucket.grantWrite(presignLambda);
+		uploadBucket.grantPut(presignLambda);
+		// uploadBucket.grantReadWrite(presignLambda);
 		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
 			zoneName: 'wowmate.io',
 			hostedZoneId: 'Z3LVG9ZF2H87DX',
@@ -46,6 +78,10 @@ export class Presign extends cdk.Construct {
 				domainName: 'presign.wowmate.io',
 				certificate: cert,
 				securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
+			},
+			//TODO: test if i need cors after I activated CORS on the bucket
+			defaultCorsPreflightOptions: {
+				allowOrigins: apigateway.Cors.ALL_ORIGINS,
 			}
 		});
 		api.root.addMethod('POST');
