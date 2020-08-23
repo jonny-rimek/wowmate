@@ -8,7 +8,8 @@ import s3n = require('@aws-cdk/aws-s3-notifications');
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc;
-	bucket: s3.Bucket
+	convertBucket: s3.Bucket
+	uploadBucket: s3.Bucket
 }
 
 export class Convert extends cdk.Construct {
@@ -36,16 +37,12 @@ export class Convert extends cdk.Construct {
 			desiredTaskCount: 1,
 			environment: {
 				QUEUE_URL: q.queueUrl,
-				CSV_BUCKET_NAME: props.bucket.bucketName,
+				CSV_BUCKET_NAME: props.convertBucket.bucketName,
 			},
 		});
 
-		const uploadBucket = new s3.Bucket(this, 'Upload', {
-			removalPolicy: cdk.RemovalPolicy.DESTROY,
-			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-		})
-		uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(queueFargate.sqsQueue))
-		uploadBucket.grantRead(queueFargate.service.taskDefinition.taskRole)
-		props.bucket.grantWrite(queueFargate.service.taskDefinition.taskRole)
+		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(queueFargate.sqsQueue))
+		props.uploadBucket.grantRead(queueFargate.service.taskDefinition.taskRole)
+		props.convertBucket.grantWrite(queueFargate.service.taskDefinition.taskRole)
 	}
 }

@@ -39,34 +39,6 @@ export class Api extends cdk.Construct {
 		this.vpc = vpc
 		this.securityGrp = dbGroup
 
-		/*
-		const postgres = new rds.DatabaseInstance(this, 'Postgres', {
-			vpc: vpc,
-			securityGroups: [dbGroup],
-			//IMPROVE: move db to isolated subnet? Couldn't find any best practices
-			//most sources say that private is fine, but the database should never talk
-			//to anyone outside of the VPC, so I don't see the point
-
-			engine: rds.DatabaseInstanceEngine.postgres({
-				version: rds.PostgresEngineVersion.VER_11_7,
-			}),
-			instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO),
-			masterUsername: 'postgres',
-			databaseName: 'wm',
-
-			//NOTE: remove in production
-			removalPolicy: cdk.RemovalPolicy.DESTROY,
-			deletionProtection: false,
-			//NOTE: remove in production
-
-			enablePerformanceInsights: true,
-			monitoringInterval: cdk.Duration.seconds(60),
-			cloudwatchLogsExports: ['postgresql'],
-			//improve set max duration of log
-			// cloudwatchLogsRetention
-		})
-		this.dbCreds = postgres.secret!
-		*/
 		const auroraPostgres = new rds.DatabaseCluster(this, 'ImportDB', {
 			engine: rds.DatabaseClusterEngine.auroraPostgres({
 				version: rds.AuroraPostgresEngineVersion.VER_11_7,
@@ -89,6 +61,7 @@ export class Api extends cdk.Construct {
 
 			//NOTE: remove in production
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
+			//false is the default
 			// deletionProtection: false,
 			//NOTE: remove in production
 
