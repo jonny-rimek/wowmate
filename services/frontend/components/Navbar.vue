@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <nav class="bg-white border-b">
+    <nav class="border-b dark:border-gray-900">
       <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex px-2 lg:px-0">
@@ -74,7 +74,7 @@
                 </div>
                 <input
                   id="search"
-                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:border-red-400 focus:shadow-outline-red sm:text-sm transition duration-150 ease-in-out"
+                  class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-500 rounded-md leading-5 bg-white dark:bg-gray-700 placeholder-gray-300 focus:outline-none focus:placeholder-gray-100 focus:border-gray-200 focus:shadow-outline-red sm:text-sm transition duration-150 ease-in-out"
                   placeholder="Search"
                   type="search"
                 />
