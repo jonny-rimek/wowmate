@@ -55,6 +55,15 @@
             class="flex-1 flex items-center justify-center px-2 lg:ml-6 lg:justify-end"
           >
             <div class="max-w-lg w-full lg:max-w-xs">
+              <select
+                v-model="$colorMode.preference"
+                class="border w-24 h-8 dark:bg-gray-900 dark:border-gray-700"
+              >
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+              <!--
               <label for="search" class="sr-only">Search</label>
               <div class="relative">
                 <div
@@ -79,6 +88,7 @@
                   type="search"
                 />
               </div>
+			  -->
             </div>
           </div>
           <!-- MOBILE MENU BUTTON -->
