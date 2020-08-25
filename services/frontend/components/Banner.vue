@@ -7,9 +7,9 @@
         >
           <div class="flex items-center justify-between flex-wrap">
             <div class="w-0 flex-1 flex items-center">
-              <span class="flex p-2 rounded-lg border-red-600 border-2">
+              <span class="flex p-2 rounded-lg bg-red-600">
                 <svg
-                  class="h-6 w-6 text-red-600"
+                  class="h-6 w-6 text-red-50 "
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -31,20 +31,18 @@
                 </span>
               </p>
             </div>
-            <!--
             <div
               class="order-3 mt-2 flex-shrink-0 w-full sm:order-2 sm:mt-0 sm:w-auto"
             >
               <div class="rounded-md shadow-sm">
                 <a
                   href="#"
-                  class="flex items-center justify-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md text-indigo-600 bg-white hover:text-indigo-500 focus:outline-none focus:shadow-outline transition ease-in-out duration-150"
+                  class="flex items-center justify-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md bg-red-600 text-red-50 hover:text-indigo-500 focus:outline-none focus:shadow-outline transition ease-in-out duration-150"
                 >
                   Learn more
                 </a>
               </div>
             </div>
-			-->
             <div class="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
               <button
                 type="button"
