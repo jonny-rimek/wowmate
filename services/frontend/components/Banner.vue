@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <div class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5">
+    <div v-if="display" class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5">
       <div class="max-w-3xl mx-auto px-2 sm:px-6 lg:px-8 ">
         <div
           class="p-2 rounded-lg border-red-600 bg-red-50 border-2 shadow-lg sm:p-3"
@@ -45,6 +45,7 @@
             </div>
             <div class="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
               <button
+                @click="dontDisplay"
                 type="button"
                 class="-mr-1 flex p-2 rounded-md hover:bg-indigo-500 focus:outline-none focus:bg-indigo-500 transition ease-in-out duration-150"
                 aria-label="Dismiss"
@@ -72,7 +73,18 @@
 </template>
 
 <script>
-export default {}
+export default {
+  data() {
+    return {
+      display: true
+    }
+  },
+  methods: {
+    dontDisplay() {
+      this.display = false
+    }
+  }
+}
 </script>
 
 <style></style>

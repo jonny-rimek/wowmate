@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <nav class="border-b dark:border-gray-900">
+    <nav class="border-b dark:border-gray-600">
       <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex px-2 lg:px-0">
