@@ -24,6 +24,7 @@
       </div>
     </div>
     <Banner />
+    <Footer />
   </div>
 </template>
 
@@ -32,13 +33,15 @@ import Navbar from '~/components/Navbar.vue'
 import MobileNavbarLink from '~/components/MobileNavbarLink.vue'
 import SidebarLink from '~/components/SidebarLink.vue'
 import Banner from '~/components/Banner.vue'
+import Footer from '~/components/Footer.vue'
 
 export default {
   components: {
     Navbar,
     MobileNavbarLink,
     SidebarLink,
-    Banner
+    Banner,
+    Footer
   },
   head() {
     return {
