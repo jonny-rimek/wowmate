@@ -1,5 +1,5 @@
 <template>
-  <div class="">
+  <div class="border-t border-1 border-gray-300 dark:border-gray-600">
     <div
       class="max-w-7xl mx-auto py-4 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8"
     >
