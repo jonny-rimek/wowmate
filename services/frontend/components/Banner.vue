@@ -47,7 +47,7 @@
                 </a>
               </div>
             </div>
-            <div class="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
+            <div class="order-2 flex-shrink-0 sm:order-3 sm:ml-2 text-gray-600">
               <button
                 @click="hide"
                 type="button"
