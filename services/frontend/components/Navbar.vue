@@ -24,10 +24,19 @@
                 class="hidden focus:outline-none lg:block"
               >
                 <img
-                  class="h-12 w-auto"
-                  src="/wowmate_logo_full_transparent.png"
+                  class="h-8 w-auto"
+                  src="/wowmate_logo_only_transparent.png"
                   alt=""
                 />
+              </nuxt-link>
+              <nuxt-link
+                :to="{ name: 'index' }"
+                :prefetch="false"
+                class="hidden focus:outline-none lg:block"
+              >
+                <span class="pl-2 text-red-800 text-l font-sans font-semibold">
+                  wowmate
+                </span>
               </nuxt-link>
             </div>
             <!-- NAV LINKS -->

@@ -30,7 +30,7 @@
                   Wowmate is in pre alpha!
                 </span>
                 <span class="hidden md:inline">
-                  Wowmate is in pre alpha and under heavy development
+                  Wowmate is in pre alpha and under active development
                 </span>
               </p>
             </div>
