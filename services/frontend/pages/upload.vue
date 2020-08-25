@@ -1,5 +1,17 @@
 <template>
   <div>
+    <div
+      class="md:flex md:items-center md:justify-between pt-4 lg:pt-8 pb-4 lg:pb-6 pl-4 lg:pl-0"
+    >
+      <div class="flex-1 min-w-0">
+        <h2
+          class="text-xl font-bold leading-7 text-gray-900 sm:text-3xl sm:leading-9 sm:truncate"
+        >
+          Combatlog Upload
+        </h2>
+      </div>
+    </div>
+
     <Dropzone
       id="dropzone"
       :awss3="awss3"
