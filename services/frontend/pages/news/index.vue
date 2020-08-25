@@ -12,14 +12,14 @@
             class="mt-3 sm:mt-4 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-center"
           >
             <p class="text-xl leading-7 text-gray-500 dark:text-gray-400">
-              Get weekly articles in your inbox on how to grow your business.
+              News about wowmate directly in your inbox.
             </p>
             <form class="mt-6 flex lg:mt-0 lg:justify-end">
               <input
                 aria-label="Email address"
                 type="email"
                 required
-                class="appearance-none w-full px-4 py-2 border border-gray-300 text-base leading-6 rounded-md text-gray-900 bg-white placeholder-gray-500 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 transition duration-150 ease-in-out lg:max-w-xs"
+                class="appearance-none w-full px-4 py-2 border border-gray-700 text-base leading-6 rounded-md dark:text-gray-100 dark:bg-gray-900 placeholder-gray-500 focus:outline-none focus:shadow-outline-blue focus:border-blue-300 transition duration-150 ease-in-out lg:max-w-xs"
                 placeholder="Enter your email"
               />
               <span class="ml-3 flex-shrink-0 inline-flex rounded-md shadow-sm">

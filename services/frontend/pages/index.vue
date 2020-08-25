@@ -35,7 +35,7 @@
             <form action="#" method="POST" class="mt-3 sm:flex">
               <input
                 aria-label="Email"
-                class="appearance-none block w-full px-3 py-3 border border-gray-300 text-base leading-6 rounded-md placeholder-gray-500 shadow-sm focus:outline-none focus:placeholder-gray-400 focus:shadow-outline-blue focus:border-blue-300 transition duration-150 ease-in-out sm:flex-1"
+                class="appearance-none block w-full px-3 py-3 border border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-base leading-6 rounded-md placeholder-gray-500 shadow-sm focus:outline-none focus:placeholder-gray-400 focus:shadow-outline-blue focus:border-blue-300 transition duration-150 ease-in-out sm:flex-1"
                 placeholder="doesn't work either"
               />
               <button
