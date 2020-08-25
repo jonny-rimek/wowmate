@@ -1,20 +1,23 @@
 <template>
-  <div>
+  <div class="flex flex-col h-screen justify-between">
     <Navbar />
-    <div class="max-w-7xl mx-auto md:px-6 lg:px-9">
+    <div class="mb-auto max-w-7xl mx-auto md:px-6 lg:px-9">
       <nuxt />
     </div>
     <Banner />
+    <Footer />
   </div>
 </template>
 
 <script>
 import Navbar from '~/components/Navbar.vue'
 import Banner from '~/components/Banner.vue'
+import Footer from '~/components/Footer.vue'
 
 export default {
   components: {
     Navbar,
+    Footer,
     Banner
   },
   head() {
