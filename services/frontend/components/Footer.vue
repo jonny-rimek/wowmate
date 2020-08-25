@@ -1,7 +1,7 @@
 <template>
   <div class="border-t border-1 border-gray-300 dark:border-gray-600">
     <div
-      class="max-w-7xl mx-auto py-4 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8"
+      class="max-w-7xl mx-auto py-4 px-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-10"
     >
       <div class="flex justify-center md:order-2">
         <a href="#" class="ml-6 text-gray-400 hover:text-gray-500">
