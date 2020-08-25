@@ -38,13 +38,15 @@
               class="order-3 mt-2 flex-shrink-0 w-full sm:order-2 sm:mt-0 sm:w-auto"
             >
               <div class="rounded-md shadow-sm">
-                <a
-                  @click="hide"
-                  href="#"
-                  class="flex items-center justify-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md bg-red-600 text-red-50 hover:text-indigo-500 focus:outline-none focus:shadow-outline transition ease-in-out duration-150"
-                >
-                  Learn more
-                </a>
+                <div @click="hide">
+                  <nuxt-link
+                    :to="{ name: 'news-slug', params: { slug: 'wowmate' } }"
+                    :prefetch="false"
+                    class="flex items-center justify-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md bg-red-600 text-red-50 hover:text-indigo-500 focus:outline-none focus:shadow-outline transition ease-in-out duration-150"
+                  >
+                    Learn more
+                  </nuxt-link>
+                </div>
               </div>
             </div>
             <div class="order-2 flex-shrink-0 sm:order-3 sm:ml-2 text-gray-600">
