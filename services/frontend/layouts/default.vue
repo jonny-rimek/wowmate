@@ -1,10 +1,12 @@
 <template>
   <div class="flex flex-col h-screen justify-between">
-    <Navbar />
-    <div class="mb-auto max-w-7xl mx-auto md:px-6 lg:px-9">
-      <nuxt />
+    <div>
+      <Navbar />
+      <div class="mb-auto max-w-7xl mx-auto md:px-6 lg:px-9">
+        <nuxt />
+      </div>
+      <Banner />
     </div>
-    <Banner />
     <Footer />
   </div>
 </template>
