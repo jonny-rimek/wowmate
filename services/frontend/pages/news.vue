@@ -4,14 +4,14 @@
       <div class="relative max-w-lg mx-auto lg:max-w-7xl">
         <div>
           <h2
-            class="text-3xl leading-9 tracking-tight font-extrabold text-gray-900 sm:text-4xl sm:leading-10"
+            class="text-3xl leading-9 tracking-tight font-extrabold text-gray-900 dark:text-gray-200 sm:text-4xl sm:leading-10"
           >
             Press
           </h2>
           <div
             class="mt-3 sm:mt-4 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-center"
           >
-            <p class="text-xl leading-7 text-gray-500">
+            <p class="text-xl leading-7 text-gray-500 dark:text-gray-400">
               Get weekly articles in your inbox on how to grow your business.
             </p>
             <form class="mt-6 flex lg:mt-0 lg:justify-end">
@@ -34,17 +34,21 @@
           </div>
         </div>
         <div
-          class="mt-6 grid gap-16 border-t-2 border-gray-100 pt-10 lg:grid-cols-2 lg:col-gap-5 lg:row-gap-12"
+          class="mt-6 grid gap-16 border-t-2 border-gray-100 dark:border-gray-600 pt-10 lg:grid-cols-2 lg:col-gap-5 lg:row-gap-12"
         >
           <div>
-            <p class="text-sm leading-5 text-gray-500">
+            <p class="text-sm leading-5 text-gray-500 dark:text-gray-400">
               <time datetime="2020-03-16">Mar 16, 2020</time>
             </p>
             <a href="#" class="block">
-              <h3 class="mt-2 text-xl leading-7 font-semibold text-gray-900">
+              <h3
+                class="mt-2 text-xl leading-7 font-semibold text-gray-900 dark:text-gray-200"
+              >
                 Boost your conversion rate
               </h3>
-              <p class="mt-3 text-base leading-6 text-gray-500">
+              <p
+                class="mt-3 text-base leading-6 text-gray-500 dark:text-gray-400"
+              >
                 Illo sint voluptas. Error voluptates culpa eligendi. Hic vel
                 totam vitae illo. Non aliquid explicabo necessitatibus unde. Sed
                 exercitationem placeat consectetur nulla deserunt vel. Iusto

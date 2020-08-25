@@ -5,7 +5,7 @@
     >
       <div class="flex-1 min-w-0">
         <h2
-          class="text-l font-bold leading-7 text-gray-900 sm:text-3xl sm:leading-9 sm:truncate"
+          class="text-l font-bold leading-7 text-gray-900 dark:text-gray-200 sm:text-3xl sm:leading-9 sm:truncate"
         >
           Combatlog Upload
         </h2>
