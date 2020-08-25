@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <div v-if="display" class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5">
+    <div v-if="visible" class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5">
       <div class="max-w-3xl mx-auto px-2 sm:px-6 lg:px-8 ">
         <div
           class="p-2 rounded-lg border-red-600 bg-red-50 border-2 shadow-lg sm:p-3"
@@ -36,6 +36,7 @@
             >
               <div class="rounded-md shadow-sm">
                 <a
+                  @click="hide"
                   href="#"
                   class="flex items-center justify-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md bg-red-600 text-red-50 hover:text-indigo-500 focus:outline-none focus:shadow-outline transition ease-in-out duration-150"
                 >
@@ -45,7 +46,7 @@
             </div>
             <div class="order-2 flex-shrink-0 sm:order-3 sm:ml-2">
               <button
-                @click="dontDisplay"
+                @click="hide"
                 type="button"
                 class="-mr-1 flex p-2 rounded-md hover:bg-indigo-500 focus:outline-none focus:bg-indigo-500 transition ease-in-out duration-150"
                 aria-label="Dismiss"
@@ -73,17 +74,20 @@
 </template>
 
 <script>
+import { mapMutations, mapGetters } from 'vuex'
+
 export default {
   data() {
-    return {
-      display: true
-    }
+    return {}
   },
   methods: {
-    dontDisplay() {
-      this.display = false
-    }
-  }
+    ...mapMutations({
+      hide: 'banner/hide'
+    })
+  },
+  computed: mapGetters({
+    visible: 'banner/get'
+  })
 }
 </script>
 
