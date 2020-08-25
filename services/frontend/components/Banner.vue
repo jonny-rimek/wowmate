@@ -1,7 +1,10 @@
 <template>
   <div class="">
-    <div v-if="visible" class="fixed bottom-0 inset-x-0 pb-2 sm:pb-5">
-      <div class="max-w-3xl mx-auto px-2 sm:px-6 lg:px-8 ">
+    <div
+      v-if="visible"
+      class="pointer-events-none fixed bottom-0 inset-x-0 pb-2 sm:pb-5"
+    >
+      <div class="pointer-events-auto max-w-3xl mx-auto px-2 sm:px-6 lg:px-8 ">
         <div
           class="p-2 rounded-lg border-red-600 bg-red-50 border-2 shadow-lg sm:p-3"
         >
