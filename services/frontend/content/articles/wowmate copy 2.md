@@ -5,6 +5,4 @@ description: amiright?
 ---
 # body of blog post
 
-_even more body_
-
-**bold**
+even more body

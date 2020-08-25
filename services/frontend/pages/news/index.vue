@@ -36,100 +36,32 @@
         <div
           class="mt-6 grid gap-16 border-t-2 border-gray-100 dark:border-gray-600 pt-10 lg:grid-cols-2 lg:col-gap-5 lg:row-gap-12"
         >
-          <div>
+          <div v-for="article in articles" :key="article.title">
             <p class="text-sm leading-5 text-gray-500 dark:text-gray-400">
               <time datetime="2020-03-16">Mar 16, 2020</time>
             </p>
-            <a href="#" class="block">
+            <NuxtLink
+              :to="{ name: 'news-slug', params: { slug: article.slug } }"
+              class="block"
+            >
               <h3
                 class="mt-2 text-xl leading-7 font-semibold text-gray-900 dark:text-gray-200"
               >
-                Boost your conversion rate
+                {{ article.title1 }} {{ article.title2 }}
               </h3>
               <p
                 class="mt-3 text-base leading-6 text-gray-500 dark:text-gray-400"
               >
-                Illo sint voluptas. Error voluptates culpa eligendi. Hic vel
-                totam vitae illo. Non aliquid explicabo necessitatibus unde. Sed
-                exercitationem placeat consectetur nulla deserunt vel. Iusto
-                corrupti dicta.
+                {{ article.description }}
               </p>
-            </a>
+            </NuxtLink>
             <div class="mt-3">
-              <a
-                href="#"
+              <NuxtLink
+                :to="{ name: 'news-slug', params: { slug: article.slug } }"
                 class="text-base leading-6 font-semibold text-red-600 hover:text-indigo-500 transition ease-in-out duration-150"
               >
                 Read full story
-              </a>
-            </div>
-          </div>
-          <div>
-            <p class="text-sm leading-5 text-gray-500">
-              <time datetime="2020-03-10">Mar 10, 2020</time>
-            </p>
-            <a href="#" class="block">
-              <h3 class="mt-2 text-xl leading-7 font-semibold text-gray-900">
-                How to use search engine optimization to drive sales
-              </h3>
-              <p class="mt-3 text-base leading-6 text-gray-500">
-                Optio cum necessitatibus dolor voluptatum provident commodi et.
-                Qui aperiam fugiat nemo cumque.
-              </p>
-            </a>
-            <div class="mt-3">
-              <a
-                href="#"
-                class="text-base leading-6 font-semibold text-red-600 hover:text-indigo-500 transition ease-in-out duration-150"
-              >
-                Read full story
-              </a>
-            </div>
-          </div>
-          <div>
-            <p class="text-sm leading-5 text-gray-500">
-              <time datetime="2020-02-12">Feb 12, 2020</time>
-            </p>
-            <a href="#" class="block">
-              <h3 class="mt-2 text-xl leading-7 font-semibold text-gray-900">
-                Improve your customer experience
-              </h3>
-              <p class="mt-3 text-base leading-6 text-gray-500">
-                Cupiditate maiores ullam eveniet adipisci in doloribus nulla
-                minus. Voluptas iusto libero adipisci rem et corporis.
-              </p>
-            </a>
-            <div class="mt-3">
-              <a
-                href="#"
-                class="text-base leading-6 font-semibold text-red-600 hover:text-indigo-500 transition ease-in-out duration-150"
-              >
-                Read full story
-              </a>
-            </div>
-          </div>
-          <div>
-            <p class="text-sm leading-5 text-gray-500">
-              <time datetime="2020-01-29">Jan 29, 2020</time>
-            </p>
-            <a href="#" class="block">
-              <h3 class="mt-2 text-xl leading-7 font-semibold text-gray-900">
-                Writing effective landing page copy
-              </h3>
-              <p class="mt-3 text-base leading-6 text-gray-500">
-                Ipsum voluptates quia doloremque culpa qui eius. Id qui id
-                officia molestias quaerat deleniti. Qui facere numquam autem
-                libero quae cupiditate asperiores vitae cupiditate. Cumque id
-                deleniti explicabo.
-              </p>
-            </a>
-            <div class="mt-3">
-              <a
-                href="#"
-                class="text-base leading-6 font-semibold text-red-600 hover:text-indigo-500 transition ease-in-out duration-150"
-              >
-                Read full story
-              </a>
+              </NuxtLink>
             </div>
           </div>
         </div>
@@ -139,7 +71,18 @@
 </template>
 
 <script>
-export default {}
+export default {
+  async asyncData({ $content, params }) {
+    const articles = await $content('articles', params.slug)
+      .only(['title1', 'title2', 'description', 'slug'])
+      .sortBy('createdAt', 'asc')
+      .fetch()
+
+    return {
+      articles
+    }
+  }
+}
 </script>
 
 <style></style>
