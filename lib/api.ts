@@ -10,7 +10,6 @@ import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import { CloudFrontAllowedCachedMethods } from '@aws-cdk/aws-cloudfront';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import s3 = require('@aws-cdk/aws-s3');
-import { CfnDBCluster } from '@aws-cdk/aws-rds';
 
 export class Api extends cdk.Construct {
 	public readonly vpc: ec2.Vpc;

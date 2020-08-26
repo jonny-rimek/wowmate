@@ -1,7 +1,7 @@
 {
   "name": "wowmate",
   "version": "1.0.0",
-  "description": "frontend for wowmate.io",
+  "description": "Combatlogs for World of Warcraft made easy",
   "author": "",
   "private": true,
   "scripts": {
