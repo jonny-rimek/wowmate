@@ -60,8 +60,7 @@ export class Api extends cdk.Construct {
 
 			//NOTE: remove in production
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
-			//false is the default
-			// deletionProtection: false,
+			deletionProtection: false,
 			//NOTE: remove in production
 
 			// s3ImportBuckets: [csvBucket],
