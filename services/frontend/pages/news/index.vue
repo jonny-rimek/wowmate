@@ -25,7 +25,7 @@
               <span class="ml-3 flex-shrink-0 inline-flex rounded-md shadow-sm">
                 <button
                   type="button"
-                  class="inline-flex items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-red-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition ease-in-out duration-150"
+                  class="inline-flex items-center px-4 py-2 border border-transparent text-base leading-6 font-medium rounded-md text-white bg-red-600 hover:text-gray-800 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition ease-in-out duration-150"
                 >
                   Notify me
                 </button>
@@ -58,7 +58,7 @@
             <div class="mt-3">
               <NuxtLink
                 :to="{ name: 'news-slug', params: { slug: article.slug } }"
-                class="text-base leading-6 font-semibold text-red-600 hover:text-indigo-500 transition ease-in-out duration-150"
+                class="text-base leading-6 font-semibold text-red-600 hover:text-gray-800 dark-hover:text-gray-200 transition ease-in-out duration-150"
               >
                 Read full story
               </NuxtLink>
