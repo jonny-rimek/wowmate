@@ -2,7 +2,7 @@
   <div>
     <!-- TODO: add nice patterns -->
     <main
-      class="mt-8 mx-auto max-w-screen-xl px-4 sm:mt-12 sm:px-6 md:mt-20 xl:mt-24"
+      class="my-8 mx-auto max-w-screen-xl px-4 sm:mt-12 sm:px-6 md:mt-20 xl:mt-24"
     >
       <div class="lg:grid lg:grid-cols-12 lg:gap-8">
         <div
