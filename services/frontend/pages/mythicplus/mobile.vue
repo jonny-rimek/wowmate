@@ -1,5 +1,5 @@
 <template>
-  <div class="p-5">
+  <div class="p-5 lg:hidden">
     <SidebarLink pathName="mythicplus">
       All Dungeons
     </SidebarLink>

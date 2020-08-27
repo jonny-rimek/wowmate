@@ -24,20 +24,6 @@
         </a>
       </div>
       <div class="mt-8 md:mt-0 md:order-1">
-        <!-- 
-        <p class="text-center text-base leading-6 text-gray-400">
-          <select
-            v-model="$colorMode.preference"
-            class="border w-24 h-8 dark:bg-gray-900 dark:border-gray-700"
-          >
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </p> -->
-
-        <!-- &copy; 2020 Workflow, Inc. All rights reserved. -->
-
         <div class="flex">
           <img
             class="px-1 cursor-pointer "

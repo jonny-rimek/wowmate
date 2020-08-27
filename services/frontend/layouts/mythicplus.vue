@@ -6,7 +6,7 @@
         <div class="flex flex-shrink-0">
           <!-- DESKTOP ONLY SIDEBAR -->
           <!-- THE MOBILE VERSION OF THE SIDEBAR IS PART OF NAVBAR COMPONENT -->
-          <div class="hidden md:flex flex-col w-64">
+          <div class="hidden lg:flex flex-col w-64">
             <div class="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <nav>
                 <SidebarLink
