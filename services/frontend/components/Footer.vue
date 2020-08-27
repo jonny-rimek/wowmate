@@ -24,6 +24,7 @@
         </a>
       </div>
       <div class="mt-8 md:mt-0 md:order-1">
+        <!-- 
         <p class="text-center text-base leading-6 text-gray-400">
           <select
             v-model="$colorMode.preference"
@@ -33,8 +34,33 @@
             <option value="light">Light</option>
             <option value="dark">Dark</option>
           </select>
-          <!-- &copy; 2020 Workflow, Inc. All rights reserved. -->
-        </p>
+        </p> -->
+
+        <!-- &copy; 2020 Workflow, Inc. All rights reserved. -->
+
+        <div class="flex">
+          <img
+            class="px-1 cursor-pointer "
+            src="system.svg"
+            @click="$colorMode.preference = 'system'"
+          />
+          <img
+            class="px-1 cursor-pointer "
+            src="light.svg"
+            @click="$colorMode.preference = 'light'"
+          />
+          <img
+            class="px-1 cursor-pointer "
+            src="dark.svg"
+            @click="$colorMode.preference = 'dark'"
+          />
+          <p class="px-1 dark:text-gray-300 text-gray-700">
+            Color mode: <b>{{ $colorMode.preference }}</b>
+            <span v-if="$colorMode.preference === 'system'"
+              >(<i>{{ $colorMode.value }}</i> mode detected)</span
+            >
+          </p>
+        </div>
       </div>
     </div>
   </div>
