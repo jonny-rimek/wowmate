@@ -7,7 +7,6 @@ import ecs = require('@aws-cdk/aws-ecs');
 import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
 import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
-import { CloudFrontAllowedCachedMethods } from '@aws-cdk/aws-cloudfront';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import s3 = require('@aws-cdk/aws-s3');
 
@@ -65,12 +64,7 @@ export class Api extends cdk.Construct {
 
 			// s3ImportBuckets: [csvBucket],
 		})
-		auroraPostgres.addRotationSingleUser();
-
 		this.dbCreds = auroraPostgres.secret!
-
-		// const cfn = auroraPostgres.node.defaultChild as CfnDBCluster
-		// cfn.associatedRoles
 
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
 			vpc,
