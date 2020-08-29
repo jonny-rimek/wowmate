@@ -42,7 +42,7 @@ export default {
   modules: [
     // Doc: https://axios.nuxtjs.org/usage
 	'@nuxtjs/axios',
-	'@nuxt/content'
+	'@nuxt/content',
   ],
   /*
   ** Axios module configuration
