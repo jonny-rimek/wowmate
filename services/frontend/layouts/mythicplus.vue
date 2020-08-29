@@ -74,6 +74,148 @@ export default {
           pathName: 'mythicplus-id',
           id: 2104
         }
+      ],
+      logs: [
+        {
+          dungeonName: 'Freehold',
+          affixes: ['explosive', 'teeming', 'fortified'],
+          duration: '34:59 +0:01',
+          deaths: 1,
+          playerDamage: [
+            {
+              player: 'terra',
+              damage: 56123
+            },
+            {
+              player: 'xava',
+              damage: 56123
+            },
+            {
+              player: 'micha',
+              damage: 56123
+            },
+            {
+              player: 'holytank',
+              damage: 56123
+            },
+            {
+              player: 'tova',
+              damage: 56123
+            }
+          ]
+        },
+        {
+          dungeonName: 'Freehold',
+          affixes: ['explosive', 'teeming', 'fortified'],
+          duration: '34:59 +0:01',
+          deaths: 1,
+          playerDamage: [
+            {
+              player: 'terra',
+              damage: 56123
+            },
+            {
+              player: 'xava',
+              damage: 56123
+            },
+            {
+              player: 'micha',
+              damage: 56123
+            },
+            {
+              player: 'holytank',
+              damage: 56123
+            },
+            {
+              player: 'tova',
+              damage: 56123
+            }
+          ]
+        },
+        {
+          dungeonName: 'Freehold',
+          affixes: ['explosive', 'teeming', 'fortified'],
+          duration: '34:59 +0:01',
+          deaths: 1,
+          playerDamage: [
+            {
+              player: 'terra',
+              damage: 56123
+            },
+            {
+              player: 'xava',
+              damage: 56123
+            },
+            {
+              player: 'micha',
+              damage: 56123
+            },
+            {
+              player: 'holytank',
+              damage: 56123
+            },
+            {
+              player: 'tova',
+              damage: 56123
+            }
+          ]
+        },
+        {
+          dungeonName: 'Freehold',
+          affixes: ['explosive', 'teeming', 'fortified'],
+          duration: '34:59 +0:01',
+          deaths: 1,
+          playerDamage: [
+            {
+              player: 'terra',
+              damage: 56123
+            },
+            {
+              player: 'xava',
+              damage: 56123
+            },
+            {
+              player: 'micha',
+              damage: 56123
+            },
+            {
+              player: 'holytank',
+              damage: 56123
+            },
+            {
+              player: 'tova',
+              damage: 56123
+            }
+          ]
+        },
+        {
+          dungeonName: 'Freehold',
+          affixes: ['explosive', 'teeming', 'fortified'],
+          duration: '34:59 +0:01',
+          deaths: 1,
+          playerDamage: [
+            {
+              player: 'terra',
+              damage: 56123
+            },
+            {
+              player: 'xava',
+              damage: 56123
+            },
+            {
+              player: 'micha',
+              damage: 56123
+            },
+            {
+              player: 'holytank',
+              damage: 56123
+            },
+            {
+              player: 'tova',
+              damage: 56123
+            }
+          ]
+        }
       ]
     }
   }

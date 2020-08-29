@@ -53,7 +53,7 @@
               <button
                 @click="hide"
                 type="button"
-                class="-mr-1 flex p-2 rounded-md hover:bg-red-600 focus:outline-none focus:bg-indigo-500 transition ease-in-out duration-150"
+                class="-mr-1 flex p-2 rounded-md hover:text-red-600 focus:outline-none focus:bg-indigo-500 transition ease-in-out duration-150"
                 aria-label="Dismiss"
               >
                 <svg

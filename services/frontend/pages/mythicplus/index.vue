@@ -87,63 +87,6 @@
                   >
                 </td>
               </tr>
-              <tr>
-                <td
-                  class="px-6 py-4 whitespace-no-wrap border-b border-gray-200"
-                >
-                  <div class="flex items-center">
-                    <div class="ml-4">
-                      <div class="text-sm leading-5 font-medium text-gray-900">
-                        Atal'Dazar <span class="text-gray-500">+23*</span>
-                      </div>
-                      <div class="text-sm leading-5 text-gray-500">
-                        <div>affixes:</div>
-                        <div>34:23 +3:12</div>
-                        <div>4 deaths</div>
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td
-                  class="px-6 py-4 whitespace-no-wrap border-b border-gray-200"
-                >
-                  <div class="text-sm leading-5 text-gray-900">Terra</div>
-                  <div class="text-sm leading-5 text-gray-900">Xava</div>
-                  <div class="text-sm leading-5 text-gray-900">Micha</div>
-                  <div class="text-sm leading-5 text-gray-900">Holytank</div>
-                  <div class="text-sm leading-5 text-gray-900">Tova</div>
-                </td>
-                <td
-                  class="px-6 py-4 whitespace-no-wrap border-b border-gray-200"
-                >
-                  <!-- dont show on small -->
-                  <div class="text-sm">
-                    ||||||||||||||||||||||||||||||||||||||||||||||
-                  </div>
-                  <div class="text-sm">
-                    |||||||||||||||||||||||||||||||||||||||
-                  </div>
-                  <div class="text-sm">|||||||||||||||||||||||||||||</div>
-                  <div class="text-sm">||||||||||||||||||</div>
-                  <div class="text-sm">|||||||||||</div>
-                </td>
-                <td
-                  class="px-6 py-4 whitespace-no-wrap border-b border-gray-200"
-                >
-                  <div class="text-sm leading-5 text-gray-900">56.535</div>
-                  <div class="text-sm leading-5 text-gray-900">46.535</div>
-                  <div class="text-sm leading-5 text-gray-900">36.535</div>
-                  <div class="text-sm leading-5 text-gray-900">26.535</div>
-                  <div class="text-sm leading-5 text-gray-900">16.535</div>
-                </td>
-                <td
-                  class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 text-sm leading-5 font-medium"
-                >
-                  <a href="#" class="text-indigo-600 hover:text-indigo-900"
-                    >more</a
-                  >
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
@@ -154,7 +97,186 @@
 
 <script>
 export default {
-  layout: 'mythicplus'
+  layout: 'mythicplus',
+  data() {
+    return {
+      dungeons: [
+        { name: 'All dungeons', pathName: 'mythicplus' },
+        { name: "Atal'Dazar", pathName: 'mythicplus-id', id: 2144 },
+        { name: 'Freehold', pathName: 'mythicplus-id', id: 2145 },
+        { name: "Kings'Rest", pathName: 'mythicplus-id', id: 2146 },
+        { name: 'Shrine of the Storm', pathName: 'mythicplus-id', id: 2147 },
+        { name: 'Siege of Boralus', pathName: 'mythicplus-id', id: 2148 },
+        { name: 'Temple of Sethraliss', pathName: 'mythicplus-id', id: 2149 },
+        { name: 'The MOTHERLODE!!', pathName: 'mythicplus-id', id: 2154 },
+        { name: 'The Underrot', pathName: 'mythicplus-id', id: 2164 },
+        { name: 'Tol Dagor', pathName: 'mythicplus-id', id: 2174 },
+        { name: 'Waycrest Manor', pathName: 'mythicplus-id', id: 2184 },
+        {
+          name: 'Operation: Mechagon - Junkyard',
+          pathName: 'mythicplus-id',
+          id: 2194
+        },
+        {
+          name: 'Operation: Mechagon - Workshop',
+          pathName: 'mythicplus-id',
+          id: 2104
+        }
+      ],
+      logs: [
+        {
+          dungeonName: 'Freehold',
+          affixes: ['explosive', 'teeming', 'fortified'],
+          duration: '34:59 +0:01',
+          deaths: 1,
+          playerDamage: [
+            {
+              player: 'terra',
+              class: 'paladin',
+              specc: 'retribution',
+              damage: 56123
+            },
+            {
+              player: 'xava',
+              class: 'hunter',
+              specc: 'beastmaster',
+              damage: 56123
+            },
+            {
+              player: 'micha',
+              class: 'monk',
+              specc: 'windwalker',
+              damage: 56123
+            },
+            {
+              player: 'holytank',
+              class: 'paladin',
+              specc: 'protection',
+              damage: 56123
+            },
+            {
+              player: 'tova',
+              class: 'druid',
+              specc: 'restoration',
+              damage: 56123
+            }
+          ]
+        },
+        {
+          dungeonName: 'Freehold',
+          affixes: ['explosive', 'teeming', 'fortified'],
+          duration: '34:59 +0:01',
+          deaths: 1,
+          playerDamage: [
+            {
+              player: 'terra',
+              damage: 56123
+            },
+            {
+              player: 'xava',
+              damage: 56123
+            },
+            {
+              player: 'micha',
+              damage: 56123
+            },
+            {
+              player: 'holytank',
+              damage: 56123
+            },
+            {
+              player: 'tova',
+              damage: 56123
+            }
+          ]
+        },
+        {
+          dungeonName: 'Freehold',
+          affixes: ['explosive', 'teeming', 'fortified'],
+          duration: '34:59 +0:01',
+          deaths: 1,
+          playerDamage: [
+            {
+              player: 'terra',
+              damage: 56123
+            },
+            {
+              player: 'xava',
+              damage: 56123
+            },
+            {
+              player: 'micha',
+              damage: 56123
+            },
+            {
+              player: 'holytank',
+              damage: 56123
+            },
+            {
+              player: 'tova',
+              damage: 56123
+            }
+          ]
+        },
+        {
+          dungeonName: 'Freehold',
+          affixes: ['explosive', 'teeming', 'fortified'],
+          duration: '34:59 +0:01',
+          deaths: 1,
+          playerDamage: [
+            {
+              player: 'terra',
+              damage: 56123
+            },
+            {
+              player: 'xava',
+              damage: 56123
+            },
+            {
+              player: 'micha',
+              damage: 56123
+            },
+            {
+              player: 'holytank',
+              damage: 56123
+            },
+            {
+              player: 'tova',
+              damage: 56123
+            }
+          ]
+        },
+        {
+          dungeonName: 'Freehold',
+          affixes: ['explosive', 'teeming', 'fortified'],
+          duration: '34:59 +0:01',
+          deaths: 1,
+          playerDamage: [
+            {
+              player: 'terra',
+              damage: 56123
+            },
+            {
+              player: 'xava',
+              damage: 56123
+            },
+            {
+              player: 'micha',
+              damage: 56123
+            },
+            {
+              player: 'holytank',
+              damage: 56123
+            },
+            {
+              player: 'tova',
+              damage: 56123
+            }
+          ]
+        }
+      ]
+    }
+  }
 }
 </script>
 
