@@ -34,7 +34,7 @@
           </div>
         </div>
         <div
-          class="mt-6 grid gap-16 border-t-2 border-gray-100 dark:border-gray-600 pt-10 lg:grid-cols-2 lg:col-gap-5 lg:row-gap-12"
+          class="mt-6 grid gap-16 border-t-2 border-gray-100 dark:border-gray-600 pt-10 lg:grid-cols-2 lg:gap-x-5 lg:gap-y-12"
         >
           <div v-for="article in articles" :key="article.title">
             <p class="text-sm leading-5 text-gray-500 dark:text-gray-400">
