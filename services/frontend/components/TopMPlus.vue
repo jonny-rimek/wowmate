@@ -106,9 +106,15 @@
                 <td
                   class="pr-4 sm:px-4 md:px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 dark:border-gray-500  text-sm leading-5 font-medium"
                 >
-                  <a href="#" class="text-2xl text-red-600 hover:text-red-800"
-                    >></a
+                  <nuxt-link
+                    :to="{
+                      name: 'mythicplus-log-id',
+                      params: { id: log.id }
+                    }"
+                    class="text-2xl text-red-600 hover:text-red-800"
                   >
+                    >
+                  </nuxt-link>
                 </td>
               </tr>
             </tbody>
