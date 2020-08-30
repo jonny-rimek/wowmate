@@ -24,17 +24,66 @@
         </a>
       </div>
       <div class="mt-8 md:mt-0 md:order-1">
-        <div class="flex">
-          <button @click="$colorMode.preference = 'system'">
-            <img class="px-1 cursor-pointer " src="system.svg" />
+        <div class="flex text-gray-600 dark:text-gray-400">
+          <button class="px-1" @click="$colorMode.preference = 'system'">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="feather feather-monitor"
+            >
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
           </button>
-          <button @click="$colorMode.preference = 'light'">
-            <img class="px-1 cursor-pointer " src="light.svg" />
+          <button class="px-1" @click="$colorMode.preference = 'light'">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="feather feather-sun"
+            >
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
           </button>
-          <button @click="$colorMode.preference = 'dark'">
-            <img class="px-1 cursor-pointer " src="dark.svg" />
+          <button class="px-1" @click="$colorMode.preference = 'dark'">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="feather feather-moon"
+            >
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
           </button>
-          <p class="px-1 dark:text-gray-300 text-gray-700">
+          <p class="px-1">
             Color mode: <b>{{ $colorMode.preference }}</b>
             <span v-if="$colorMode.preference === 'system'"
               >(<i>{{ $colorMode.value }}</i> mode detected)</span
