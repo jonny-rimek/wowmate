@@ -51,7 +51,7 @@ export default {
   data() {
     return {
       dungeons: [
-        { name: 'All dungeons', pathName: 'mythicplus-dungeon' },
+        { name: 'All Dungeons', pathName: 'mythicplus-dungeon' },
         { name: "Atal'Dazar", pathName: 'mythicplus-dungeon-id', id: 2144 },
         { name: 'Freehold', pathName: 'mythicplus-dungeon-id', id: 2145 },
         { name: "Kings'Rest", pathName: 'mythicplus-dungeon-id', id: 2146 },
