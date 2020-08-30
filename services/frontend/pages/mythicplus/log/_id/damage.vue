@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 w-full">
+  <div class="ml-4 p-4 w-full">
     <div class="pb-4 lg:pt-6 lg:flex lg:items-center lg:justify-between">
       <div class="flex-1 min-w-0">
         <div class="border-b border-gray-200 dark:border-gray-600">
@@ -28,7 +28,7 @@
 
                 <a
                   href="#"
-                  class="whitespace-no-wrap pb-4 px-1 border-b-2 border-transparent font-medium text-sm leading-5 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark-hover:text-gray-300 hover:border-gray-300 dark-hover:border-gray-600 focus:outline-none focus:text-gray-700 focus:border-gray-300"
+                  class="line-through whitespace-no-wrap pb-4 px-1 border-b-2 border-transparent font-medium text-sm leading-5 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark-hover:text-gray-300 hover:border-gray-300 dark-hover:border-gray-600 focus:outline-none focus:text-gray-700 focus:border-gray-300"
                 >
                   Healing
                 </a>

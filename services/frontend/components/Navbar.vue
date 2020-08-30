@@ -43,7 +43,7 @@
             <div class="hidden lg:ml-6 lg:flex">
               <NavbarLink
                 prefetch="true"
-                link="mythicplus-dungeon"
+                link="mythicplus"
                 class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5"
               >
                 Mythic+
