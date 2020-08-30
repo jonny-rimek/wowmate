@@ -1,5 +1,100 @@
 <template>
-  <div>
+  <div class="p-4 w-full">
+    <div class="pb-4 lg:pt-6 lg:flex lg:items-center lg:justify-between">
+      <div class="flex-1 min-w-0">
+        <div class="border-b border-gray-200 dark:border-gray-600">
+          <div class="sm:flex sm:items-baseline ">
+            <!-- class="space-y-4 sm:flex sm:items-baseline sm:space-y-0 sm:space-x-10" -->
+            <div></div>
+            <h3
+              class="text-lg lg:text-xl leading-6 font-medium text-gray-900 dark:text-gray-200"
+            >
+              Temple of Sethralis
+              <span
+                class="text-base lg:text-lg pr-3 lg:pr-6 dark:text-gray-400 text-gray-600"
+              >
+                +23*
+              </span>
+            </h3>
+            <div>
+              <nav class="-mb-px flex space-x-8">
+                <a
+                  href="#"
+                  class="whitespace-no-wrap pb-4 px-1 border-b-2 border-red-600 font-medium text-sm leading-5 text-red-600 focus:outline-none focus:text-indigo-800 focus:border-indigo-700"
+                  aria-current="page"
+                >
+                  Damage
+                </a>
+
+                <a
+                  href="#"
+                  class="whitespace-no-wrap pb-4 px-1 border-b-2 border-transparent font-medium text-sm leading-5 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark-hover:text-gray-300 hover:border-gray-300 dark-hover:border-gray-600 focus:outline-none focus:text-gray-700 focus:border-gray-300"
+                >
+                  Healing
+                </a>
+              </nav>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap">
+          <div
+            class="mt-2 flex items-center text-sm leading-5 dark:text-gray-400 sm:mr-6"
+          >
+            <svg
+              class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z"
+                clip-rule="evenodd"
+              />
+              <path
+                d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"
+              />
+            </svg>
+            explosive, teeming, fortified
+          </div>
+          <div
+            class="mt-2 flex items-center text-sm leading-5 text-gray-400 sm:mr-6"
+          >
+            <svg
+              class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            34:59 +0:01
+          </div>
+          <div
+            class="mt-2 flex items-center text-sm leading-5 text-gray-400 sm:mr-6"
+          >
+            <svg
+              class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"
+              />
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            1 death
+          </div>
+        </div>
+      </div>
+    </div>
     view for a specific log
   </div>
 </template>

@@ -5,7 +5,7 @@
     >
       <div class="flex-1 min-w-0">
         <h2
-          class="text-l font-bold leading-7 text-gray-900 dark:text-gray-200 sm:text-2xl sm:leading-9 sm:truncate"
+          class="text-xl font-bold leading-7 text-gray-900 dark:text-gray-200 sm:text-2xl sm:leading-9 sm:truncate"
         >
           <!-- TODO: dynamic depending on page -->
           {{ title }}
