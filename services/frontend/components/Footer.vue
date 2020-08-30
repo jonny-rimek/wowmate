@@ -25,21 +25,15 @@
       </div>
       <div class="mt-8 md:mt-0 md:order-1">
         <div class="flex">
-          <img
-            class="px-1 cursor-pointer "
-            src="system.svg"
-            @click="$colorMode.preference = 'system'"
-          />
-          <img
-            class="px-1 cursor-pointer "
-            src="light.svg"
-            @click="$colorMode.preference = 'light'"
-          />
-          <img
-            class="px-1 cursor-pointer "
-            src="dark.svg"
-            @click="$colorMode.preference = 'dark'"
-          />
+          <button @click="$colorMode.preference = 'system'">
+            <img class="px-1 cursor-pointer " src="system.svg" />
+          </button>
+          <button @click="$colorMode.preference = 'light'">
+            <img class="px-1 cursor-pointer " src="light.svg" />
+          </button>
+          <button @click="$colorMode.preference = 'dark'">
+            <img class="px-1 cursor-pointer " src="dark.svg" />
+          </button>
           <p class="px-1 dark:text-gray-300 text-gray-700">
             Color mode: <b>{{ $colorMode.preference }}</b>
             <span v-if="$colorMode.preference === 'system'"

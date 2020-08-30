@@ -137,9 +137,11 @@
                   </div>
                 </td>
                 <td
-                  class="px-2 md:px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 dark:border-gray-500  text-sm leading-5 font-medium"
+                  class="pr-4 sm:px-4 md:px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 dark:border-gray-500  text-sm leading-5 font-medium"
                 >
-                  <a href="#" class="text-red-600 hover:text-red-800">more</a>
+                  <a href="#" class="text-2xl text-red-600 hover:text-red-800"
+                    >></a
+                  >
                 </td>
               </tr>
             </tbody>
