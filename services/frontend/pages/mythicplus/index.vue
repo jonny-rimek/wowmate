@@ -1,5 +1,17 @@
 <template>
   <div class="min-w-full sm:min-w-0 max-w-7xl mx-auto sm:px-6 lg:px-8 sm:pt-5">
+    <div
+      class="lg:hidden md:flex md:items-center md:justify-between pt-4 lg:pt-8 lg:pb-6 pl-4 lg:pl-0"
+    >
+      <div class="flex-1 min-w-0">
+        <h2
+          class="text-l font-bold leading-7 text-gray-900 dark:text-gray-200 sm:text-2xl sm:leading-9 sm:truncate"
+        >
+          <!-- TODO: dynamic depending on page -->
+          All dungeons
+        </h2>
+      </div>
+    </div>
     <div class="flex flex-col">
       <div class="my-2 py-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <div
@@ -21,7 +33,12 @@
                 <th
                   class="px-2 md:px-6 py-3 border-b border-gray-200 dark:border-gray-500  bg-gray-100 dark:bg-gray-700  text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                 >
-                  Damage
+                  <span class="hidden sm:inline">
+                    Overall Damage
+                  </span>
+                  <span class="sm:hidden">
+                    Damage
+                  </span>
                 </th>
                 <th
                   class="px-2 md:px-6 py-3 border-b border-gray-200 dark:border-gray-500  bg-gray-100 dark:bg-gray-700 "
@@ -29,7 +46,7 @@
               </tr>
             </thead>
             <tbody class="dark:bg-gray-700">
-              <tr>
+              <tr v-for="log in logs" :key="log.id">
                 <td
                   class="px-4 md:px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-500 "
                 >
@@ -39,10 +56,10 @@
                         class="text-sm leading-5 font-medium text-gray-900 dark:text-gray-200"
                       >
                         <span class="sm:hidden">
-                          ToS
+                          {{ log.dungeonShort }}
                         </span>
                         <span class="hidden sm:inline">
-                          Tempel of Sethraliss
+                          {{ log.dungeonName }}
                         </span>
                         <span class="text-gray-500">+23*</span>
                       </div>
@@ -50,8 +67,8 @@
                         class="text-sm leading-5 text-gray-500 dark:text-gray-400"
                       >
                         <div>affixes:</div>
-                        <div>34:23 +3:12</div>
-                        <div>4 deaths</div>
+                        <div>{{ log.duration }}</div>
+                        <div>{{ log.deaths }} death</div>
                       </div>
                     </div>
                   </div>
@@ -60,79 +77,27 @@
                   class="px-2 md:px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-500 "
                 >
                   <div
-                    class="text-sm leading-5 text-gray-900 dark:text-gray-200"
+                    v-for="player in log.player"
+                    :key="player.id"
+                    class="text-sm capitalize leading-5 text-gray-900 dark:text-gray-200"
                   >
-                    Terra
-                  </div>
-                  <div
-                    class="text-sm leading-5 text-gray-900 dark:text-gray-200"
-                  >
-                    Xava
-                  </div>
-                  <div
-                    class="text-sm leading-5 text-gray-900 dark:text-gray-200"
-                  >
-                    Micha
-                  </div>
-                  <div
-                    class="text-sm leading-5 text-gray-900 dark:text-gray-200"
-                  >
-                    Holytank
-                  </div>
-                  <div
-                    class="text-sm leading-5 text-gray-900 dark:text-gray-200"
-                  >
-                    Tova
+                    {{ player.name }}
                   </div>
                 </td>
                 <td
                   class="px-2 md:px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-500 "
                 >
-                  <div class="block overflow-hidden text-sm dark:text-gray-400">
+                  <div
+                    v-for="player in log.player"
+                    :key="player.id"
+                    class="block overflow-hidden text-sm dark:text-gray-400"
+                  >
                     <span class="hidden sm:inline">
-                      ||||||||||||||||||||||||||||||||||||||||||||||
+                      {{ player.damageGraph }}
                     </span>
                     <span
                       class="text-sm sm:float-right sm:pl-2 leading-5 text-gray-900 dark:text-gray-200"
-                      >56.535</span
-                    >
-                  </div>
-                  <div class="block overflow-hidden text-sm dark:text-gray-400">
-                    <span class="hidden sm:inline">
-                      |||||||||||||||||||||||||||||||||||||||
-                    </span>
-                    <span
-                      class="text-sm sm:float-right sm:pl-2 leading-5 text-gray-900 dark:text-gray-200"
-                      >46.535</span
-                    >
-                  </div>
-                  <div class="block overflow-hidden text-sm dark:text-gray-400">
-                    <span class="hidden sm:inline">
-                      |||||||||||||||||||||||||||||
-                    </span>
-
-                    <span
-                      class="text-sm sm:float-right sm:pl-2 leading-5 text-gray-900 dark:text-gray-200"
-                      >36.535</span
-                    >
-                  </div>
-                  <div class="block overflow-hidden text-sm dark:text-gray-400">
-                    <span class="hidden sm:inline">
-                      ||||||||||||||||||
-                    </span>
-
-                    <span
-                      class="text-sm sm:float-right sm:pl-2 leading-5 text-gray-900 dark:text-gray-200"
-                      >26.535</span
-                    >
-                  </div>
-                  <div class="block overflow-hidden text-sm dark:text-gray-400">
-                    <span class="hidden sm:inline">
-                      |||||||||||
-                    </span>
-                    <span
-                      class="text-sm sm:float-right sm:pl-2 leading-5 text-gray-900 dark:text-gray-200"
-                      >16.535</span
+                      >{{ player.damage }}</span
                     >
                   </div>
                 </td>
@@ -184,155 +149,100 @@ export default {
         {
           id: 1,
           dungeonName: 'Freehold',
+          dungeonShort: 'FH',
           affixes: ['explosive', 'teeming', 'fortified'],
           duration: '34:59 +0:01',
           deaths: 1,
-          playerDamage: [
+          player: [
             {
-              player: 'terra',
+              playerId: 1,
+              name: 'terra',
               class: 'paladin',
               specc: 'retribution',
-              damage: 56123
+              damage: 56123,
+              damageGraph: '||||||||||||||||||||||||||||||||||||||||||||||'
             },
             {
-              player: 'xava',
+              playerId: 2,
+              name: 'xava',
               class: 'hunter',
               specc: 'beastmaster',
-              damage: 56123
+              damageGraph: '|||||||||||||||||||||||||||||||||||||||',
+              damage: 46123
             },
             {
-              player: 'micha',
+              playerId: 3,
+              name: 'micha',
               class: 'monk',
               specc: 'windwalker',
-              damage: 56123
+              damageGraph: '|||||||||||||||||||||||||||||||',
+              damage: 36123
             },
             {
-              player: 'holytank',
+              playerId: 4,
+              name: 'holytank',
               class: 'paladin',
               specc: 'protection',
-              damage: 56123
+              damageGraph: '|||||||||||||||||',
+              damage: 26123
             },
             {
-              player: 'tova',
+              playerId: 5,
+              name: 'tova',
               class: 'druid',
               specc: 'restoration',
-              damage: 56123
+              damageGraph: '|||||||',
+              damage: 16123
             }
           ]
         },
         {
-          id: 2,
-          dungeonName: 'Freehold',
+          id: 1,
+          dungeonName: 'Template of Sethralis',
+          dungeonShort: 'ToS',
           affixes: ['explosive', 'teeming', 'fortified'],
           duration: '34:59 +0:01',
           deaths: 1,
-          playerDamage: [
+          player: [
             {
-              player: 'terra',
-              damage: 56123
+              playerId: 1,
+              name: 'terra',
+              class: 'paladin',
+              specc: 'retribution',
+              damage: 56123,
+              damageGraph: '||||||||||||||||||||||||||||||||||||||||||||||'
             },
             {
-              player: 'xava',
-              damage: 56123
+              playerId: 2,
+              name: 'xava',
+              class: 'hunter',
+              specc: 'beastmaster',
+              damageGraph: '|||||||||||||||||||||||||||||||||||||||',
+              damage: 46123
             },
             {
-              player: 'micha',
-              damage: 56123
+              playerId: 3,
+              name: 'micha',
+              class: 'monk',
+              specc: 'windwalker',
+              damageGraph: '|||||||||||||||||||||||||||||||',
+              damage: 36123
             },
             {
-              player: 'holytank',
-              damage: 56123
+              playerId: 4,
+              name: 'holytank',
+              class: 'paladin',
+              specc: 'protection',
+              damageGraph: '|||||||||||||||||',
+              damage: 26123
             },
             {
-              player: 'tova',
-              damage: 56123
-            }
-          ]
-        },
-        {
-          id: 3,
-          dungeonName: 'Freehold',
-          affixes: ['explosive', 'teeming', 'fortified'],
-          duration: '34:59 +0:01',
-          deaths: 1,
-          playerDamage: [
-            {
-              player: 'terra',
-              damage: 56123
-            },
-            {
-              player: 'xava',
-              damage: 56123
-            },
-            {
-              player: 'micha',
-              damage: 56123
-            },
-            {
-              player: 'holytank',
-              damage: 56123
-            },
-            {
-              player: 'tova',
-              damage: 56123
-            }
-          ]
-        },
-        {
-          id: 4,
-          dungeonName: 'Freehold',
-          affixes: ['explosive', 'teeming', 'fortified'],
-          duration: '34:59 +0:01',
-          deaths: 1,
-          playerDamage: [
-            {
-              player: 'terra',
-              damage: 56123
-            },
-            {
-              player: 'xava',
-              damage: 56123
-            },
-            {
-              player: 'micha',
-              damage: 56123
-            },
-            {
-              player: 'holytank',
-              damage: 56123
-            },
-            {
-              player: 'tova',
-              damage: 56123
-            }
-          ]
-        },
-        {
-          id: 5,
-          dungeonName: 'Freehold',
-          affixes: ['explosive', 'teeming', 'fortified'],
-          duration: '34:59 +0:01',
-          deaths: 1,
-          playerDamage: [
-            {
-              player: 'terra',
-              damage: 56123
-            },
-            {
-              player: 'xava',
-              damage: 56123
-            },
-            {
-              player: 'micha',
-              damage: 56123
-            },
-            {
-              player: 'holytank',
-              damage: 56123
-            },
-            {
-              player: 'tova',
-              damage: 56123
+              playerId: 5,
+              name: 'tova',
+              class: 'druid',
+              specc: 'restoration',
+              damageGraph: '|||||||',
+              damage: 16123
             }
           ]
         }
