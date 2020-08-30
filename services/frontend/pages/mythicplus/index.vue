@@ -1,46 +1,54 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+  <div class="min-w-full sm:min-w-0 max-w-7xl mx-auto sm:px-6 lg:px-8 sm:pt-5">
     <div class="flex flex-col">
-      <div class="-my-2 py-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div class="my-2 py-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <div
-          class="align-middle inline-block min-w-full shadow overflow-hidden sm:rounded-lg border-b border-gray-200"
+          class="align-middle inline-block min-w-full shadow overflow-hidden sm:rounded-lg border-b border-gray-200 dark:border-gray-500 "
         >
           <table class="min-w-full">
             <thead>
               <tr>
                 <th
-                  class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-4 md:px-6 py-3 border-b border-gray-200  dark:border-gray-500 bg-gray-100 dark:bg-gray-700 text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                 >
                   Dungeon
                 </th>
                 <th
-                  class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-2 md:px-6 py-3 border-b border-gray-200 dark:border-gray-500  bg-gray-100 dark:bg-gray-700  text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                 >
                   Name
                 </th>
                 <th
-                  class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"
-                ></th>
-                <th
-                  class="px-6 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-2 md:px-6 py-3 border-b border-gray-200 dark:border-gray-500  bg-gray-100 dark:bg-gray-700  text-left text-xs leading-4 font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                 >
                   Damage
                 </th>
-                <th class="px-6 py-3 border-b border-gray-200 bg-gray-50"></th>
+                <th
+                  class="px-2 md:px-6 py-3 border-b border-gray-200 dark:border-gray-500  bg-gray-100 dark:bg-gray-700 "
+                ></th>
               </tr>
             </thead>
-            <tbody class="bg-white">
+            <tbody class="dark:bg-gray-700">
               <tr>
                 <td
-                  class="px-6 py-4 whitespace-no-wrap border-b border-gray-200"
+                  class="px-4 md:px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-500 "
                 >
                   <div class="flex items-center">
-                    <div class="ml-4">
-                      <div class="text-sm leading-5 font-medium text-gray-900">
-                        Tempel of Sethraliss
+                    <div class="">
+                      <div
+                        class="text-sm leading-5 font-medium text-gray-900 dark:text-gray-200"
+                      >
+                        <span class="sm:hidden">
+                          ToS
+                        </span>
+                        <span class="hidden sm:inline">
+                          Tempel of Sethraliss
+                        </span>
                         <span class="text-gray-500">+23*</span>
                       </div>
-                      <div class="text-sm leading-5 text-gray-500">
+                      <div
+                        class="text-sm leading-5 text-gray-500 dark:text-gray-400"
+                      >
                         <div>affixes:</div>
                         <div>34:23 +3:12</div>
                         <div>4 deaths</div>
@@ -49,42 +57,89 @@
                   </div>
                 </td>
                 <td
-                  class="px-6 py-4 whitespace-no-wrap border-b border-gray-200"
+                  class="px-2 md:px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-500 "
                 >
-                  <div class="text-sm leading-5 text-gray-900">Terra</div>
-                  <div class="text-sm leading-5 text-gray-900">Xava</div>
-                  <div class="text-sm leading-5 text-gray-900">Micha</div>
-                  <div class="text-sm leading-5 text-gray-900">Holytank</div>
-                  <div class="text-sm leading-5 text-gray-900">Tova</div>
-                </td>
-                <td
-                  class="px-6 py-4 whitespace-no-wrap border-b border-gray-200"
-                >
-                  <div class="text-sm">
-                    ||||||||||||||||||||||||||||||||||||||||||||||
-                  </div>
-                  <div class="text-sm">
-                    |||||||||||||||||||||||||||||||||||||||
-                  </div>
-                  <div class="text-sm">|||||||||||||||||||||||||||||</div>
-                  <div class="text-sm">||||||||||||||||||</div>
-                  <div class="text-sm">|||||||||||</div>
-                </td>
-                <td
-                  class="px-6 py-4 whitespace-no-wrap border-b border-gray-200"
-                >
-                  <div class="text-sm leading-5 text-gray-900">56.535</div>
-                  <div class="text-sm leading-5 text-gray-900">46.535</div>
-                  <div class="text-sm leading-5 text-gray-900">36.535</div>
-                  <div class="text-sm leading-5 text-gray-900">26.535</div>
-                  <div class="text-sm leading-5 text-gray-900">16.535</div>
-                </td>
-                <td
-                  class="px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 text-sm leading-5 font-medium"
-                >
-                  <a href="#" class="text-indigo-600 hover:text-indigo-900"
-                    >more</a
+                  <div
+                    class="text-sm leading-5 text-gray-900 dark:text-gray-200"
                   >
+                    Terra
+                  </div>
+                  <div
+                    class="text-sm leading-5 text-gray-900 dark:text-gray-200"
+                  >
+                    Xava
+                  </div>
+                  <div
+                    class="text-sm leading-5 text-gray-900 dark:text-gray-200"
+                  >
+                    Micha
+                  </div>
+                  <div
+                    class="text-sm leading-5 text-gray-900 dark:text-gray-200"
+                  >
+                    Holytank
+                  </div>
+                  <div
+                    class="text-sm leading-5 text-gray-900 dark:text-gray-200"
+                  >
+                    Tova
+                  </div>
+                </td>
+                <td
+                  class="px-2 md:px-6 py-4 whitespace-no-wrap border-b border-gray-200 dark:border-gray-500 "
+                >
+                  <div class="block overflow-hidden text-sm dark:text-gray-400">
+                    <span class="hidden sm:inline">
+                      ||||||||||||||||||||||||||||||||||||||||||||||
+                    </span>
+                    <span
+                      class="text-sm sm:float-right sm:pl-2 leading-5 text-gray-900 dark:text-gray-200"
+                      >56.535</span
+                    >
+                  </div>
+                  <div class="block overflow-hidden text-sm dark:text-gray-400">
+                    <span class="hidden sm:inline">
+                      |||||||||||||||||||||||||||||||||||||||
+                    </span>
+                    <span
+                      class="text-sm sm:float-right sm:pl-2 leading-5 text-gray-900 dark:text-gray-200"
+                      >46.535</span
+                    >
+                  </div>
+                  <div class="block overflow-hidden text-sm dark:text-gray-400">
+                    <span class="hidden sm:inline">
+                      |||||||||||||||||||||||||||||
+                    </span>
+
+                    <span
+                      class="text-sm sm:float-right sm:pl-2 leading-5 text-gray-900 dark:text-gray-200"
+                      >36.535</span
+                    >
+                  </div>
+                  <div class="block overflow-hidden text-sm dark:text-gray-400">
+                    <span class="hidden sm:inline">
+                      ||||||||||||||||||
+                    </span>
+
+                    <span
+                      class="text-sm sm:float-right sm:pl-2 leading-5 text-gray-900 dark:text-gray-200"
+                      >26.535</span
+                    >
+                  </div>
+                  <div class="block overflow-hidden text-sm dark:text-gray-400">
+                    <span class="hidden sm:inline">
+                      |||||||||||
+                    </span>
+                    <span
+                      class="text-sm sm:float-right sm:pl-2 leading-5 text-gray-900 dark:text-gray-200"
+                      >16.535</span
+                    >
+                  </div>
+                </td>
+                <td
+                  class="px-2 md:px-6 py-4 whitespace-no-wrap text-right border-b border-gray-200 dark:border-gray-500  text-sm leading-5 font-medium"
+                >
+                  <a href="#" class="text-red-600 hover:text-red-800">more</a>
                 </td>
               </tr>
             </tbody>
@@ -125,6 +180,7 @@ export default {
       ],
       logs: [
         {
+          id: 1,
           dungeonName: 'Freehold',
           affixes: ['explosive', 'teeming', 'fortified'],
           duration: '34:59 +0:01',
@@ -163,6 +219,7 @@ export default {
           ]
         },
         {
+          id: 2,
           dungeonName: 'Freehold',
           affixes: ['explosive', 'teeming', 'fortified'],
           duration: '34:59 +0:01',
@@ -191,6 +248,7 @@ export default {
           ]
         },
         {
+          id: 3,
           dungeonName: 'Freehold',
           affixes: ['explosive', 'teeming', 'fortified'],
           duration: '34:59 +0:01',
@@ -219,6 +277,7 @@ export default {
           ]
         },
         {
+          id: 4,
           dungeonName: 'Freehold',
           affixes: ['explosive', 'teeming', 'fortified'],
           duration: '34:59 +0:01',
@@ -247,6 +306,7 @@ export default {
           ]
         },
         {
+          id: 5,
           dungeonName: 'Freehold',
           affixes: ['explosive', 'teeming', 'fortified'],
           duration: '34:59 +0:01',
