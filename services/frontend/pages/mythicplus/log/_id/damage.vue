@@ -1,6 +1,6 @@
 <template>
-  <div class="ml-4 p-4 w-full">
-    <div class="pb-4 lg:pt-6 lg:flex lg:items-center lg:justify-between">
+  <div class="sm:ml-4 pt-2 sm:p-4 w-full">
+    <div class="p-2 pb-4 lg:pt-6 lg:flex lg:items-center lg:justify-between">
       <div class="flex-1 min-w-0">
         <div class="border-b border-gray-200 dark:border-gray-600">
           <div class="sm:flex sm:items-baseline ">
@@ -37,12 +37,12 @@
           </div>
         </div>
 
-        <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap">
-          <div
-            class="mt-2 flex items-center text-sm leading-5 dark:text-gray-400 sm:mr-6"
-          >
+        <div
+          class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap text-gray-500 dark:text-gray-400"
+        >
+          <div class="mt-2 flex items-center text-sm leading-5 sm:mr-6">
             <svg
-              class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+              class="flex-shrink-0 mr-1.5 h-5 w-5 "
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -57,11 +57,9 @@
             </svg>
             explosive, teeming, fortified
           </div>
-          <div
-            class="mt-2 flex items-center text-sm leading-5 text-gray-400 sm:mr-6"
-          >
+          <div class="mt-2 flex items-center text-sm leading-5 sm:mr-6">
             <svg
-              class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+              class="flex-shrink-0 mr-1.5 h-5 w-5 "
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -73,11 +71,9 @@
             </svg>
             34:59 +0:01
           </div>
-          <div
-            class="mt-2 flex items-center text-sm leading-5 text-gray-400 sm:mr-6"
-          >
+          <div class="mt-2 flex items-center text-sm leading-5 sm:mr-6">
             <svg
-              class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
+              class="flex-shrink-0 mr-1.5 h-5 w-5 "
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -95,7 +91,63 @@
         </div>
       </div>
     </div>
-    view for a specific log
+    <div class="flex flex-col">
+      <div class="overflow-x-auto">
+        <div
+          class="py-2 lg:py-4 align-middle inline-block min-w-full sm:px-8 lg:px-2"
+        >
+          <div
+            class="shadow overflow-hidden border-b border-gray-200 dark:border-gray-500 sm:rounded-lg"
+          >
+            <table class="dark:bg-gray-700 min-w-full divide-y">
+              <thead class="text-gray-500 dark:text-gray-300">
+                <tr>
+                  <th
+                    class="px-2 sm:px-6 py-3 text-left text-xs leading-4 font-medium uppercase tracking-wider"
+                  >
+                    Name
+                  </th>
+                  <th
+                    class="px-2 sm:px-6 py-3 text-left text-xs leading-4 font-medium uppercase tracking-wider"
+                  >
+                    Damage
+                  </th>
+                  <th class="px-2 sm:px-6 py-3"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y dark:border-gray-500 ">
+                <tr
+                  class="dark:border-gray-500 "
+                  v-for="player in logs[0].players"
+                  :key="player.id"
+                >
+                  <td
+                    class="px-2 sm:px-6 py-4 whitespace-no-wrap text-sm capitalize leading-5 font-medium text-gray-900 dark:text-gray-200 "
+                  >
+                    {{ player.name }}
+                  </td>
+                  <td
+                    class="sm:px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-500 dark:text-gray-400"
+                  >
+                    {{ player.damageGraph }}
+                    <span class="text-gray-900 dark:text-gray-200 float-right">
+                      {{ player.damage }}</span
+                    >
+                  </td>
+                  <td
+                    class="px-2 sm:px-6 pr-4 py-4 whitespace-no-wrap text-right text-sm leading-5 font-medium"
+                  >
+                    <a href="#" class="text-red-600 hover:text-red-800">v</a>
+                  </td>
+                </tr>
+
+                <!-- More rows... -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -113,9 +165,9 @@ export default {
           affixes: 'explosive, teeming, fortified',
           duration: '34:59 +0:01',
           deaths: 1,
-          player: [
+          players: [
             {
-              playerId: 1,
+              id: 1,
               name: 'terra',
               class: 'paladin',
               specc: 'retribution',
@@ -123,7 +175,7 @@ export default {
               damageGraph: '||||||||||||||||||||||||||||||||||||||||||||||'
             },
             {
-              playerId: 2,
+              id: 2,
               name: 'xava',
               class: 'hunter',
               specc: 'beastmaster',
@@ -131,7 +183,7 @@ export default {
               damage: 46123
             },
             {
-              playerId: 3,
+              id: 3,
               name: 'micha',
               class: 'monk',
               specc: 'windwalker',
@@ -139,7 +191,7 @@ export default {
               damage: 36123
             },
             {
-              playerId: 4,
+              id: 4,
               name: 'holytank',
               class: 'paladin',
               specc: 'protection',
@@ -147,7 +199,7 @@ export default {
               damage: 26123
             },
             {
-              playerId: 5,
+              id: 5,
               name: 'tova',
               class: 'druid',
               specc: 'restoration',
