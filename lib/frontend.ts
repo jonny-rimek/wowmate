@@ -55,6 +55,16 @@ export class Frontend extends cdk.Construct {
 				},
 				{
 					customOriginSource: {
+						domainName: 'presign.wowmate.io',
+					},
+					behaviors: [{
+						pathPattern: '/presign',
+						compress: true,
+						allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
+					}],
+				},
+				{
+					customOriginSource: {
 						domainName: bucket.bucketWebsiteDomainName,
 						originProtocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
 					},
@@ -71,7 +81,7 @@ export class Frontend extends cdk.Construct {
 				acmCertRef: cert.certificateArn,
 				sslMethod: SSLMethod.SNI,
 				securityPolicy: SecurityPolicyProtocol.TLS_V1_2_2018,
-			}
+			},
 		});
 
 		new s3deploy.BucketDeployment(this, 'DeployWebsite', {

@@ -84,7 +84,8 @@ export class Presign extends cdk.Construct {
 				allowOrigins: apigateway.Cors.ALL_ORIGINS,
 			}
 		});
-		api.root.addMethod('POST');
+		const presign = api.root.addResource('presign');
+		presign.addMethod('POST');
 
 		//NOTE: does it make sense to an aaaa record?
 		new route53.ARecord(this, 'CustomDomainAliasRecord', {
