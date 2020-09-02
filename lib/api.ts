@@ -9,6 +9,7 @@ import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import s3 = require('@aws-cdk/aws-s3');
+import iam = require('@aws-cdk/aws-iam');
 
 export class Api extends cdk.Construct {
 	public readonly vpc: ec2.Vpc;
@@ -24,6 +25,18 @@ export class Api extends cdk.Construct {
 			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 		})
 		this.bucket = csvBucket
+
+		const role = new iam.Role(this, "Role", {
+		assumedBy: new iam.ServicePrincipal("rds.amazonaws.com"), // required
+		});
+
+		role.addToPolicy(
+			new iam.PolicyStatement({
+				effect: iam.Effect.ALLOW,
+				resources: [csvBucket.bucketArn, `${csvBucket.bucketArn}/*`],
+				actions: ["s3:GetObject", "s3:ListBucket"],
+			})
+		);
 
 		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
 			natGateways: 1,
