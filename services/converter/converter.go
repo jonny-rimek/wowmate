@@ -97,10 +97,9 @@ type Request struct {
 func main() {
 	queueURL := os.Getenv("QUEUE_URL")
 	csvBucket := os.Getenv("CSV_BUCKET_NAME")
-	log.Println(queueURL)
 
 	for {
-		time.Sleep(time.Duration(10) * time.Second)
+		time.Sleep(time.Duration(2) * time.Second)
 
 		sess, _ := session.NewSession()
 		//TODO: check and handle error
@@ -112,6 +111,7 @@ func main() {
 
 		//TODO: process all results
 		if len(msgResult.Messages) > 0 {
+			log.Println("got a message")
 			body := *msgResult.Messages[0].Body
 			log.Println(body)
 
@@ -139,6 +139,7 @@ func main() {
 				// fmt.Printf("Unable to download item %v from bucket %v: %v", key, bucket, err)
 				return
 			}
+			log.Println("downloaded from s3")
 
 			uploader := s3manager.NewUploader(sess)
 			result, err := uploader.Upload(&s3manager.UploadInput{
@@ -150,13 +151,14 @@ func main() {
 				log.Println("Failed to upload to S3: " + err.Error())
 				return
 			}
-
 			log.Println("Upload finished! location: " + result.Location)
 
 			_, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
 				QueueUrl:      aws.String(queueURL),
 				ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
 			})
+			log.Println("message deleted")
+
 
 			if err != nil {
 				log.Println("delete failed")
