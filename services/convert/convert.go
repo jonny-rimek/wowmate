@@ -144,14 +144,14 @@ func main() {
 			log.Printf("failed to parse int: %v", err)
 			return
 		}
-		tm1 := time.Unix(i, 0)
+		tm1 := time.Unix(0, i*int64(1000000))
 		fmt.Println(tm1)
-		
+
 		ii, err := strconv.ParseInt(*msgResult.Messages[0].Attributes["SentTimestamp"], 10, 64)
 		if err != nil {
 			panic(err)
 		}
-		tm2 := time.Unix(ii, 0)
+		tm2 := time.Unix(0, ii*int64(1000000))
 		fmt.Println(tm2)
 
 		body := *msgResult.Messages[0].Body
