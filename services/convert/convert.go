@@ -59,36 +59,36 @@ import (
 
 type Request struct {
 	Records []struct {
-		EventVersion string    `json:"eventVersion"`
-		EventSource  string    `json:"eventSource"`
-		AwsRegion    string    `json:"awsRegion"`
-		EventTime    time.Time `json:"eventTime"`
-		EventName    string    `json:"eventName"`
-		UserIdentity struct {
-			PrincipalID string `json:"principalId"`
-		} `json:"userIdentity"`
-		RequestParameters struct {
-			SourceIPAddress string `json:"sourceIPAddress"`
-		} `json:"requestParameters"`
-		ResponseElements struct {
-			XAmzRequestID string `json:"x-amz-request-id"`
-			XAmzID2       string `json:"x-amz-id-2"`
-		} `json:"responseElements"`
+		// EventVersion string    `json:"eventVersion"`
+		// EventSource  string    `json:"eventSource"`
+		// AwsRegion    string    `json:"awsRegion"`
+		// EventTime    time.Time `json:"eventTime"`
+		// EventName    string    `json:"eventName"`
+		// UserIdentity struct {
+		// 	PrincipalID string `json:"principalId"`
+		// } `json:"userIdentity"`
+		// RequestParameters struct {
+		// 	SourceIPAddress string `json:"sourceIPAddress"`
+		// } `json:"requestParameters"`
+		// ResponseElements struct {
+		// 	XAmzRequestID string `json:"x-amz-request-id"`
+		// 	XAmzID2       string `json:"x-amz-id-2"`
+		// } `json:"responseElements"`
 		S3 struct {
-			S3SchemaVersion string `json:"s3SchemaVersion"`
-			ConfigurationID string `json:"configurationId"`
-			Bucket          struct {
-				Name          string `json:"name"`
-				OwnerIdentity struct {
-					PrincipalID string `json:"principalId"`
-				} `json:"ownerIdentity"`
-				Arn string `json:"arn"`
+			// S3SchemaVersion string `json:"s3SchemaVersion"`
+			// ConfigurationID string `json:"configurationId"`
+			Bucket struct {
+				Name string `json:"name"`
+				// OwnerIdentity struct {
+				// 	PrincipalID string `json:"principalId"`
+				// } `json:"ownerIdentity"`
+				// Arn string `json:"arn"`
 			} `json:"bucket"`
 			Object struct {
-				Key       string `json:"key"`
-				Size      int    `json:"size"`
-				ETag      string `json:"eTag"`
-				Sequencer string `json:"sequencer"`
+				Key string `json:"key"`
+				// Size      int    `json:"size"`
+				// ETag      string `json:"eTag"`
+				// Sequencer string `json:"sequencer"`
 			} `json:"object"`
 		} `json:"s3"`
 	} `json:"Records"`
@@ -123,7 +123,7 @@ func main() {
 		})
 		if err != nil {
 			log.Printf("Failed recieve message: %v", err)
-			return
+			continue
 		}
 
 		if len(msgResult.Messages) == 0 {
@@ -137,7 +137,7 @@ func main() {
 			i, err := strconv.ParseInt(*msg.Attributes["ApproximateFirstReceiveTimestamp"], 10, 64)
 			if err != nil {
 				log.Printf("Failed to parse int: %v", err)
-				return
+				continue
 			}
 			tm1 := time.Unix(0, i*int64(1000000))
 
@@ -154,8 +154,8 @@ func main() {
 			req := Request{}
 			err = json.Unmarshal([]byte(body), &req)
 			if err != nil {
-				log.Println("Failed Unmarshal")
-				return
+				log.Printf("Failed Unmarshal: %v", err.Error())
+				continue
 			}
 
 			downloader := s3manager.NewDownloader(sess)
@@ -164,7 +164,7 @@ func main() {
 
 			if len(req.Records) > 1 {
 				log.Printf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
-				return
+				continue
 			}
 
 			_, err = downloader.Download(
@@ -176,7 +176,7 @@ func main() {
 			)
 			if err != nil {
 				log.Printf("Failed to download item from bucket")
-				return
+				continue
 			}
 			log.Println("downloaded from s3")
 
@@ -189,7 +189,7 @@ func main() {
 			})
 			if err != nil {
 				log.Println("Failed to upload to S3: " + err.Error())
-				return
+				continue
 			}
 			log.Println("Upload finished! location: " + result.Location)
 

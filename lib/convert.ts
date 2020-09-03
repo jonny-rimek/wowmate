@@ -25,7 +25,7 @@ export class Convert extends cdk.Construct {
 				queue: dlq,
 				maxReceiveCount: 3,
 			},
-			visibilityTimeout: cdk.Duration.minutes(5)
+			visibilityTimeout: cdk.Duration.minutes(2)
 		});
 
 		const queueFargate = new ecsPatterns.QueueProcessingFargateService(this, 'Service', {
