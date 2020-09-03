@@ -104,14 +104,16 @@ func main() {
 
 	for {
 		time.Sleep(time.Duration(2) * time.Second)
-		log.Println("check for new message")
 
-		msgResult, _ := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
+		msgResult, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
 			QueueUrl: aws.String(queueURL),
 		})
+		if err != nil {
+			log.Printf("recieve message failed: %v", err)
+			return
+		}
 
 		if len(msgResult.Messages) == 0 {
-			log.Println("no message")
 			continue
 		}
 
@@ -121,7 +123,7 @@ func main() {
 		log.Println(body)
 
 		req := Request{}
-		err := json.Unmarshal([]byte(body), &req)
+		err = json.Unmarshal([]byte(body), &req)
 		if err != nil {
 			log.Println("Unmarshal failed")
 			return
