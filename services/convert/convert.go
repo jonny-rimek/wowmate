@@ -136,7 +136,6 @@ func main() {
 		}
 		//TODO: process all results
 		// fmt.Printf("Success: %+v\n", msgResult.Messages)
-		// log.Println("got a message")
 		log.Printf("amount of messages %v", len(msgResult.Messages))
 
 		i, err := strconv.ParseInt(*msgResult.Messages[0].Attributes["ApproximateFirstReceiveTimestamp"], 10, 64)
@@ -145,20 +144,16 @@ func main() {
 			return
 		}
 		tm1 := time.Unix(0, i*int64(1000000))
-		log.Printf("approximate first recieve: %v", tm1)
 
 		ii, err := strconv.ParseInt(*msgResult.Messages[0].Attributes["SentTimestamp"], 10, 64)
 		if err != nil {
 			panic(err)
 		}
 		tm2 := time.Unix(0, ii*int64(1000000))
-		log.Printf("sent timestamp: %v", tm2)
 
 		log.Printf("seconds the message was unprocessed in the queue: %v", tm1.Sub(tm2).Seconds())
 
 		body := *msgResult.Messages[0].Body
-
-		// log.Println(body)
 
 		req := Request{}
 		err = json.Unmarshal([]byte(body), &req)
@@ -202,12 +197,11 @@ func main() {
 			QueueUrl:      aws.String(queueURL),
 			ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
 		})
-		log.Println("message deleted")
-
 		if err != nil {
 			log.Println("delete failed")
 			continue
 		}
-		log.Println("delete succeeded")
+		log.Println("message delete succeeded")
 	}
+
 }
