@@ -138,8 +138,6 @@ func handle(e SQSEvent) error {
 		}
 	}
 
-	log.Println(*result.SecretString)
-
 	var creds = DatabasesCredentials{}
 	err = json.Unmarshal([]byte(*result.SecretString), &creds)
 	if err != nil {
@@ -186,7 +184,7 @@ func handle(e SQSEvent) error {
 	}
 	log.Println("finished")
 
-	//TODO: delete message from q
+	//messages are deleted automatically if lambda doesn't fail, neat
 
 	return nil
 }

@@ -30,7 +30,7 @@ export class Import extends cdk.Construct {
 				queue: dlq,
 				maxReceiveCount: 3,
 			},
-			visibilityTimeout: cdk.Duration.minutes(15)
+			visibilityTimeout: cdk.Duration.minutes(1)
 		});
 
 		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
@@ -40,7 +40,7 @@ export class Import extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(60),
+			timeout: cdk.Duration.seconds(5),
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 			},
@@ -51,6 +51,7 @@ export class Import extends cdk.Construct {
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
 		})
+		//IMPROVE: this shouldn't be needed, as the data isn't read in the lambda
 		bucket.grantRead(importFunc)
 		importFunc.addEventSource(new SqsEventSource(q))
 		props.secret?.grantRead(importFunc)
