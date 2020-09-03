@@ -110,6 +110,7 @@ func main() {
 			QueueUrl: aws.String(queueURL),
 		})
 
+		//TODO: process all results
 		if len(msgResult.Messages) > 0 {
 			body := *msgResult.Messages[0].Body
 			log.Println(body)
@@ -161,7 +162,7 @@ func main() {
 				log.Println("delete failed")
 				continue
 			}
-			log.Println("delete succeeded, unless failed")
+			log.Println("delete succeeded")
 		}
 	}
 }

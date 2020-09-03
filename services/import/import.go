@@ -151,7 +151,7 @@ func handle(e S3Event) error {
 				't1', 
 				'', 
 				'(FORMAT CSV, DELIMITER '','', HEADER true)', 
-				'($1,$2,us-east-1)');
+				'( $1 , $2 ,us-east-1)');
 		`, e.Records[0].S3.Bucket.Name, e.Records[0].S3.Object.Key)
 
 	if err != nil {
