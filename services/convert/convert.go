@@ -145,16 +145,16 @@ func main() {
 			return
 		}
 		tm1 := time.Unix(0, i*int64(1000000))
-		fmt.Println(tm1)
+		log.Printf("approximate first recieve: %v", tm1)
 
 		ii, err := strconv.ParseInt(*msgResult.Messages[0].Attributes["SentTimestamp"], 10, 64)
 		if err != nil {
 			panic(err)
 		}
 		tm2 := time.Unix(0, ii*int64(1000000))
-		fmt.Println(tm2)
+		log.Printf("sent timestamp: %v", tm2)
 
-		fmt.Printf("seconds the message was unprocessed in the queue: %v", tm1.Sub(tm2).Seconds())
+		log.Printf("seconds the message was unprocessed in the queue: %v", tm1.Sub(tm2).Seconds())
 
 		body := *msgResult.Messages[0].Body
 
