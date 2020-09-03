@@ -25,6 +25,7 @@ export class Convert extends cdk.Construct {
 				queue: dlq,
 				maxReceiveCount: 3,
 			},
+			visibilityTimeout: cdk.Duration.minutes(5)
 		});
 
 		const queueFargate = new ecsPatterns.QueueProcessingFargateService(this, 'Service', {
@@ -35,6 +36,7 @@ export class Convert extends cdk.Construct {
 			image: ecs.ContainerImage.fromAsset('services/convert'),
 			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
 			desiredTaskCount: 1,
+			maxScalingCapacity: 7,
 			environment: {
 				QUEUE_URL: q.queueUrl,
 				CSV_BUCKET_NAME: props.convertBucket.bucketName,

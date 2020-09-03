@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -104,8 +103,6 @@ func main() {
 	svc := sqs.New(sess)
 
 	for {
-		time.Sleep(time.Duration(2) * time.Second)
-
 		msgResult, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
 			AttributeNames: []*string{
 				aws.String(sqs.MessageSystemAttributeNameSenderId),
@@ -122,7 +119,6 @@ func main() {
 			},
 			QueueUrl:            aws.String(queueURL),
 			MaxNumberOfMessages: aws.Int64(10),
-			VisibilityTimeout:   aws.Int64(30), // 60 seconds
 			WaitTimeSeconds:     aws.Int64(0),
 		})
 
@@ -132,76 +128,81 @@ func main() {
 		}
 
 		if len(msgResult.Messages) == 0 {
+			time.Sleep(time.Duration(2) * time.Second)
 			continue
 		}
-		//TODO: process all results
-		// fmt.Printf("Success: %+v\n", msgResult.Messages)
-		log.Printf("amount of messages %v", len(msgResult.Messages))
+		log.Printf("amount of messages %v ----------------------------------------------------------------", len(msgResult.Messages))
 
-		i, err := strconv.ParseInt(*msgResult.Messages[0].Attributes["ApproximateFirstReceiveTimestamp"], 10, 64)
-		if err != nil {
-			log.Printf("failed to parse int: %v", err)
-			return
+		for j, msg := range msgResult.Messages {
+			log.Printf("index j: %v", j)
+			i, err := strconv.ParseInt(*msg.Attributes["ApproximateFirstReceiveTimestamp"], 10, 64)
+			if err != nil {
+				log.Printf("failed to parse int: %v", err)
+				return
+			}
+			tm1 := time.Unix(0, i*int64(1000000))
+
+			ii, err := strconv.ParseInt(*msg.Attributes["SentTimestamp"], 10, 64)
+			if err != nil {
+				panic(err)
+			}
+			tm2 := time.Unix(0, ii*int64(1000000))
+
+			log.Printf("seconds the message was unprocessed in the queue: %v", tm1.Sub(tm2).Seconds())
+
+			body := *msg.Body
+
+			req := Request{}
+			err = json.Unmarshal([]byte(body), &req)
+			if err != nil {
+				log.Println("Unmarshal failed")
+				return
+			}
+
+			downloader := s3manager.NewDownloader(sess)
+
+			fileContent := &aws.WriteAtBuffer{}
+
+			if len(req.Records) > 1 {
+				log.Printf("the S3 event contains more than 1 element, not sure how that would happen")
+				return
+			}
+
+			_, err = downloader.Download(
+				fileContent,
+				&s3.GetObjectInput{
+					Bucket: aws.String(req.Records[0].S3.Bucket.Name),
+					Key:    aws.String(req.Records[0].S3.Object.Key),
+				},
+			)
+			if err != nil {
+				log.Printf("Unable to download item from bucket")
+				return
+			}
+			log.Println("downloaded from s3")
+
+			//TODO: some of the messages are created as CompleteMultipartUpload instead of put object and can't be processed?
+			uploader := s3manager.NewUploader(sess)
+			result, err := uploader.Upload(&s3manager.UploadInput{
+				Bucket: aws.String(csvBucket),
+				Key:    aws.String("converted.csv"),
+				Body:   bytes.NewReader(fileContent.Bytes()),
+			})
+			if err != nil {
+				log.Println("Failed to upload to S3: " + err.Error())
+				return
+			}
+			log.Println("Upload finished! location: " + result.Location)
+
+			_, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
+				QueueUrl:      aws.String(queueURL),
+				ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
+			})
+			if err != nil {
+				log.Println("delete failed")
+				continue
+			}
+			log.Println("message delete succeeded")
 		}
-		tm1 := time.Unix(0, i*int64(1000000))
-
-		ii, err := strconv.ParseInt(*msgResult.Messages[0].Attributes["SentTimestamp"], 10, 64)
-		if err != nil {
-			panic(err)
-		}
-		tm2 := time.Unix(0, ii*int64(1000000))
-
-		log.Printf("seconds the message was unprocessed in the queue: %v", tm1.Sub(tm2).Seconds())
-
-		body := *msgResult.Messages[0].Body
-
-		req := Request{}
-		err = json.Unmarshal([]byte(body), &req)
-		if err != nil {
-			log.Println("Unmarshal failed")
-			return
-		}
-
-		downloader := s3manager.NewDownloader(sess)
-
-		fileContent := &aws.WriteAtBuffer{}
-
-		_, err = downloader.Download(
-			fileContent,
-			&s3.GetObjectInput{
-				//TODO: check for more than 1 records
-				Bucket: aws.String(req.Records[0].S3.Bucket.Name),
-				Key:    aws.String(req.Records[0].S3.Object.Key),
-			},
-		)
-		if err != nil {
-			fmt.Printf("Unable to download item from bucket")
-			// fmt.Printf("Unable to download item %v from bucket %v: %v", key, bucket, err)
-			return
-		}
-		log.Println("downloaded from s3")
-
-		uploader := s3manager.NewUploader(sess)
-		result, err := uploader.Upload(&s3manager.UploadInput{
-			Bucket: aws.String(csvBucket),
-			Key:    aws.String("converted.csv"),
-			Body:   bytes.NewReader(fileContent.Bytes()),
-		})
-		if err != nil {
-			log.Println("Failed to upload to S3: " + err.Error())
-			return
-		}
-		log.Println("Upload finished! location: " + result.Location)
-
-		_, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
-			QueueUrl:      aws.String(queueURL),
-			ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
-		})
-		if err != nil {
-			log.Println("delete failed")
-			continue
-		}
-		log.Println("message delete succeeded")
 	}
-
 }

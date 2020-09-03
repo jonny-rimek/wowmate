@@ -157,6 +157,8 @@ func handle(e SQSEvent) error {
 		fmt.Println(err.Error())
 		return err
 	}
+	defer db.Close()
+
 	log.Println("openend connection")
 
 	s3 := S3Event{}
@@ -173,8 +175,6 @@ func handle(e SQSEvent) error {
 					'(FORMAT CSV, DELIMITER '','', HEADER true)',
 					'(%v,%v,us-east-1)');
 			`, s3.Records[0].S3.Bucket.Name, s3.Records[0].S3.Object.Key)
-	//TODO: events are empty, check how to do an sqs lambda
-	log.Println(q)
 	//TODO: check for more than 1 records
 	_, err = db.Query(q)
 
@@ -185,7 +185,6 @@ func handle(e SQSEvent) error {
 	log.Println("finished")
 
 	//messages are deleted automatically if lambda doesn't fail, neat
-
 	return nil
 }
 
