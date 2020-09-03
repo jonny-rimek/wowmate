@@ -151,7 +151,7 @@ func handle(e S3Event) error {
 				't1', 
 				'', 
 				'(FORMAT CSV, DELIMITER '','', HEADER true)', 
-				'(?,?,us-east-1)');
+				'($1,$2,us-east-1)');
 		`, e.Records[0].S3.Bucket.Name, e.Records[0].S3.Object.Key)
 
 	if err != nil {
@@ -159,6 +159,8 @@ func handle(e S3Event) error {
 		return err
 	}
 	log.Println("finished")
+
+	//TODO: delete message from q
 
 	return nil
 }

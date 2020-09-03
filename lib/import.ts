@@ -40,10 +40,12 @@ export class Import extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(180),
+			timeout: cdk.Duration.seconds(60),
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 			},
+			//only execute one lambda at a time, to not overwhelm the db with imports
+			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_MONTH,
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
