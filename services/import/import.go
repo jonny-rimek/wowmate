@@ -136,23 +136,22 @@ func handle(e S3Event) error {
 		creds.Password,
 	)
 
-	log.Println(connStr)
-
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
 	log.Println("openend connection")
-
-	//TODO: check for more than 1 records
-	_, err = db.Query(`
+	q := fmt.Sprintf(`
 			SELECT aws_s3.table_import_from_s3(
 				't1', 
 				'', 
 				'(FORMAT CSV, DELIMITER '','', HEADER true)', 
-				'( $1 , $2 ,us-east-1)');
+				'(%v,%v;
 		`, e.Records[0].S3.Bucket.Name, e.Records[0].S3.Object.Key)
+	//TODO: check for more than 1 records
+	fmt.Println(q)
+	_, err = db.Query(q)
 
 	if err != nil {
 		fmt.Println(err.Error())
