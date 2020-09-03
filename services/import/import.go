@@ -147,10 +147,11 @@ func handle(e S3Event) error {
 				't1', 
 				'', 
 				'(FORMAT CSV, DELIMITER '','', HEADER true)', 
-				'(%v,%v;
+				'(%v,%v,us-east-1)');
 		`, e.Records[0].S3.Bucket.Name, e.Records[0].S3.Object.Key)
+		//TODO: events are empty, check how to do an sqs lambda
+	log.Println(q)
 	//TODO: check for more than 1 records
-	fmt.Println(q)
 	_, err = db.Query(q)
 
 	if err != nil {
