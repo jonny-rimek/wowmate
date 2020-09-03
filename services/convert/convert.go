@@ -121,9 +121,8 @@ func main() {
 			MaxNumberOfMessages: aws.Int64(10),
 			WaitTimeSeconds:     aws.Int64(0),
 		})
-
 		if err != nil {
-			log.Printf("recieve message failed: %v", err)
+			log.Printf("Failed recieve message: %v", err)
 			return
 		}
 
@@ -137,7 +136,7 @@ func main() {
 			log.Printf("index j: %v", j)
 			i, err := strconv.ParseInt(*msg.Attributes["ApproximateFirstReceiveTimestamp"], 10, 64)
 			if err != nil {
-				log.Printf("failed to parse int: %v", err)
+				log.Printf("Failed to parse int: %v", err)
 				return
 			}
 			tm1 := time.Unix(0, i*int64(1000000))
@@ -155,7 +154,7 @@ func main() {
 			req := Request{}
 			err = json.Unmarshal([]byte(body), &req)
 			if err != nil {
-				log.Println("Unmarshal failed")
+				log.Println("Failed Unmarshal")
 				return
 			}
 
@@ -164,7 +163,7 @@ func main() {
 			fileContent := &aws.WriteAtBuffer{}
 
 			if len(req.Records) > 1 {
-				log.Printf("the S3 event contains more than 1 element, not sure how that would happen")
+				log.Printf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
 				return
 			}
 
@@ -176,7 +175,7 @@ func main() {
 				},
 			)
 			if err != nil {
-				log.Printf("Unable to download item from bucket")
+				log.Printf("Failed to download item from bucket")
 				return
 			}
 			log.Println("downloaded from s3")
@@ -199,7 +198,7 @@ func main() {
 				ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
 			})
 			if err != nil {
-				log.Println("delete failed")
+				log.Println("Failed delete message")
 				continue
 			}
 			log.Println("message delete succeeded")
