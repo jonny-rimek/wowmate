@@ -159,7 +159,6 @@ func main() {
 			})
 			log.Println("message deleted")
 
-
 			if err != nil {
 				log.Println("delete failed")
 				continue

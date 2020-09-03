@@ -62,10 +62,29 @@ type S3Event struct {
 	} `json:"Records"`
 }
 
-func handle(e S3Event) error {
-	secretArn := os.Getenv("SECRET_ARN")
+//SQSEvent is all the data that gets passed into the lambda from the q
+type SQSEvent struct {
+	Records []struct {
+		MessageID     string `json:"messageId"`
+		ReceiptHandle string `json:"receiptHandle"`
+		Body          string `json:"body"`
+		Attributes    struct {
+			ApproximateReceiveCount          string `json:"ApproximateReceiveCount"`
+			SentTimestamp                    string `json:"SentTimestamp"`
+			SenderID                         string `json:"SenderId"`
+			ApproximateFirstReceiveTimestamp string `json:"ApproximateFirstReceiveTimestamp"`
+		} `json:"attributes"`
+		MessageAttributes struct {
+		} `json:"messageAttributes"`
+		Md5OfBody      string `json:"md5OfBody"`
+		EventSource    string `json:"eventSource"`
+		EventSourceARN string `json:"eventSourceARN"`
+		AwsRegion      string `json:"awsRegion"`
+	} `json:"Records"`
+}
 
-	log.Println("such invovation")
+func handle(e SQSEvent) error {
+	secretArn := os.Getenv("SECRET_ARN")
 
 	sess, err := session.NewSession()
 	if err != nil {
@@ -135,21 +154,28 @@ func handle(e S3Event) error {
 		creds.Host,
 		creds.Password,
 	)
-
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
 	log.Println("openend connection")
+
+	s3 := S3Event{}
+	err = json.Unmarshal([]byte(e.Records[0].Body), &s3)
+	if err != nil {
+		log.Println("Unmarshal sqs json failed")
+		return err
+	}
+
 	q := fmt.Sprintf(`
-			SELECT aws_s3.table_import_from_s3(
-				't1', 
-				'', 
-				'(FORMAT CSV, DELIMITER '','', HEADER true)', 
-				'(%v,%v,us-east-1)');
-		`, e.Records[0].S3.Bucket.Name, e.Records[0].S3.Object.Key)
-		//TODO: events are empty, check how to do an sqs lambda
+				SELECT aws_s3.table_import_from_s3(
+					't1',
+					'',
+					'(FORMAT CSV, DELIMITER '','', HEADER true)',
+					'(%v,%v,us-east-1)');
+			`, s3.Records[0].S3.Bucket.Name, s3.Records[0].S3.Object.Key)
+	//TODO: events are empty, check how to do an sqs lambda
 	log.Println(q)
 	//TODO: check for more than 1 records
 	_, err = db.Query(q)
