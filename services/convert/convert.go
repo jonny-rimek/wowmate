@@ -98,72 +98,76 @@ func main() {
 	queueURL := os.Getenv("QUEUE_URL")
 	csvBucket := os.Getenv("CSV_BUCKET_NAME")
 
+	sess, _ := session.NewSession()
+	//TODO: check and handle error
+	svc := sqs.New(sess)
+
 	for {
 		time.Sleep(time.Duration(2) * time.Second)
-
-		sess, _ := session.NewSession()
-		//TODO: check and handle error
-		svc := sqs.New(sess)
+		log.Println("check for new message")
 
 		msgResult, _ := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
 			QueueUrl: aws.String(queueURL),
 		})
 
-		//TODO: process all results
-		if len(msgResult.Messages) > 0 {
-			log.Println("got a message")
-			body := *msgResult.Messages[0].Body
-			log.Println(body)
-
-			req := Request{}
-			err := json.Unmarshal([]byte(body), &req)
-			if err != nil {
-				log.Println("Unmarshal failed")
-				return
-			}
-
-			downloader := s3manager.NewDownloader(sess)
-
-			fileContent := &aws.WriteAtBuffer{}
-
-			_, err = downloader.Download(
-				fileContent,
-				&s3.GetObjectInput{
-					//TODO: check for more than 1 records
-					Bucket: aws.String(req.Records[0].S3.Bucket.Name),
-					Key:    aws.String(req.Records[0].S3.Object.Key),
-				},
-			)
-			if err != nil {
-				fmt.Printf("Unable to download item from bucket")
-				// fmt.Printf("Unable to download item %v from bucket %v: %v", key, bucket, err)
-				return
-			}
-			log.Println("downloaded from s3")
-
-			uploader := s3manager.NewUploader(sess)
-			result, err := uploader.Upload(&s3manager.UploadInput{
-				Bucket: aws.String(csvBucket),
-				Key:    aws.String("converted.csv"),
-				Body:   bytes.NewReader(fileContent.Bytes()),
-			})
-			if err != nil {
-				log.Println("Failed to upload to S3: " + err.Error())
-				return
-			}
-			log.Println("Upload finished! location: " + result.Location)
-
-			_, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
-				QueueUrl:      aws.String(queueURL),
-				ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
-			})
-			log.Println("message deleted")
-
-			if err != nil {
-				log.Println("delete failed")
-				continue
-			}
-			log.Println("delete succeeded")
+		if len(msgResult.Messages) == 0 {
+			log.Println("no message")
+			continue
 		}
+
+		//TODO: process all results
+		log.Println("got a message")
+		body := *msgResult.Messages[0].Body
+		log.Println(body)
+
+		req := Request{}
+		err := json.Unmarshal([]byte(body), &req)
+		if err != nil {
+			log.Println("Unmarshal failed")
+			return
+		}
+
+		downloader := s3manager.NewDownloader(sess)
+
+		fileContent := &aws.WriteAtBuffer{}
+
+		_, err = downloader.Download(
+			fileContent,
+			&s3.GetObjectInput{
+				//TODO: check for more than 1 records
+				Bucket: aws.String(req.Records[0].S3.Bucket.Name),
+				Key:    aws.String(req.Records[0].S3.Object.Key),
+			},
+		)
+		if err != nil {
+			fmt.Printf("Unable to download item from bucket")
+			// fmt.Printf("Unable to download item %v from bucket %v: %v", key, bucket, err)
+			return
+		}
+		log.Println("downloaded from s3")
+
+		uploader := s3manager.NewUploader(sess)
+		result, err := uploader.Upload(&s3manager.UploadInput{
+			Bucket: aws.String(csvBucket),
+			Key:    aws.String("converted.csv"),
+			Body:   bytes.NewReader(fileContent.Bytes()),
+		})
+		if err != nil {
+			log.Println("Failed to upload to S3: " + err.Error())
+			return
+		}
+		log.Println("Upload finished! location: " + result.Location)
+
+		_, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
+			QueueUrl:      aws.String(queueURL),
+			ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
+		})
+		log.Println("message deleted")
+
+		if err != nil {
+			log.Println("delete failed")
+			continue
+		}
+		log.Println("delete succeeded")
 	}
 }
