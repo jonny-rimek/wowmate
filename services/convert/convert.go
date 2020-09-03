@@ -105,13 +105,24 @@ func main() {
 	for {
 		time.Sleep(time.Duration(2) * time.Second)
 
-		var attr []*string
-		s := "all"
-		attr = append(attr, &s)
-
 		msgResult, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
-			QueueUrl:       aws.String(queueURL),
-			AttributeNames: attr,
+			AttributeNames: []*string{
+				aws.String(sqs.MessageSystemAttributeNameSenderId),
+				aws.String(sqs.MessageSystemAttributeNameSentTimestamp),
+				aws.String(sqs.MessageSystemAttributeNameApproximateReceiveCount),
+				aws.String(sqs.MessageSystemAttributeNameApproximateFirstReceiveTimestamp),
+				aws.String(sqs.MessageSystemAttributeNameSequenceNumber),
+				aws.String(sqs.MessageSystemAttributeNameMessageDeduplicationId),
+				aws.String(sqs.MessageSystemAttributeNameMessageGroupId),
+				aws.String(sqs.MessageSystemAttributeNameAwstraceHeader),
+			},
+			MessageAttributeNames: []*string{
+				aws.String(sqs.QueueAttributeNameAll),
+			},
+			QueueUrl:            aws.String(queueURL),
+			MaxNumberOfMessages: aws.Int64(10),
+			VisibilityTimeout:   aws.Int64(30), // 60 seconds
+			WaitTimeSeconds:     aws.Int64(0),
 		})
 
 		if err != nil {
@@ -123,7 +134,7 @@ func main() {
 			continue
 		}
 		//TODO: process all results
-
+		fmt.Printf("Success: %+v\n", msgResult.Messages)
 		log.Println("got a message")
 		log.Printf("amount of messages %v", len(msgResult.Messages))
 		log.Printf("amount of messages %v", len(msgResult.Messages))
