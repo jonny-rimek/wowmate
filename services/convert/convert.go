@@ -119,7 +119,10 @@ func main() {
 
 		//TODO: process all results
 		log.Println("got a message")
+		log.Printf("amount of messages %v", len(msgResult.Messages))
+
 		body := *msgResult.Messages[0].Body
+
 		log.Println(body)
 
 		req := Request{}
