@@ -43,7 +43,7 @@ export default {
       },
       awss3: {
         signingURL: f => {
-          return 'https://presign.wowmate.io'
+          return 'https://wowmate.io/presign'
         },
         headers: {
           //   'Content-Type': 'multipart/form-data'
