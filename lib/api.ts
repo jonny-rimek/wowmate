@@ -27,7 +27,7 @@ export class Api extends cdk.Construct {
 		this.bucket = csvBucket
 
 		const role = new iam.Role(this, "Role", {
-		assumedBy: new iam.ServicePrincipal("rds.amazonaws.com"), // required
+			assumedBy: new iam.ServicePrincipal("rds.amazonaws.com"), // required
 		});
 
 		role.addToPolicy(

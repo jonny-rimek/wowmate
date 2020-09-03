@@ -42,7 +42,6 @@ export class Import extends cdk.Construct {
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(180),
 			environment: {
-				CSV_BUCKET_NAME: bucket.bucketName,
 				SECRET_ARN: props.secret.secretArn,
 			},
 			logRetention: RetentionDays.ONE_MONTH,

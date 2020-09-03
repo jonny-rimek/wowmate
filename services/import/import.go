@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -15,6 +16,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
+//DatabasesCredentials are the data to log into the db
 type DatabasesCredentials struct {
 	DatabaseName string `json:"dbname"`
 	Password     string `json:"password"`
@@ -22,9 +24,46 @@ type DatabasesCredentials struct {
 	Host         string `json:"host"`
 }
 
-func handle() error {
+//S3Event is the data that come from s3 and contains all the information about the event
+type S3Event struct {
+	Records []struct {
+		EventVersion string    `json:"eventVersion"`
+		EventSource  string    `json:"eventSource"`
+		AwsRegion    string    `json:"awsRegion"`
+		EventTime    time.Time `json:"eventTime"`
+		EventName    string    `json:"eventName"`
+		UserIdentity struct {
+			PrincipalID string `json:"principalId"`
+		} `json:"userIdentity"`
+		RequestParameters struct {
+			SourceIPAddress string `json:"sourceIPAddress"`
+		} `json:"requestParameters"`
+		ResponseElements struct {
+			XAmzRequestID string `json:"x-amz-request-id"`
+			XAmzID2       string `json:"x-amz-id-2"`
+		} `json:"responseElements"`
+		S3 struct {
+			S3SchemaVersion string `json:"s3SchemaVersion"`
+			ConfigurationID string `json:"configurationId"`
+			Bucket          struct {
+				Name          string `json:"name"`
+				OwnerIdentity struct {
+					PrincipalID string `json:"principalId"`
+				} `json:"ownerIdentity"`
+				Arn string `json:"arn"`
+			} `json:"bucket"`
+			Object struct {
+				Key       string `json:"key"`
+				Size      int    `json:"size"`
+				ETag      string `json:"eTag"`
+				Sequencer string `json:"sequencer"`
+			} `json:"object"`
+		} `json:"s3"`
+	} `json:"Records"`
+}
+
+func handle(e S3Event) error {
 	secretArn := os.Getenv("SECRET_ARN")
-	_ = os.Getenv("CSV_BUCKET_NAME")
 
 	log.Println("such invovation")
 
@@ -88,7 +127,7 @@ func handle() error {
 		fmt.Println(err.Error())
 		return err
 	}
-	//TODO: get connecetion data from secretsmanager
+
 	connStr := fmt.Sprintf(
 		"user=%v dbname=%v sslmode=verify-full host=%v password=%v port=5432",
 		creds.UserName,
@@ -106,9 +145,15 @@ func handle() error {
 	}
 	log.Println("openend connection")
 
+	//TODO: check for more than 1 records
 	_, err = db.Query(`
-			SELECT 1;
-		`)
+			SELECT aws_s3.table_import_from_s3(
+				't1', 
+				'', 
+				'(FORMAT CSV, DELIMITER '','', HEADER true)', 
+				'(?,?,us-east-1)');
+		`, e.Records[0].S3.Bucket.Name, e.Records[0].S3.Object.Key)
+
 	if err != nil {
 		fmt.Println(err.Error())
 		return err

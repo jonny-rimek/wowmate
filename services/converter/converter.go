@@ -128,6 +128,7 @@ func main() {
 			_, err = downloader.Download(
 				fileContent,
 				&s3.GetObjectInput{
+					//TODO: check for more than 1 records
 					Bucket: aws.String(req.Records[0].S3.Bucket.Name),
 					Key:    aws.String(req.Records[0].S3.Object.Key),
 				},
