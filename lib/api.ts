@@ -60,7 +60,6 @@ export class Api extends cdk.Construct {
 			instanceProps: {
 				vpc: vpc,
 				securityGroups: [dbGroup],
-				//TODO: try small even tho it doesn't seem to exist
 				instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MEDIUM),
 			},
 			instances: 1,
@@ -89,7 +88,6 @@ export class Api extends cdk.Construct {
 			hostedZoneId: 'Z3LVG9ZF2H87DX',
 		});
 
-		//IMPROVE: add https redirect
 		new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
 			vpc: vpc,
 			domainName: 'api.wowmate.io',

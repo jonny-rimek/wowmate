@@ -32,7 +32,7 @@ export class Convert extends cdk.Construct {
 			vpc: props.vpc,
 			memoryLimitMiB: 512,
 			cpu: 256,
-			image: ecs.ContainerImage.fromAsset('services/converter'),
+			image: ecs.ContainerImage.fromAsset('services/convert'),
 			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
 			desiredTaskCount: 1,
 			environment: {
