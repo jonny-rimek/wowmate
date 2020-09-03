@@ -105,9 +105,15 @@ func main() {
 	for {
 		time.Sleep(time.Duration(2) * time.Second)
 
+		var attr []*string
+		s := "all"
+		attr = append(attr, &s)
+
 		msgResult, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
-			QueueUrl: aws.String(queueURL),
+			QueueUrl:       aws.String(queueURL),
+			AttributeNames: attr,
 		})
+
 		if err != nil {
 			log.Printf("recieve message failed: %v", err)
 			return
@@ -116,10 +122,18 @@ func main() {
 		if len(msgResult.Messages) == 0 {
 			continue
 		}
-
 		//TODO: process all results
+
 		log.Println("got a message")
 		log.Printf("amount of messages %v", len(msgResult.Messages))
+		log.Printf("amount of messages %v", len(msgResult.Messages))
+		log.Printf("ApproximateReceiveCount %v", *msgResult.Messages[0].Attributes["ApproximateReceiveCount"])
+		log.Printf("ApproximateFirstReceiveTimestamp %v", *msgResult.Messages[0].Attributes["ApproximateFirstReceiveTimestamp"])
+		log.Printf("MessageDeduplicationId %v", *msgResult.Messages[0].Attributes["MessageDeduplicationId"])
+		log.Printf("MessageGroupId %v", *msgResult.Messages[0].Attributes["MessageGroupId"])
+		log.Printf("SenderId %v", *msgResult.Messages[0].Attributes["SenderId"])
+		log.Printf("SentTimestamp %v", *msgResult.Messages[0].Attributes["SentTimestamp"])
+		log.Printf("SequenceNumber %v", *msgResult.Messages[0].Attributes["SequenceNumber"])
 
 		body := *msgResult.Messages[0].Body
 
