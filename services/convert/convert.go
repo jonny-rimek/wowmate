@@ -135,8 +135,8 @@ func main() {
 			continue
 		}
 		//TODO: process all results
-		fmt.Printf("Success: %+v\n", msgResult.Messages)
-		log.Println("got a message")
+		// fmt.Printf("Success: %+v\n", msgResult.Messages)
+		// log.Println("got a message")
 		log.Printf("amount of messages %v", len(msgResult.Messages))
 
 		i, err := strconv.ParseInt(*msgResult.Messages[0].Attributes["ApproximateFirstReceiveTimestamp"], 10, 64)
@@ -154,9 +154,11 @@ func main() {
 		tm2 := time.Unix(0, ii*int64(1000000))
 		fmt.Println(tm2)
 
+		fmt.Printf("seconds the message was unprocessed in the queue: %v", tm1.Sub(tm2).Seconds())
+
 		body := *msgResult.Messages[0].Body
 
-		log.Println(body)
+		// log.Println(body)
 
 		req := Request{}
 		err = json.Unmarshal([]byte(body), &req)
