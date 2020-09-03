@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -137,14 +138,21 @@ func main() {
 		fmt.Printf("Success: %+v\n", msgResult.Messages)
 		log.Println("got a message")
 		log.Printf("amount of messages %v", len(msgResult.Messages))
-		log.Printf("amount of messages %v", len(msgResult.Messages))
-		log.Printf("ApproximateReceiveCount %v", *msgResult.Messages[0].Attributes["ApproximateReceiveCount"])
-		log.Printf("ApproximateFirstReceiveTimestamp %v", *msgResult.Messages[0].Attributes["ApproximateFirstReceiveTimestamp"])
-		log.Printf("MessageDeduplicationId %v", *msgResult.Messages[0].Attributes["MessageDeduplicationId"])
-		log.Printf("MessageGroupId %v", *msgResult.Messages[0].Attributes["MessageGroupId"])
-		log.Printf("SenderId %v", *msgResult.Messages[0].Attributes["SenderId"])
-		log.Printf("SentTimestamp %v", *msgResult.Messages[0].Attributes["SentTimestamp"])
-		log.Printf("SequenceNumber %v", *msgResult.Messages[0].Attributes["SequenceNumber"])
+
+		i, err := strconv.ParseInt(*msgResult.Messages[0].Attributes["ApproximateFirstReceiveTimestamp"], 10, 64)
+		if err != nil {
+			log.Printf("failed to parse int: %v", err)
+			return
+		}
+		tm1 := time.Unix(i, 0)
+		fmt.Println(tm1)
+		
+		ii, err := strconv.ParseInt(*msgResult.Messages[0].Attributes["SentTimestamp"], 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		tm2 := time.Unix(ii, 0)
+		fmt.Println(tm2)
 
 		body := *msgResult.Messages[0].Body
 
