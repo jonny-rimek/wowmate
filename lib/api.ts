@@ -88,6 +88,7 @@ export class Api extends cdk.Construct {
 			hostedZoneId: 'Z3LVG9ZF2H87DX',
 		});
 
+		/*
 		new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
 			vpc: vpc,
 			domainName: 'api.wowmate.io',
@@ -106,5 +107,6 @@ export class Api extends cdk.Construct {
 				}
 			},
 		});
+		*/
 	}
 }

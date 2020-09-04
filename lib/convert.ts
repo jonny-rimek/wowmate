@@ -28,6 +28,7 @@ export class Convert extends cdk.Construct {
 			visibilityTimeout: cdk.Duration.minutes(2)
 		});
 
+		/*
 		const queueFargate = new ecsPatterns.QueueProcessingFargateService(this, 'Service', {
 			queue: q,
 			vpc: props.vpc,
@@ -46,5 +47,6 @@ export class Convert extends cdk.Construct {
 		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(queueFargate.sqsQueue))
 		props.uploadBucket.grantRead(queueFargate.service.taskDefinition.taskRole)
 		props.convertBucket.grantWrite(queueFargate.service.taskDefinition.taskRole)
+		*/
 	}
 }
