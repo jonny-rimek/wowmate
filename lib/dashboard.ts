@@ -48,7 +48,7 @@ export class Dashboard extends cdk.Construct {
 			}),
 			new GraphWidget({
 				title: 'Convert Lambda Concurrent Executions',
-				left: [props.convertLambda.metric('Concurrent Executions',{ statistic: 'Maximum' })],
+				left: [props.convertLambda.metric('ConcurrentExecutions',{ statistic: 'Maximum' })],
 				stacked: false,
 				width: 4
 			}),
