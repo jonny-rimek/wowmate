@@ -4,7 +4,10 @@ import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
 import ec2 = require('@aws-cdk/aws-ec2');
 import s3 = require('@aws-cdk/aws-s3');
 import sqs = require('@aws-cdk/aws-sqs');
+import lambda = require('@aws-cdk/aws-lambda');
+import { RetentionDays } from '@aws-cdk/aws-logs';
 import s3n = require('@aws-cdk/aws-s3-notifications');
+import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc;
@@ -28,25 +31,24 @@ export class Convert extends cdk.Construct {
 			visibilityTimeout: cdk.Duration.minutes(2)
 		});
 
-		/*
-		const queueFargate = new ecsPatterns.QueueProcessingFargateService(this, 'Service', {
-			queue: q,
-			vpc: props.vpc,
-			memoryLimitMiB: 512,
-			cpu: 256,
-			image: ecs.ContainerImage.fromAsset('services/convert'),
-			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
-			desiredTaskCount: 1,
-			maxScalingCapacity: 7,
+		const convertFunc = new lambda.Function(this, 'F', {
+			code: lambda.Code.asset('services/convert'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: cdk.Duration.seconds(5),
 			environment: {
-				QUEUE_URL: q.queueUrl,
-				CSV_BUCKET_NAME: props.convertBucket.bucketName,
 			},
-		});
+			reservedConcurrentExecutions: 10, 
+			logRetention: RetentionDays.ONE_MONTH,
+			tracing: lambda.Tracing.ACTIVE,
+			//NOTE: not in VPC by design, because I don't have an S3 endpoint and it would incur
+			//		additional charges
+		})
+		convertFunc.addEventSource(new SqsEventSource(q))
 
-		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(queueFargate.sqsQueue))
-		props.uploadBucket.grantRead(queueFargate.service.taskDefinition.taskRole)
-		props.convertBucket.grantWrite(queueFargate.service.taskDefinition.taskRole)
-		*/
+		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
+		props.uploadBucket.grantRead(convertFunc)
+		props.convertBucket.grantWrite(convertFunc)
 	}
 }

@@ -9,6 +9,7 @@ export class Wowmate extends Stack {
 	constructor(scope: Construct, id: string, props?: StackProps) {
 		super(scope, id, props);
 
+		//TODO: add - at the end of each name for better readability
 		new Frontend(this, 'Frontend')
 
 		const presign = new Presign(this, 'Presign')
