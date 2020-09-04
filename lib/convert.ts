@@ -11,7 +11,7 @@ import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc;
-	convertBucket: s3.Bucket
+	csvBucket: s3.Bucket
 	uploadBucket: s3.Bucket
 }
 
@@ -38,6 +38,7 @@ export class Convert extends cdk.Construct {
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(60),
 			environment: {
+				CSV_BUCKET_NAME: props.csvBucket.bucketName,
 			},
 			reservedConcurrentExecutions: 10, 
 			logRetention: RetentionDays.ONE_WEEK,
@@ -49,6 +50,6 @@ export class Convert extends cdk.Construct {
 
 		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
 		props.uploadBucket.grantRead(convertFunc)
-		props.convertBucket.grantWrite(convertFunc)
+		props.csvBucket.grantWrite(convertFunc)
 	}
 }

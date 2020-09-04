@@ -18,7 +18,7 @@ export class Wowmate extends Stack {
 
 		new Convert(this, 'Convert', {
 			vpc: api.vpc,
-			convertBucket: api.bucket,
+			csvBucket: api.bucket,
 			uploadBucket: presign.bucket
 		})
 

@@ -52,7 +52,7 @@ export class Import extends cdk.Construct {
 			securityGroups: [props.securityGroup],
 		})
 		//IMPROVE: this shouldn't be needed, as the data isn't read in the lambda
-		bucket.grantRead(importFunc)
+		// bucket.grantRead(importFunc)
 		importFunc.addEventSource(new SqsEventSource(q))
 		props.secret?.grantRead(importFunc)
 	}
