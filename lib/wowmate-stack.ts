@@ -4,6 +4,7 @@ import { Construct, Stack, StackProps } from '@aws-cdk/core';
 import { Convert } from './convert';
 import { Import } from './import';
 import { Presign } from './presign';
+import { Dashboard } from './dashboard';
 
 export class Wowmate extends Stack {
 	constructor(scope: Construct, id: string, props?: StackProps) {
@@ -16,7 +17,7 @@ export class Wowmate extends Stack {
 
 		const api = new Api(this, 'Api')
 
-		new Convert(this, 'Convert', {
+		const convert = new Convert(this, 'Convert', {
 			vpc: api.vpc,
 			csvBucket: api.bucket,
 			uploadBucket: presign.bucket
@@ -27,6 +28,10 @@ export class Wowmate extends Stack {
 			bucket: api.bucket,
 			securityGroup: api.securityGrp,
 			secret: api.dbCreds,
+		})
+
+		new Dashboard(this, 'Dashboard', {
+			convertLambda: convert.lambda,
 		})
 	}
 }

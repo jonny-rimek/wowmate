@@ -16,6 +16,8 @@ interface VpcProps extends cdk.StackProps {
 }
 
 export class Convert extends cdk.Construct {
+	public readonly lambda: lambda.Function;
+
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
@@ -48,6 +50,7 @@ export class Convert extends cdk.Construct {
 			//		additional charges
 			//		if I endup using EFS I need to add it back to the VPC tho
 		})
+		this.lambda = convertFunc
 		convertFunc.addEventSource(new SqsEventSource(q))
 
 		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
