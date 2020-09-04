@@ -26,9 +26,10 @@ export class Convert extends cdk.Construct {
 		const q = new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
 				queue: dlq,
-				maxReceiveCount: 3,
+				maxReceiveCount: 1, //NOTE: I want failed messages to directly land in dlq
 			},
-			visibilityTimeout: cdk.Duration.minutes(2)
+			//NOTE: 1minute is too low, it's that low for debugging purposed
+			visibilityTimeout: cdk.Duration.minutes(1)
 		});
 
 		const convertFunc = new lambda.Function(this, 'F', {
@@ -45,6 +46,7 @@ export class Convert extends cdk.Construct {
 			tracing: lambda.Tracing.ACTIVE,
 			//NOTE: not in VPC by design, because I don't have an S3 endpoint and it would incur
 			//		additional charges
+			//		if I endup using EFS I need to add it back to the VPC tho
 		})
 		convertFunc.addEventSource(new SqsEventSource(q))
 

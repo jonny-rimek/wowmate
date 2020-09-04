@@ -178,30 +178,11 @@ func handler(e SQSEvent) error {
 		}
 		log.Println("downloaded from s3")
 
-		//TODO: gzip before upload
-		/*
-			var buf bytes.Buffer
-			w := gzip.NewWriter(&buf)
-
-			_, err = w.Write(fileContent.Bytes())
-			if err != nil {
-				log.Println("Failed to create a gzip writer")
-				return err
-			}
-
-			r, err := gzip.NewReader(&buf)
-			if err != nil {
-				log.Println("Failed to create a gzip reader")
-				return err
-			}
-		*/
 		uploader := s3manager.NewUploader(sess)
 		result, err := uploader.Upload(&s3manager.UploadInput{
 			Bucket: aws.String(csvBucket),
-			Key:    aws.String("converted.csv.gz"),
-			// Body:   r,
-			Body:            bytes.NewReader(fileContent.Bytes()),
-			ContentEncoding: aws.String("gzip"),
+			Key:    aws.String("converted.csv"),
+			Body:   bytes.NewReader(fileContent.Bytes()),
 		})
 		if err != nil {
 			log.Println("Failed to upload to S3")
