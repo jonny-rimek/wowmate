@@ -3,16 +3,17 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
 /*
@@ -94,115 +95,129 @@ type Request struct {
 	} `json:"Records"`
 }
 
-func main() {
-	queueURL := os.Getenv("QUEUE_URL")
+//SQSEvent is all the data that gets passed into the lambda from the q
+type SQSEvent struct {
+	Records []struct {
+		MessageID     string `json:"messageId"`
+		ReceiptHandle string `json:"receiptHandle"`
+		Body          string `json:"body"`
+		Attributes    struct {
+			ApproximateReceiveCount          string `json:"ApproximateReceiveCount"`
+			SentTimestamp                    string `json:"SentTimestamp"`
+			SenderID                         string `json:"SenderId"`
+			ApproximateFirstReceiveTimestamp string `json:"ApproximateFirstReceiveTimestamp"`
+		} `json:"attributes"`
+		MessageAttributes struct {
+		} `json:"messageAttributes"`
+		Md5OfBody      string `json:"md5OfBody"`
+		EventSource    string `json:"eventSource"`
+		EventSourceARN string `json:"eventSourceARN"`
+		AwsRegion      string `json:"awsRegion"`
+	} `json:"Records"`
+}
+
+func handler(e SQSEvent) error {
+	// queueURL := os.Getenv("QUEUE_URL")
 	csvBucket := os.Getenv("CSV_BUCKET_NAME")
 
 	sess, _ := session.NewSession()
 	//TODO: check and handle error
-	svc := sqs.New(sess)
+	// svc := sqs.New(sess)
 
-	for {
-		msgResult, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
-			AttributeNames: []*string{
-				aws.String(sqs.MessageSystemAttributeNameSenderId),
-				aws.String(sqs.MessageSystemAttributeNameSentTimestamp),
-				aws.String(sqs.MessageSystemAttributeNameApproximateReceiveCount),
-				aws.String(sqs.MessageSystemAttributeNameApproximateFirstReceiveTimestamp),
-				aws.String(sqs.MessageSystemAttributeNameSequenceNumber),
-				aws.String(sqs.MessageSystemAttributeNameMessageDeduplicationId),
-				aws.String(sqs.MessageSystemAttributeNameMessageGroupId),
-				aws.String(sqs.MessageSystemAttributeNameAwstraceHeader),
+	/* 	for {
+	msgResult, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
+		AttributeNames: []*string{
+			aws.String(sqs.MessageSystemAttributeNameSenderId),
+			aws.String(sqs.MessageSystemAttributeNameSentTimestamp),
+			aws.String(sqs.MessageSystemAttributeNameApproximateReceiveCount),
+			aws.String(sqs.MessageSystemAttributeNameApproximateFirstReceiveTimestamp),
+			aws.String(sqs.MessageSystemAttributeNameSequenceNumber),
+			aws.String(sqs.MessageSystemAttributeNameMessageDeduplicationId),
+			aws.String(sqs.MessageSystemAttributeNameMessageGroupId),
+			aws.String(sqs.MessageSystemAttributeNameAwstraceHeader),
+		},
+		MessageAttributeNames: []*string{
+			aws.String(sqs.QueueAttributeNameAll),
+		},
+		QueueUrl:            aws.String(queueURL),
+		MaxNumberOfMessages: aws.Int64(10),
+		WaitTimeSeconds:     aws.Int64(0),
+	})
+	if err != nil {
+		time.Sleep(time.Duration(2) * time.Second)
+		log.Printf("Failed recieve message: %v", err)
+		continue
+	}
+	*/
+	if len(e.Records) == 0 {
+		return fmt.Errorf("SQS Event doesn't contain any messages")
+	}
+	log.Printf("amount of messages %v", len(e.Records))
+
+	for j, msg := range e.Records {
+		log.Printf("index j: %v", j+1)
+		i, err := strconv.ParseInt(msg.Attributes.ApproximateFirstReceiveTimestamp, 10, 64)
+		if err != nil {
+			log.Printf("Failed to parse int: %v", err)
+			continue
+		}
+		tm1 := time.Unix(0, i*int64(1000000))
+
+		ii, err := strconv.ParseInt(msg.Attributes.SentTimestamp, 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		tm2 := time.Unix(0, ii*int64(1000000))
+
+		log.Printf("seconds the message was unprocessed in the queue: %v", tm1.Sub(tm2).Seconds())
+
+		body := msg.Body
+
+		req := Request{}
+		err = json.Unmarshal([]byte(body), &req)
+		if err != nil {
+			log.Printf("Failed Unmarshal: %v", err.Error())
+			continue
+		}
+
+		downloader := s3manager.NewDownloader(sess)
+
+		fileContent := &aws.WriteAtBuffer{}
+
+		if len(req.Records) > 1 {
+			log.Printf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
+			continue
+		}
+
+		_, err = downloader.Download(
+			fileContent,
+			&s3.GetObjectInput{
+				Bucket: aws.String(req.Records[0].S3.Bucket.Name),
+				Key:    aws.String(req.Records[0].S3.Object.Key),
 			},
-			MessageAttributeNames: []*string{
-				aws.String(sqs.QueueAttributeNameAll),
-			},
-			QueueUrl:            aws.String(queueURL),
-			MaxNumberOfMessages: aws.Int64(10),
-			WaitTimeSeconds:     aws.Int64(0),
+		)
+		if err != nil {
+			log.Printf("Failed to download item from bucket")
+			continue
+		}
+		log.Println("downloaded from s3")
+
+		//TODO: some of the messages are created as CompleteMultipartUpload instead of put object and can't be processed?
+		uploader := s3manager.NewUploader(sess)
+		result, err := uploader.Upload(&s3manager.UploadInput{
+			Bucket: aws.String(csvBucket),
+			Key:    aws.String("converted.csv"),
+			Body:   bytes.NewReader(fileContent.Bytes()),
 		})
 		if err != nil {
-			time.Sleep(time.Duration(2) * time.Second)
-			log.Printf("Failed recieve message: %v", err)
+			log.Println("Failed to upload to S3: " + err.Error())
 			continue
 		}
-
-		if len(msgResult.Messages) == 0 {
-			time.Sleep(time.Duration(2) * time.Second)
-			continue
-		}
-		log.Printf("amount of messages %v ----------------------------------------------------------------", len(msgResult.Messages))
-
-		for j, msg := range msgResult.Messages {
-			log.Printf("index j: %v", j+1)
-			i, err := strconv.ParseInt(*msg.Attributes["ApproximateFirstReceiveTimestamp"], 10, 64)
-			if err != nil {
-				log.Printf("Failed to parse int: %v", err)
-				continue
-			}
-			tm1 := time.Unix(0, i*int64(1000000))
-
-			ii, err := strconv.ParseInt(*msg.Attributes["SentTimestamp"], 10, 64)
-			if err != nil {
-				panic(err)
-			}
-			tm2 := time.Unix(0, ii*int64(1000000))
-
-			log.Printf("seconds the message was unprocessed in the queue: %v", tm1.Sub(tm2).Seconds())
-
-			body := *msg.Body
-
-			req := Request{}
-			err = json.Unmarshal([]byte(body), &req)
-			if err != nil {
-				log.Printf("Failed Unmarshal: %v", err.Error())
-				continue
-			}
-
-			downloader := s3manager.NewDownloader(sess)
-
-			fileContent := &aws.WriteAtBuffer{}
-
-			if len(req.Records) > 1 {
-				log.Printf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
-				continue
-			}
-
-			_, err = downloader.Download(
-				fileContent,
-				&s3.GetObjectInput{
-					Bucket: aws.String(req.Records[0].S3.Bucket.Name),
-					Key:    aws.String(req.Records[0].S3.Object.Key),
-				},
-			)
-			if err != nil {
-				log.Printf("Failed to download item from bucket")
-				continue
-			}
-			log.Println("downloaded from s3")
-
-			//TODO: some of the messages are created as CompleteMultipartUpload instead of put object and can't be processed?
-			uploader := s3manager.NewUploader(sess)
-			result, err := uploader.Upload(&s3manager.UploadInput{
-				Bucket: aws.String(csvBucket),
-				Key:    aws.String("converted.csv"),
-				Body:   bytes.NewReader(fileContent.Bytes()),
-			})
-			if err != nil {
-				log.Println("Failed to upload to S3: " + err.Error())
-				continue
-			}
-			log.Println("Upload finished! location: " + result.Location)
-
-			_, err = svc.DeleteMessage(&sqs.DeleteMessageInput{
-				QueueUrl:      aws.String(queueURL),
-				ReceiptHandle: msgResult.Messages[0].ReceiptHandle,
-			})
-			if err != nil {
-				log.Println("Failed delete message")
-				continue
-			}
-			log.Println("message delete succeeded")
-		}
+		log.Println("Upload finished! location: " + result.Location)
 	}
+	return nil
+}
+
+func main() {
+	lambda.Start(handler)
 }
