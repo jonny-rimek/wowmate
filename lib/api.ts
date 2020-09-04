@@ -61,6 +61,8 @@ export class Api extends cdk.Construct {
 				vpc: vpc,
 				securityGroups: [dbGroup],
 				instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MEDIUM),
+				enablePerformanceInsights: true,
+				performanceInsightRetention: rds.PerformanceInsightRetention.DEFAULT, //7days
 			},
 			instances: 1,
 			defaultDatabaseName: 'wm',
@@ -68,6 +70,7 @@ export class Api extends cdk.Construct {
 			cloudwatchLogsExports: ['postgresql'],
 			cloudwatchLogsRetention: RetentionDays.TWO_WEEKS,
 			monitoringInterval: cdk.Duration.seconds(60),
+			
 
 			//NOTE: remove in production
 			removalPolicy: cdk.RemovalPolicy.DESTROY,

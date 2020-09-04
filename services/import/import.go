@@ -93,7 +93,7 @@ func handle(e SQSEvent) error {
 		return err
 	}
 
-	//TODO: should move get secret outside of handler, because it dosn't needto run on every invocation
+	//TODO: should move get secret outside of handler, because it dosn't need to run on every invocation
 	svc := secretsmanager.New(sess)
 
 	input := &secretsmanager.GetSecretValueInput{
@@ -158,33 +158,34 @@ func handle(e SQSEvent) error {
 		return err
 	}
 	defer db.Close()
-
 	log.Println("openend connection")
 
-	s3 := S3Event{}
-	err = json.Unmarshal([]byte(e.Records[0].Body), &s3)
-	if err != nil {
-		log.Println("Unmarshal sqs json failed")
-		return err
-	}
+	for _, record := range e.Records {
+		s3 := S3Event{}
+		err = json.Unmarshal([]byte(record.Body), &s3)
+		if err != nil {
+			log.Println("Unmarshal sqs json failed")
+			return err
+		}
 
-	q := fmt.Sprintf(`
+		if len(s3.Records) > 1 {
+			return fmt.Errorf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
+		}
+		q := fmt.Sprintf(`
 				SELECT aws_s3.table_import_from_s3(
 					't1',
 					'',
 					'(FORMAT CSV, DELIMITER '','', HEADER true)',
 					'(%v,%v,us-east-1)');
 			`, s3.Records[0].S3.Bucket.Name, s3.Records[0].S3.Object.Key)
-	//TODO: check for more than 1 records
-	_, err = db.Query(q)
+		_, err = db.Query(q)
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return err
+		if err != nil {
+			fmt.Println(err.Error())
+			return err
+		}
+		log.Println("import query successfull")
 	}
-	log.Println("finished")
-
-	//messages are deleted automatically if lambda doesn't fail, neat
 	return nil
 }
 

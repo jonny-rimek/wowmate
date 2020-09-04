@@ -122,6 +122,7 @@ func main() {
 			WaitTimeSeconds:     aws.Int64(0),
 		})
 		if err != nil {
+			time.Sleep(time.Duration(2) * time.Second)
 			log.Printf("Failed recieve message: %v", err)
 			continue
 		}
@@ -133,7 +134,7 @@ func main() {
 		log.Printf("amount of messages %v ----------------------------------------------------------------", len(msgResult.Messages))
 
 		for j, msg := range msgResult.Messages {
-			log.Printf("index j: %v", j)
+			log.Printf("index j: %v", j+1)
 			i, err := strconv.ParseInt(*msg.Attributes["ApproximateFirstReceiveTimestamp"], 10, 64)
 			if err != nil {
 				log.Printf("Failed to parse int: %v", err)
