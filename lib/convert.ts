@@ -17,6 +17,8 @@ interface VpcProps extends cdk.StackProps {
 
 export class Convert extends cdk.Construct {
 	public readonly lambda: lambda.Function;
+	public readonly queue: sqs.Queue;
+	public readonly dlq: sqs.Queue;
 
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
@@ -24,6 +26,7 @@ export class Convert extends cdk.Construct {
 		const dlq = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
 		});
+		this.dlq = dlq
 
 		const q = new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
@@ -33,6 +36,7 @@ export class Convert extends cdk.Construct {
 			//NOTE: 1minute is too low, it's that low for debugging purposed
 			visibilityTimeout: cdk.Duration.minutes(1)
 		});
+		this.queue = q
 
 		const convertFunc = new lambda.Function(this, 'F', {
 			code: lambda.Code.asset('services/convert'),

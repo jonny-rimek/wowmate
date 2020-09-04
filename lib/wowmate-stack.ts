@@ -4,7 +4,7 @@ import { Construct, Stack, StackProps } from '@aws-cdk/core';
 import { Convert } from './convert';
 import { Import } from './import';
 import { Presign } from './presign';
-import { Dashboard } from './dashboard';
+import { EtlDashboard } from './etl-dashboard';
 
 export class Wowmate extends Stack {
 	constructor(scope: Construct, id: string, props?: StackProps) {
@@ -30,8 +30,10 @@ export class Wowmate extends Stack {
 			secret: api.dbCreds,
 		})
 
-		new Dashboard(this, 'Dashboard', {
+		new EtlDashboard(this, 'Dashboard', {
 			convertLambda: convert.lambda,
+			convertQueue: convert.queue,
+			convertDLQ: convert.dlq,
 		})
 	}
 }
