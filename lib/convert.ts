@@ -36,11 +36,11 @@ export class Convert extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(5),
+			timeout: cdk.Duration.seconds(60),
 			environment: {
 			},
 			reservedConcurrentExecutions: 10, 
-			logRetention: RetentionDays.ONE_MONTH,
+			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			//NOTE: not in VPC by design, because I don't have an S3 endpoint and it would incur
 			//		additional charges

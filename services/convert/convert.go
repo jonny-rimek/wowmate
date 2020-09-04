@@ -119,6 +119,9 @@ type SQSEvent struct {
 func handler(e SQSEvent) error {
 	// queueURL := os.Getenv("QUEUE_URL")
 	csvBucket := os.Getenv("CSV_BUCKET_NAME")
+	if csvBucket == "" {
+		return fmt.Errorf("csv bucket env var is empty")
+	}
 
 	sess, _ := session.NewSession()
 	//TODO: check and handle error
@@ -159,13 +162,13 @@ func handler(e SQSEvent) error {
 		i, err := strconv.ParseInt(msg.Attributes.ApproximateFirstReceiveTimestamp, 10, 64)
 		if err != nil {
 			log.Printf("Failed to parse int: %v", err)
-			continue
+			return err
 		}
 		tm1 := time.Unix(0, i*int64(1000000))
 
 		ii, err := strconv.ParseInt(msg.Attributes.SentTimestamp, 10, 64)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		tm2 := time.Unix(0, ii*int64(1000000))
 
@@ -177,7 +180,7 @@ func handler(e SQSEvent) error {
 		err = json.Unmarshal([]byte(body), &req)
 		if err != nil {
 			log.Printf("Failed Unmarshal: %v", err.Error())
-			continue
+			return err
 		}
 
 		downloader := s3manager.NewDownloader(sess)
@@ -186,7 +189,7 @@ func handler(e SQSEvent) error {
 
 		if len(req.Records) > 1 {
 			log.Printf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
-			continue
+			return err
 		}
 
 		_, err = downloader.Download(
@@ -198,7 +201,7 @@ func handler(e SQSEvent) error {
 		)
 		if err != nil {
 			log.Printf("Failed to download item from bucket")
-			continue
+			return err
 		}
 		log.Println("downloaded from s3")
 
@@ -211,7 +214,7 @@ func handler(e SQSEvent) error {
 		})
 		if err != nil {
 			log.Println("Failed to upload to S3: " + err.Error())
-			continue
+			return err
 		}
 		log.Println("Upload finished! location: " + result.Location)
 	}

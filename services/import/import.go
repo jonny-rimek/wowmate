@@ -83,7 +83,7 @@ type SQSEvent struct {
 	} `json:"Records"`
 }
 
-func handle(e SQSEvent) error {
+func handler(e SQSEvent) error {
 	secretArn := os.Getenv("SECRET_ARN")
 
 	sess, err := session.NewSession()
@@ -190,5 +190,5 @@ func handle(e SQSEvent) error {
 }
 
 func main() {
-	lambda.Start(handle)
+	lambda.Start(handler)
 }
