@@ -175,8 +175,10 @@ func handler(e SQSEvent) error {
 				SELECT aws_s3.table_import_from_s3(
 					't1',
 					'',
-					'(FORMAT CSV, DELIMITER '','', HEADER true)',
-					'(%v,%v,us-east-1)');
+					'(format csv)',
+					'%v',
+					'%v',
+					'us-east-1';
 			`, s3.Records[0].S3.Bucket.Name, s3.Records[0].S3.Object.Key)
 		_, err = db.Query(q)
 
