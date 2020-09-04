@@ -16,7 +16,7 @@ export class Dashboard extends cdk.Construct {
 
 		new cloudwatch.Dashboard(this, 'Dashboard').addWidgets(
 			new GraphWidget({
-				title: 'somename',
+				title: 'Convert Lambda Invocations',
 				left: [props.convertLambda.metricInvocations()],
 				// new cloudwatch.Metric({
 				// 	// dimensions:  {"TableName":"sdakjdjs", "Operation": "GetItem"},
@@ -26,8 +26,32 @@ export class Dashboard extends cdk.Construct {
 				// 	statistic: 'somenameforgrap',
 				// }),
 				stacked: false,
-				width: 8
-			})
+				width: 4
+			}),
+			new GraphWidget({
+				title: 'Convert Lambda Invocations',
+				left: [props.convertLambda.metricErrors()],
+				stacked: false,
+				width: 4
+			}),
+			new GraphWidget({
+				title: 'Convert Lambda Throttles',
+				left: [props.convertLambda.metricThrottles()],
+				stacked: false,
+				width: 4
+			}),
+			new GraphWidget({
+				title: 'Convert Lambda Duration',
+				left: [props.convertLambda.metricDuration()],
+				stacked: false,
+				width: 4
+			}),
+			new GraphWidget({
+				title: 'Convert Lambda Concurrent Executions',
+				left: [props.convertLambda.metric('Concurrent Executions',{ statistic: 'Maximum' })],
+				stacked: false,
+				width: 4
+			}),
 		)
 	}
 }
