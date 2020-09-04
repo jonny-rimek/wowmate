@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -124,34 +125,7 @@ func handler(e SQSEvent) error {
 	}
 
 	sess, _ := session.NewSession()
-	//TODO: check and handle error
-	// svc := sqs.New(sess)
 
-	/* 	for {
-	msgResult, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
-		AttributeNames: []*string{
-			aws.String(sqs.MessageSystemAttributeNameSenderId),
-			aws.String(sqs.MessageSystemAttributeNameSentTimestamp),
-			aws.String(sqs.MessageSystemAttributeNameApproximateReceiveCount),
-			aws.String(sqs.MessageSystemAttributeNameApproximateFirstReceiveTimestamp),
-			aws.String(sqs.MessageSystemAttributeNameSequenceNumber),
-			aws.String(sqs.MessageSystemAttributeNameMessageDeduplicationId),
-			aws.String(sqs.MessageSystemAttributeNameMessageGroupId),
-			aws.String(sqs.MessageSystemAttributeNameAwstraceHeader),
-		},
-		MessageAttributeNames: []*string{
-			aws.String(sqs.QueueAttributeNameAll),
-		},
-		QueueUrl:            aws.String(queueURL),
-		MaxNumberOfMessages: aws.Int64(10),
-		WaitTimeSeconds:     aws.Int64(0),
-	})
-	if err != nil {
-		time.Sleep(time.Duration(2) * time.Second)
-		log.Printf("Failed recieve message: %v", err)
-		continue
-	}
-	*/
 	if len(e.Records) == 0 {
 		return fmt.Errorf("SQS Event doesn't contain any messages")
 	}
@@ -205,15 +179,30 @@ func handler(e SQSEvent) error {
 		}
 		log.Println("downloaded from s3")
 
-		//TODO: some of the messages are created as CompleteMultipartUpload instead of put object and can't be processed?
+		//TODO: gzip before upload
+		var buf bytes.Buffer
+		w := gzip.NewWriter(&buf)
+
+		_, err = w.Write(fileContent.Bytes())
+		if err != nil {
+			log.Println("Failed to create a gzip writer")
+			return err
+		}
+
+		r, err := gzip.NewReader(&buf)
+		if err != nil {
+			log.Println("Failed to create a gzip reader")
+			return err
+		}
+
 		uploader := s3manager.NewUploader(sess)
 		result, err := uploader.Upload(&s3manager.UploadInput{
 			Bucket: aws.String(csvBucket),
-			Key:    aws.String("converted.csv"),
-			Body:   bytes.NewReader(fileContent.Bytes()),
+			Key:    aws.String("converted.csv.gz"),
+			Body:   r,
 		})
 		if err != nil {
-			log.Println("Failed to upload to S3: " + err.Error())
+			log.Println("Failed to upload to S3")
 			return err
 		}
 		log.Println("Upload finished! location: " + result.Location)
