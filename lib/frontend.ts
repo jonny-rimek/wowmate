@@ -40,6 +40,9 @@ export class Frontend extends cdk.Construct {
 			websiteIndexDocument: 'index.html',
 			publicReadAccess: true,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
+			metrics: [{
+				id: 'metric',
+			}]
 		});
 
 		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {

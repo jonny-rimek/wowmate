@@ -23,6 +23,9 @@ export class Api extends cdk.Construct {
 		const csvBucket = new s3.Bucket(this, 'CSV', {
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+			metrics: [{
+				id: 'metric',
+			}]
 		})
 		this.bucket = csvBucket
 

@@ -49,7 +49,6 @@ export class Presign extends cdk.Construct {
 
 		trail.addS3EventSelector([{
 			bucket: uploadBucket, 
-			
 		}]);
 		
 		//TODO: create bucket and pass to lambda
