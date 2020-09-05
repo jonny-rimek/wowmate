@@ -47,7 +47,7 @@ export class Convert extends cdk.Construct {
 			environment: {
 				CSV_BUCKET_NAME: props.csvBucket.bucketName,
 			},
-			reservedConcurrentExecutions: 10, 
+			reservedConcurrentExecutions: 50, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			//NOTE: not in VPC by design, because I don't have an S3 endpoint and it would incur

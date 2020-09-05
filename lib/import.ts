@@ -49,8 +49,7 @@ export class Import extends cdk.Construct {
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 			},
-			//only execute one lambda at a time, to not overwhelm the db with imports
-			reservedConcurrentExecutions: 1, 
+			reservedConcurrentExecutions: 10, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
