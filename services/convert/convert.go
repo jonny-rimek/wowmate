@@ -86,6 +86,8 @@ CREATE TABLE IF NOT EXISTS combatlogs (
   glancing VARCHAR,
   crushing VARCHAR,
   is_offhand VARCHAR
+  TODO: created_at
+  TODO: updated_at
 )
 */
 

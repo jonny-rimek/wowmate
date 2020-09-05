@@ -260,7 +260,7 @@ func EventsAsStringSlices(events *[]Event, ss *[][]string) error {
 			e.CombatlogUUID,
 			e.BossFightUUID,
 			e.MythicplusUUID,
-			strconv.FormatInt(e.Timestamp, 10),
+			// strconv.FormatInt(e.Timestamp, 10),
 			e.EventType,
 			strconv.FormatInt(int64(e.Version), 10),
 			strconv.FormatInt(int64(e.AdvancedLogEnabled), 10),
