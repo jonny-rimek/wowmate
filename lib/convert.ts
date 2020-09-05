@@ -34,7 +34,7 @@ export class Convert extends cdk.Construct {
 				maxReceiveCount: 1, //NOTE: I want failed messages to directly land in dlq
 			},
 			//NOTE: 1minute is too low, it's that low for debugging purposed
-			visibilityTimeout: cdk.Duration.minutes(1)
+			visibilityTimeout: cdk.Duration.minutes(6)
 		});
 		this.queue = q
 
@@ -43,7 +43,7 @@ export class Convert extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(60),
+			timeout: cdk.Duration.minutes(5),
 			environment: {
 				CSV_BUCKET_NAME: props.csvBucket.bucketName,
 			},
@@ -52,7 +52,7 @@ export class Convert extends cdk.Construct {
 			tracing: lambda.Tracing.ACTIVE,
 			//NOTE: not in VPC by design, because I don't have an S3 endpoint and it would incur
 			//		additional charges
-			//		if I endup using EFS I need to add it back to the VPC tho
+			//		if I endup using EFS I need to add it to the VPC tho
 		})
 		this.lambda = convertLambda
 		convertLambda.addEventSource(new SqsEventSource(q))

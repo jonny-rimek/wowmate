@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -124,19 +125,26 @@ func handler(e SQSEvent) error {
 			return err
 		}
 
-		w := csv.NewWriter(os.Stdout)
+		var buf bytes.Buffer
+		w := csv.NewWriter(&buf)
 		for _, record := range events {
 			s, _ := ToStringSlice(record)
 			if err := w.Write(s); err != nil {
 				log.Fatalln("error writing record to csv:", err)
 			}
 		}
+		w.Flush()
+		if err := w.Error(); err != nil {
+			log.Fatal(err)
+		}
+
+		r := io.Reader(&buf)
 
 		uploader := s3manager.NewUploader(sess)
 		result, err := uploader.Upload(&s3manager.UploadInput{
 			Bucket: aws.String(csvBucket),
 			Key:    aws.String("converted.csv"),
-			Body:   bytes.NewReader(fileContent.Bytes()),
+			Body:   r,
 		})
 		if err != nil {
 			log.Println("Failed to upload to S3")
