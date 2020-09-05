@@ -3,6 +3,7 @@ import cloudwatch = require('@aws-cdk/aws-cloudwatch');
 import { GraphWidget, IMetric, Metric, Row, TextWidget } from "@aws-cdk/aws-cloudwatch";
 import { SnsAction } from '@aws-cdk/aws-cloudwatch-actions';
 import sns = require('@aws-cdk/aws-sns');
+import * as subscriptions from '@aws-cdk/aws-sns-subscriptions';
 import lambda = require('@aws-cdk/aws-lambda');
 import sqs = require('@aws-cdk/aws-sqs');
 import s3 = require('@aws-cdk/aws-s3');
@@ -19,6 +20,17 @@ interface Props extends cdk.StackProps {
 export class EtlDashboard extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
+
+		const errorTopic = new sns.Topic(this, 'errorTopic');
+		errorTopic.addSubscription(new subscriptions.EmailSubscription('jimbo.db@protonmail.com'));
+
+		new cloudwatch.Alarm(this, 'Failed to import to DB', {
+			metric: props.importDLQ.metricApproximateNumberOfMessagesVisible(),
+			threshold: 0,
+			evaluationPeriods: 6,
+			datapointsToAlarm: 1,
+			treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+		}).addAlarmAction(new SnsAction(errorTopic))
 
 		//NOTE widget height viable values: 3, 6, ?
 		new cloudwatch.Dashboard(this, 'Dashboard').addWidgets(

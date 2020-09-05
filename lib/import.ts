@@ -29,6 +29,8 @@ export class Import extends cdk.Construct {
 		});
 		this.dlq = dlq
 
+		//NOTE: sometimes the db import fails, thats why the maxReceiveCount is so high
+		//		the error fixes itself on the next try or two
 		const q = new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
 				queue: dlq,
