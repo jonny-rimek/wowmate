@@ -254,12 +254,12 @@ func (e *Event) importHeal(params []string) (err error) {
 func EventsAsStringSlices(events *[]Event, ss *[][]string) error {
 	for _, e := range *events {
 		s := []string{
+			e.ColumnUUID,
 			e.UploadUUID,
 			strconv.FormatBool(e.Unsupported),
 			e.CombatlogUUID,
 			e.BossFightUUID,
 			e.MythicplusUUID,
-			e.ColumnUUID,
 			strconv.FormatInt(e.Timestamp, 10),
 			e.EventType,
 			strconv.FormatInt(int64(e.Version), 10),

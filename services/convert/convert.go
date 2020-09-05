@@ -22,13 +22,12 @@ import (
 
 /*
 CREATE TABLE IF NOT EXISTS combatlogs (
-  id BIGSERIAL,
+  column_uuid UUID PRIMARY KEY,
   upload_uuid UUID,
   unsupported boolean,
   combatlog_uuid UUID,
   boss_fight_uuid UUID,
   mythicplus_uuid UUID,
-  column_uuid UUID,
   timestamp timestamp,
   event_type VARCHAR,
   version int,
