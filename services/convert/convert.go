@@ -17,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	uuid "github.com/gofrs/uuid"
 )
 
 //https://mholt.github.io/json-to-go/ best tool EVER
@@ -118,7 +119,7 @@ func handler(e SQSEvent) error {
 		log.Println("downloaded from s3")
 
 		s := bufio.NewScanner(bytes.NewReader(fileContent.Bytes()))
-		uploadUUID := "odliksjfflkjsdf"
+		uploadUUID := uuid.Must(uuid.NewV4()).String()
 
 		events, err := Import(s, uploadUUID)
 		if err != nil {
@@ -126,16 +127,12 @@ func handler(e SQSEvent) error {
 		}
 
 		var buf bytes.Buffer
+		var ss [][]string
 		w := csv.NewWriter(&buf)
-		for _, record := range events {
-			s, _ := ToStringSlice(record)
-			if err := w.Write(s); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-		}
-		w.Flush()
-		if err := w.Error(); err != nil {
-			log.Fatal(err)
+
+		_ = EventsAsStringSlices(&events, &ss)
+		if err := w.WriteAll(ss); err != nil {
+			log.Fatalln("error writing record to csv:", err)
 		}
 
 		r := io.Reader(&buf)
@@ -143,7 +140,7 @@ func handler(e SQSEvent) error {
 		uploader := s3manager.NewUploader(sess)
 		result, err := uploader.Upload(&s3manager.UploadInput{
 			Bucket: aws.String(csvBucket),
-			Key:    aws.String("converted.csv"),
+			Key:    aws.String(fmt.Sprintf("%v.csv", uploadUUID)),
 			Body:   r,
 		})
 		if err != nil {

@@ -251,15 +251,17 @@ func (e *Event) importHeal(params []string) (err error) {
 	return nil
 }
 
-func ToStringSlice(e Event) ([]string, error) {
-	s := []string{
-		e.CasterID,
-		e.CasterName,
-		e.CasterType,
-		e.Critical,
+func EventsAsStringSlices(events *[]Event, ss *[][]string) error {
+	for _, e := range *events {
+		s := []string{
+			e.CasterID,
+			e.CasterName,
+			e.CasterType,
+			e.Critical,
+		}
+		*ss = append(*ss, s)
 	}
-
-	return s, nil
+	return nil
 }
 
 func (s *Event) String() string {
