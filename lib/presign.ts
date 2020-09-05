@@ -34,6 +34,9 @@ export class Presign extends cdk.Construct {
 					],
 				}
 			],
+			metrics: [{
+				id: 'metric',
+			}]
 		})
 		this.bucket = uploadBucket
 
