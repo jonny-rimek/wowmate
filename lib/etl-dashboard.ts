@@ -34,7 +34,7 @@ export class EtlDashboard extends cdk.Construct {
 					height: 6,
 				}),
 				new GraphWidget({
-					title: 'Lambda Invocations',
+					title: 'Invocations',
 					left: [
 						props.convertLambda.metricInvocations({period: cdk.Duration.minutes(1)}),
 						props.importLambda.metricInvocations({period: cdk.Duration.minutes(1)}),
@@ -43,7 +43,7 @@ export class EtlDashboard extends cdk.Construct {
 					width: 4,
 				}),
 				new GraphWidget({
-					title: 'Invocations',
+					title: 'Errors',
 					left: [
 						props.convertLambda.metricErrors({period: cdk.Duration.minutes(1)}),
 						props.importLambda.metricErrors({period: cdk.Duration.minutes(1)}),
