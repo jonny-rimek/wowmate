@@ -36,8 +36,8 @@ export class EtlDashboard extends cdk.Construct {
 				new GraphWidget({
 					title: 'Lambda Invocations',
 					left: [
-						props.convertLambda.metricInvocations(),
-						props.importLambda.metricInvocations(),
+						props.convertLambda.metricInvocations({period: cdk.Duration.minutes(1)}),
+						props.importLambda.metricInvocations({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4,
@@ -45,8 +45,8 @@ export class EtlDashboard extends cdk.Construct {
 				new GraphWidget({
 					title: 'Invocations',
 					left: [
-						props.convertLambda.metricErrors(),
-						props.importLambda.metricErrors(),
+						props.convertLambda.metricErrors({period: cdk.Duration.minutes(1)}),
+						props.importLambda.metricErrors({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
@@ -54,8 +54,8 @@ export class EtlDashboard extends cdk.Construct {
 				new GraphWidget({
 					title: 'Throttles',
 					left: [
-						props.convertLambda.metricThrottles(),
-						props.importLambda.metricThrottles(),
+						props.convertLambda.metricThrottles({period: cdk.Duration.minutes(1)}),
+						props.importLambda.metricThrottles({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
@@ -63,8 +63,8 @@ export class EtlDashboard extends cdk.Construct {
 				new GraphWidget({
 					title: 'Duration',
 					left: [
-						props.convertLambda.metricDuration(),
-						props.importLambda.metricDuration(),
+						props.convertLambda.metricDuration({period: cdk.Duration.minutes(1)}),
+						props.importLambda.metricDuration({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
@@ -72,8 +72,8 @@ export class EtlDashboard extends cdk.Construct {
 				new GraphWidget({
 					title: 'Concurrent Executions',
 					left: [
-						props.convertLambda.metric('ConcurrentExecutions',{ statistic: 'Maximum' }),
-						props.importLambda.metric('ConcurrentExecutions',{ statistic: 'Maximum' }),
+						props.convertLambda.metric('ConcurrentExecutions',{ statistic: 'Maximum', period: cdk.Duration.minutes(1) }),
+						props.importLambda.metric('ConcurrentExecutions',{ statistic: 'Maximum', period: cdk.Duration.minutes(1) }),
 					],
 					stacked: false,
 					width: 4
@@ -93,8 +93,8 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 				new GraphWidget({
 					title: 'Visible messages',
 					left: [
-						props.convertQueue.metricApproximateNumberOfMessagesVisible(),
-						props.importQueue.metricApproximateNumberOfMessagesVisible(),
+						props.convertQueue.metricApproximateNumberOfMessagesVisible({period: cdk.Duration.minutes(1)}),
+						props.importQueue.metricApproximateNumberOfMessagesVisible({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
@@ -102,8 +102,8 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 				new GraphWidget({
 					title: 'Age of oldest message',
 					left: [
-						props.convertQueue.metricApproximateAgeOfOldestMessage(),
-						props.importQueue.metricApproximateAgeOfOldestMessage(),
+						props.convertQueue.metricApproximateAgeOfOldestMessage({period: cdk.Duration.minutes(1)}),
+						props.importQueue.metricApproximateAgeOfOldestMessage({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
@@ -111,8 +111,8 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 				new GraphWidget({
 					title: 'Messages not visible',
 					left: [
-						props.convertQueue.metricApproximateNumberOfMessagesNotVisible(),
-						props.importQueue.metricApproximateNumberOfMessagesNotVisible(),
+						props.convertQueue.metricApproximateNumberOfMessagesNotVisible({period: cdk.Duration.minutes(1)}),
+						props.importQueue.metricApproximateNumberOfMessagesNotVisible({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
@@ -120,8 +120,8 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 				new GraphWidget({
 					title: 'Messages recieved',
 					left: [
-						props.convertQueue.metricNumberOfMessagesReceived(),
-						props.importQueue.metricNumberOfMessagesReceived(),
+						props.convertQueue.metricNumberOfMessagesReceived({period: cdk.Duration.minutes(1)}),
+						props.importQueue.metricNumberOfMessagesReceived({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
@@ -129,8 +129,8 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 				new GraphWidget({
 					title: 'DLQ messages',
 					left: [
-						props.convertDLQ.metricApproximateNumberOfMessagesVisible(),
-						props.importDLQ.metricApproximateNumberOfMessagesVisible(),
+						props.convertDLQ.metricApproximateNumberOfMessagesVisible({period: cdk.Duration.minutes(1)}),
+						props.importDLQ.metricApproximateNumberOfMessagesVisible({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
