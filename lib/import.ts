@@ -6,6 +6,7 @@ import s3n = require('@aws-cdk/aws-s3-notifications');
 import lambda = require('@aws-cdk/aws-lambda');
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
+import * as destinations from '@aws-cdk/aws-lambda-destinations';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 
 interface VpcProps extends cdk.StackProps {
@@ -41,7 +42,23 @@ export class Import extends cdk.Construct {
 		this.queue =  q
 
 		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
-
+/* 
+		const SummaryLambda = new lambda.Function(this, 'F', {
+			code: lambda.Code.asset('services/summary'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: cdk.Duration.seconds(3),
+			environment: {
+				SECRET_ARN: props.secret.secretArn,
+			},
+			reservedConcurrentExecutions: 1, 
+			logRetention: RetentionDays.ONE_WEEK,
+			tracing: lambda.Tracing.ACTIVE,
+			vpc: props.vpc,
+			securityGroups: [props.securityGroup],
+		})
+	 */
 		const importLambda = new lambda.Function(this, 'F', {
 			code: lambda.Code.asset('services/import'),
 			handler: 'main',
@@ -56,6 +73,7 @@ export class Import extends cdk.Construct {
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
+			// onSuccess: new destinations.LambdaDestination(SummaryLambda)
 		})
 		this.lambda = importLambda
 
