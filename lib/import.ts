@@ -16,6 +16,9 @@ interface VpcProps extends cdk.StackProps {
 }
 
 export class Import extends cdk.Construct {
+	public readonly lambda: lambda.Function;
+	public readonly queue: sqs.Queue;
+	public readonly dlq: sqs.Queue;
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
@@ -24,6 +27,7 @@ export class Import extends cdk.Construct {
 		const dlq = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
 		});
+		this.dlq = dlq
 
 		const q = new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
@@ -32,10 +36,11 @@ export class Import extends cdk.Construct {
 			},
 			visibilityTimeout: cdk.Duration.seconds(30)
 		});
+		this.queue =  q
 
 		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
 
-		const importFunc = new lambda.Function(this, 'F', {
+		const importLambda = new lambda.Function(this, 'F', {
 			code: lambda.Code.asset('services/import'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -51,7 +56,9 @@ export class Import extends cdk.Construct {
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
 		})
-		importFunc.addEventSource(new SqsEventSource(q))
-		props.secret?.grantRead(importFunc)
+		this.lambda = importLambda
+
+		importLambda.addEventSource(new SqsEventSource(q))
+		props.secret?.grantRead(importLambda)
 	}
 }

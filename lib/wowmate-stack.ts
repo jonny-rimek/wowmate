@@ -23,17 +23,21 @@ export class Wowmate extends Stack {
 			uploadBucket: presign.bucket
 		})
 
-		new Import(this, 'Import', {
+		//NOTE: import is a saved keyword
+		const importz = new Import(this, 'Import', {
 			vpc: api.vpc,
 			bucket: api.bucket,
 			securityGroup: api.securityGrp,
 			secret: api.dbCreds,
 		})
 
-		new EtlDashboard(this, 'Dashboard', {
+		new EtlDashboard(this, 'ETL', {
 			convertLambda: convert.lambda,
 			convertQueue: convert.queue,
 			convertDLQ: convert.dlq,
+			importLambda: importz.lambda,
+			importQueue: importz.queue,
+			importDLQ: importz.dlq,
 		})
 	}
 }

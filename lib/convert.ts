@@ -38,7 +38,7 @@ export class Convert extends cdk.Construct {
 		});
 		this.queue = q
 
-		const convertFunc = new lambda.Function(this, 'F', {
+		const convertLambda = new lambda.Function(this, 'F', {
 			code: lambda.Code.asset('services/convert'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -54,11 +54,11 @@ export class Convert extends cdk.Construct {
 			//		additional charges
 			//		if I endup using EFS I need to add it back to the VPC tho
 		})
-		this.lambda = convertFunc
-		convertFunc.addEventSource(new SqsEventSource(q))
+		this.lambda = convertLambda
+		convertLambda.addEventSource(new SqsEventSource(q))
 
 		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
-		props.uploadBucket.grantRead(convertFunc)
-		props.csvBucket.grantWrite(convertFunc)
+		props.uploadBucket.grantRead(convertLambda)
+		props.csvBucket.grantWrite(convertLambda)
 	}
 }
