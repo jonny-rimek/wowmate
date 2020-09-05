@@ -1,6 +1,6 @@
 import cdk = require('@aws-cdk/core');
 import cloudwatch = require('@aws-cdk/aws-cloudwatch');
-import { GraphWidget, IMetric, Metric, Row } from "@aws-cdk/aws-cloudwatch";
+import { GraphWidget, IMetric, Metric, Row, TextWidget } from "@aws-cdk/aws-cloudwatch";
 import { SnsAction } from '@aws-cdk/aws-cloudwatch-actions';
 import sns = require('@aws-cdk/aws-sns');
 import lambda = require('@aws-cdk/aws-lambda');
@@ -23,8 +23,18 @@ export class EtlDashboard extends cdk.Construct {
 		//NOTE widget height viable values: 3, 6, ?
 		new cloudwatch.Dashboard(this, 'Dashboard').addWidgets(
 			new Row(
+				new TextWidget({
+					markdown: `# Lambda metrics
+
+					__Convert__ takes the combatlog, normal or compressed, and converts it to a csv and passes it into the csvBucket
+					
+					__Import__ takes the processed combat log and loads it into postgres aurora
+					`,
+					width: 4,
+					height: 6,
+				}),
 				new GraphWidget({
-					title: 'Convert Lambda Invocations',
+					title: 'Lambda Invocations',
 					left: [
 						props.convertLambda.metricInvocations(),
 						props.importLambda.metricInvocations(),
@@ -70,8 +80,18 @@ export class EtlDashboard extends cdk.Construct {
 				}),
 			),
 			new Row(
+				new TextWidget({
+					markdown: `# SQS metrics
+					
+					visible messages and message age _should_ be as low as possible
+
+					messages in convert DLQ _should_ be 0, the import DLQ _must_ be 0
+					`,
+					width: 4,
+					height: 6,
+				}),
 				new GraphWidget({
-					title: 'Convert Queue visible messages',
+					title: 'Visible messages',
 					left: [
 						props.convertQueue.metricApproximateNumberOfMessagesVisible(),
 						props.importQueue.metricApproximateNumberOfMessagesVisible(),
@@ -89,7 +109,7 @@ export class EtlDashboard extends cdk.Construct {
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Number of messages not visible',
+					title: 'Messages not visible',
 					left: [
 						props.convertQueue.metricApproximateNumberOfMessagesNotVisible(),
 						props.importQueue.metricApproximateNumberOfMessagesNotVisible(),
@@ -98,7 +118,7 @@ export class EtlDashboard extends cdk.Construct {
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Number of messages recieved',
+					title: 'Messages recieved',
 					left: [
 						props.convertQueue.metricNumberOfMessagesReceived(),
 						props.importQueue.metricNumberOfMessagesReceived(),
@@ -107,7 +127,7 @@ export class EtlDashboard extends cdk.Construct {
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Convert DLQ messages',
+					title: 'DLQ messages',
 					left: [
 						props.convertDLQ.metricApproximateNumberOfMessagesVisible(),
 						props.importDLQ.metricApproximateNumberOfMessagesVisible(),
