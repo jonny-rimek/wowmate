@@ -35,9 +35,9 @@ export class Import extends cdk.Construct {
 		const q = new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
 				queue: dlq,
-				maxReceiveCount: 10,
+				maxReceiveCount: 5,
 			},
-			visibilityTimeout: cdk.Duration.seconds(15)
+			visibilityTimeout: cdk.Duration.minutes(3)
 		});
 		this.queue =  q
 
@@ -64,7 +64,7 @@ export class Import extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(3),
+			timeout: cdk.Duration.seconds(30),
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 			},
