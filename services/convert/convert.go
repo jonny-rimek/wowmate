@@ -57,7 +57,6 @@ type SQSEvent struct {
 }
 
 func handler(e SQSEvent) error {
-	// queueURL := os.Getenv("QUEUE_URL")
 	csvBucket := os.Getenv("CSV_BUCKET_NAME")
 	if csvBucket == "" {
 		return fmt.Errorf("csv bucket env var is empty")
@@ -136,6 +135,8 @@ func handler(e SQSEvent) error {
 		}
 
 		r := io.Reader(&buf)
+
+		log.Println("converted to csv")
 
 		uploader := s3manager.NewUploader(sess)
 		result, err := uploader.Upload(&s3manager.UploadInput{
