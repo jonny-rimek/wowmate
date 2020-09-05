@@ -159,6 +159,7 @@ func handler(e SQSEvent) error {
 	}
 	defer db.Close()
 	log.Println("openend connection")
+	log.Printf("number of messages: %v", len(e.Records))
 
 	for _, record := range e.Records {
 		s3 := S3Event{}
