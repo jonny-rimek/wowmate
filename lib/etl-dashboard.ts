@@ -26,9 +26,9 @@ export class EtlDashboard extends cdk.Construct {
 				new TextWidget({
 					markdown: `# Lambda metrics
 
-					__Convert__ takes the combatlog, normal or compressed, and converts it to a csv and passes it into the csvBucket
+**Convert** takes the combatlog, normal or compressed, and converts it to a csv and passes it into the csvBucket
 					
-					__Import__ takes the processed combat log and loads it into postgres aurora
+**Import** takes the processed combat log and loads it into postgres aurora
 					`,
 					width: 4,
 					height: 6,
@@ -83,9 +83,9 @@ export class EtlDashboard extends cdk.Construct {
 				new TextWidget({
 					markdown: `# SQS metrics
 					
-					visible messages and message age _should_ be as low as possible
+visible messages and message age *should* be as low as possible
 
-					messages in convert DLQ _should_ be 0, the import DLQ _must_ be 0
+messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 					`,
 					width: 4,
 					height: 6,
