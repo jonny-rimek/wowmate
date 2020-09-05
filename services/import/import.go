@@ -174,7 +174,7 @@ func handler(e SQSEvent) error {
 		}
 		q := fmt.Sprintf(`
 				SELECT aws_s3.table_import_from_s3(
-					't1',
+					'combatlogs',
 					'',
 					'(format csv, DELIMITER '','', HEADER true)',
 					'(%v,%v,us-east-1)');
