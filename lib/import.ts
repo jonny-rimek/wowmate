@@ -41,7 +41,8 @@ export class Import extends cdk.Construct {
 		});
 		this.queue =  q
 
-		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
+		//NOTE: temporarily deactivated
+		// bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
 /* 
 		const SummaryLambda = new lambda.Function(this, 'F', {
 			code: lambda.Code.asset('services/summary'),
@@ -68,7 +69,7 @@ export class Import extends cdk.Construct {
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 			},
-			reservedConcurrentExecutions: 0, //NOTE: temporarily deactivated
+			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
