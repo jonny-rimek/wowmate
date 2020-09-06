@@ -149,7 +149,8 @@ func handler(e SQSEvent) error {
 		"user=%v dbname=%v sslmode=verify-full host=%v password=%v port=5432",
 		creds.UserName,
 		creds.DatabaseName,
-		creds.Host,
+		// creds.Host,
+		"dbproxy.proxy-cvevooy4lacx.us-east-1.rds.amazonaws.com",
 		creds.Password,
 	)
 	db, err := sql.Open("postgres", connStr)
