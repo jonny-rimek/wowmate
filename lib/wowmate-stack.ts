@@ -5,13 +5,14 @@ import { Convert } from './convert';
 import { Import } from './import';
 import { Presign } from './presign';
 import { EtlDashboard } from './etl-dashboard';
+import { FrontendDashboard } from './frontend-dashboard';
 
 export class Wowmate extends Stack {
 	constructor(scope: Construct, id: string, props?: StackProps) {
 		super(scope, id, props);
 
 		//TODO: add - at the end of each name for better readability
-		new Frontend(this, 'Frontend')
+		const frontend = new Frontend(this, 'Frontend')
 
 		const presign = new Presign(this, 'Presign')
 
@@ -29,6 +30,13 @@ export class Wowmate extends Stack {
 			bucket: api.bucket,
 			securityGroup: api.securityGrp,
 			secret: api.dbCreds,
+		})
+
+		new FrontendDashboard(this, 'Namingthingsishard', {
+			topDamageLambda: api.lambda,
+			api: api.api,
+			s3: frontend.bucket,
+			cloudfront: frontend.cloudfront,
 		})
 
 		new EtlDashboard(this, 'ETL', {

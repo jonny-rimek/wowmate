@@ -22,6 +22,9 @@ import events = require('@aws-cdk/aws-events');
 import { CfnClientCertificate } from '@aws-cdk/aws-apigateway';
 
 export class Frontend extends cdk.Construct {
+	public readonly cloudfront: cloudfront.CloudFrontWebDistribution;
+	public readonly bucket: s3.Bucket;
+
 	constructor(scope: cdk.Construct, id: string) {
 		super(scope, id);
 
@@ -29,7 +32,7 @@ export class Frontend extends cdk.Construct {
 			zoneName: 'wowmate.io',
 			hostedZoneId: 'Z3LVG9ZF2H87DX',
 		});
-		
+
 		const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
 			domainName: 'wowmate.io',
 			hostedZone,
@@ -102,6 +105,5 @@ export class Frontend extends cdk.Construct {
 			zone: hostedZone,
 			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution))
 		});
-
 	}
 }

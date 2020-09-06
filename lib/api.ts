@@ -14,6 +14,8 @@ export class Api extends cdk.Construct {
 	public readonly securityGrp: ec2.SecurityGroup;
 	public readonly dbCreds: secretsmanager.ISecret;
 	public readonly bucket: s3.Bucket;
+	public readonly lambda: lambda.Function;
+	public readonly api: HttpApi;
 	// public readonly rdsProxy: rds.DatabaseProxy;
 
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -124,6 +126,7 @@ export class Api extends cdk.Construct {
 			vpc: vpc,
 			securityGroups: [dbGroup],
 		})
+		this.lambda = topDamageLambda
 		auroraPostgres.secret?.grantRead(topDamageLambda)
 
 		const topDamageIntegration = new LambdaProxyIntegration({
@@ -141,5 +144,6 @@ export class Api extends cdk.Construct {
 			methods: [HttpMethod.GET],
 			integration: topDamageIntegration,
 		})
+		this.api = httpApi
 	}
 }
