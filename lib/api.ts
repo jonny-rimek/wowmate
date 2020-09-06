@@ -7,6 +7,7 @@ import { HttpProxyIntegration, HttpApi, LambdaProxyIntegration, HttpMethod } fro
 import s3 = require('@aws-cdk/aws-s3');
 import iam = require('@aws-cdk/aws-iam');
 import lambda = require('@aws-cdk/aws-lambda');
+import { CfnOutput } from '@aws-cdk/core';
 
 export class Api extends cdk.Construct {
 	public readonly vpc: ec2.Vpc;
@@ -85,6 +86,8 @@ export class Api extends cdk.Construct {
 			vpc: vpc,
 			securityGroups: [dbGroup],
 		})
+		const rdsproxy = auroraPostgres.node.findChild('DBProxy') as rds.CfnDBProxy;
+
 /* 
 		const proxy = new rds.DatabaseProxy(this, 'DatabaseProxy', {
 		dbProxyName: 'database-proxy',
@@ -103,7 +106,8 @@ export class Api extends cdk.Construct {
 		targetGroup.addOverride('Properties.TargetGroupName', 'default');
 		targetGroup.addOverride('Properties.DBClusterIdentifiers', [auroraPostgres.clusterIdentifier]);
 		targetGroup.addOverride('Properties.DBInstanceIdentifiers', []);
- */
+
+ */		
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
 			vpc,
 			securityGroup: dbGroup,
@@ -116,6 +120,7 @@ export class Api extends cdk.Construct {
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(30),
 			environment: {
+				TEST_LOL: rdsproxy.attrEndpoint,
 			},
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,

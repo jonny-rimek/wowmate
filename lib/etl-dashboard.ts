@@ -22,7 +22,8 @@ export class EtlDashboard extends cdk.Construct {
 		super(scope, id)
 
 		const errorTopic = new sns.Topic(this, 'errorTopic');
-		errorTopic.addSubscription(new subscriptions.EmailSubscription('jimbo.db@protonmail.com'));
+		//TODO: reactivate in prod
+		// errorTopic.addSubscription(new subscriptions.EmailSubscription('jimbo.db@protonmail.com'));
 
 		new cloudwatch.Alarm(this, 'Failed to import to DB', {
 			metric: props.importDLQ.metricApproximateNumberOfMessagesVisible({period: cdk.Duration.minutes(1)}),
