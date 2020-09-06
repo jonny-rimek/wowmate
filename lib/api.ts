@@ -81,6 +81,11 @@ export class Api extends cdk.Construct {
 		})
 		this.dbCreds = auroraPostgres.secret!
 
+		auroraPostgres.addProxy('DBProxy', {
+			secrets: [auroraPostgres.secret!],
+			vpc: vpc,
+		})
+
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
 			vpc,
 			securityGroup: dbGroup,
