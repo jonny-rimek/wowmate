@@ -123,6 +123,7 @@ export class Api extends cdk.Construct {
 			vpc: vpc,
 			securityGroups: [dbGroup],
 		})
+		auroraPostgres.secret?.grantRead(topDamageLambda)
 
 		const topDamageIntegration = new LambdaProxyIntegration({
 			handler: topDamageLambda
