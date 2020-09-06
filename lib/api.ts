@@ -81,33 +81,27 @@ export class Api extends cdk.Construct {
 		})
 		this.dbCreds = auroraPostgres.secret!
 
-		auroraPostgres.addProxy('DBProxy', {
+		// auroraPostgres.addProxy('DBProxy', {
+		// 	secrets: [auroraPostgres.secret!],
+		// 	vpc: vpc,
+		// 	securityGroups: [dbGroup],
+		// })
+		// const rdsproxy = auroraPostgres.node.findChild('DBProxy') as rds.CfnDBProxy;
+		// rdsproxy.attrEndpoint,
+
+		const proxy = new rds.DatabaseProxy(this, 'DatabaseProxy', {
 			secrets: [auroraPostgres.secret!],
 			vpc: vpc,
-			securityGroups: [dbGroup],
-		})
-		const rdsproxy = auroraPostgres.node.findChild('DBProxy') as rds.CfnDBProxy;
-
-/* 
-		const proxy = new rds.DatabaseProxy(this, 'DatabaseProxy', {
-		dbProxyName: 'database-proxy',
-		debugLogging: true,
-		iamAuth: false,
-		requireTLS: true,
-		secrets: [auroraPostgres.secret!],
-		vpc: vpc,
-		vpcSubnets: {
-			subnetType: ec2.SubnetType.PRIVATE,
-		},
-		proxyTarget: rds.ProxyTarget.fromCluster(auroraPostgres),
+			proxyTarget: rds.ProxyTarget.fromCluster(auroraPostgres),
 		});
 
+/* 
 		const targetGroup = auroraPostgres.node.findChild('ProxyTargetGroup') as rds.CfnDBProxyTargetGroup;
 		targetGroup.addOverride('Properties.TargetGroupName', 'default');
 		targetGroup.addOverride('Properties.DBClusterIdentifiers', [auroraPostgres.clusterIdentifier]);
 		targetGroup.addOverride('Properties.DBInstanceIdentifiers', []);
+*/		
 
- */		
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
 			vpc,
 			securityGroup: dbGroup,
@@ -120,7 +114,7 @@ export class Api extends cdk.Construct {
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(30),
 			environment: {
-				TEST_LOL: rdsproxy.attrEndpoint,
+				RDS_PROXY_ENDPOINT: proxy.endpoint,
 			},
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
