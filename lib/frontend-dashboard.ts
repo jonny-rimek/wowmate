@@ -63,17 +63,17 @@ Those are all customer facing lambdas that access the database, ergo errors shou
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Throttles',
+					title: 'Duration',
 					left: [
-						props.topDamageLambda.metricThrottles({period: cdk.Duration.minutes(1)}),
+						props.topDamageLambda.metricDuration({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Duration',
+					title: 'Throttles',
 					left: [
-						props.topDamageLambda.metricDuration({period: cdk.Duration.minutes(1)}),
+						props.topDamageLambda.metricThrottles({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
@@ -101,6 +101,20 @@ and leaves the AWS network and should be as low as possible.
 					`,
 					width: 4,
 					height: 6,
+				}),
+				new GraphWidget({
+					title: 'Requests',
+					left: [
+						new cloudwatch.Metric({
+							metricName: 'Requests',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+					],
+					stacked: false,
+					width: 4
 				}),
 				new GraphWidget({
 					title: 'Error Rate',
@@ -201,20 +215,6 @@ and leaves the AWS network and should be as low as possible.
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Requests',
-					left: [
-						new cloudwatch.Metric({
-							metricName: 'Requests',
-							namespace: 'AWS/CloudFront',
-							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
-							statistic: 'Sum',
-							period: cdk.Duration.minutes(1),
-						}),
-					],
-					stacked: false,
-					width: 4
-				}),
-				new GraphWidget({
 					title: 'Bytes Downloaded/Uploaded ',
 					left: [
 						new cloudwatch.Metric({
@@ -244,6 +244,20 @@ API Gatewayv2 is fronting all public lambdas.
 					`,
 					width: 4,
 					height: 6,
+				}),
+				new GraphWidget({
+					title: 'Count',
+					left: [
+						new cloudwatch.Metric({
+							metricName: 'Count',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiId: props.api.httpApiId },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+					],
+					stacked: false,
+					width: 4
 				}),
 				new GraphWidget({
 					title: 'Error Rates',
@@ -306,20 +320,6 @@ API Gatewayv2 is fronting all public lambdas.
 							period: cdk.Duration.minutes(1),
 						}),
 	 */				],
-					stacked: false,
-					width: 4
-				}),
-				new GraphWidget({
-					title: 'Count',
-					left: [
-						new cloudwatch.Metric({
-							metricName: 'Count',
-							namespace: 'AWS/ApiGateway',
-							dimensions: { ApiId: props.api.httpApiId },
-							statistic: 'Sum',
-							period: cdk.Duration.minutes(1),
-						}),
-					],
 					stacked: false,
 					width: 4
 				}),
