@@ -124,6 +124,41 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 							statistic: 'Average',
 							period: cdk.Duration.minutes(1),
 						}),
+						new cloudwatch.Metric({
+							metricName: '401',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: '403',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: '502',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: '503ErrorRate',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: '504ErrorRate',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
 					],
 					stacked: false,
 					width: 4
@@ -163,7 +198,7 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 							metricName: 'Requests',
 							namespace: 'AWS/CloudFront',
 							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
-							statistic: 'Average',
+							statistic: 'Sum',
 							period: cdk.Duration.minutes(1),
 						}),
 					],
@@ -171,13 +206,20 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Bytes Downloaded ',
+					title: 'Bytes Downloaded/Uploaded ',
 					left: [
 						new cloudwatch.Metric({
 							metricName: 'BytesDownloaded',
 							namespace: 'AWS/CloudFront',
 							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
-							statistic: 'Average',
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: 'BytesUploaded',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Sum',
 							period: cdk.Duration.minutes(1),
 						}),
 					],
