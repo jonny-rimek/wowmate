@@ -105,13 +105,27 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 					left: [
 						new cloudwatch.Metric({
 							metricName: 'TotalErrorRate',
-							namespace: 'AWS/Cloudfront',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: '5xxErrorRate',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: '4xxErrorRate',
+							namespace: 'AWS/CloudFront',
 							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
 							statistic: 'Average',
 							period: cdk.Duration.minutes(1),
 						}),
 					],
-					stacked: false,
+					stacked: true,
 					width: 4
 				}),
 	/* 			new GraphWidget({
