@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	uuid "github.com/gofrs/uuid"
+	_ "github.com/lib/pq"
 )
 
 /*
