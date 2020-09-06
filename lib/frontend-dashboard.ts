@@ -41,9 +41,7 @@ export class FrontendDashboard extends cdk.Construct {
 				new TextWidget({
 					markdown: `# Lambda metrics
 
-**Convert** takes the combatlog, normal or compressed, and converts it to a csv and passes it into the csvBucket
-					
-**Import** takes the processed combat log and loads it into postgres aurora
+Those are all customer facing lambdas that access the database, ergo errors should be 0, no throttles and duration should be as low as possible.
 					`,
 					width: 4,
 					height: 6,
@@ -91,17 +89,21 @@ export class FrontendDashboard extends cdk.Construct {
 			),
 			new Row(
 				new TextWidget({
-					markdown: `# SQS metrics
+					markdown: `# CloudFront
 					
-visible messages and message age *should* be as low as possible
+CloudFront is the CDN that is a globally distributed cache, to speed up the users requests.
 
-messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
+Due to the fact that log data is static and never changes we can cache all requests about combatlogs indefintely.
+For metrics about combatlogs (damage per specc in all dungeons) the TTL is lower.
+
+Origin Latency is the time the request spends after hitting CloudFront from the user, until the request is sent back
+and leaves the AWS network and should be as low as possible.
 					`,
 					width: 4,
 					height: 6,
 				}),
 				new GraphWidget({
-					title: 'CloudFront Error Rate',
+					title: 'Error Rate',
 					left: [
 						new cloudwatch.Metric({
 							metricName: 'TotalErrorRate',
@@ -133,6 +135,13 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 						}),
 						new cloudwatch.Metric({
 							metricName: '403',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: '404',
 							namespace: 'AWS/CloudFront',
 							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
 							statistic: 'Average',
