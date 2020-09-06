@@ -9,6 +9,7 @@ import sqs = require('@aws-cdk/aws-sqs');
 import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 import s3 = require('@aws-cdk/aws-s3');
 import cloudfront = require('@aws-cdk/aws-cloudfront');
+import { cfnTagToCloudFormation } from '@aws-cdk/core';
 
 interface Props extends cdk.StackProps {
 	topDamageLambda: lambda.Function
@@ -105,6 +106,7 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 						new cloudwatch.Metric({
 							metricName: 'TotalErrorRate',
 							namespace: 'AWS/Cloudfront',
+							dimensions: { DistributionId: props.cloudfront.distributionId },
 							statistic: 'Average',
 							period: cdk.Duration.minutes(1),
 						}),

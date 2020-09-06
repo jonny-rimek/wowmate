@@ -89,6 +89,7 @@ export class Frontend extends cdk.Construct {
 				securityPolicy: SecurityPolicyProtocol.TLS_V1_2_2018,
 			},
 		});
+		this.cloudfront = distribution
 
 		new s3deploy.BucketDeployment(this, 'DeployWebsite', {
 			sources: [s3deploy.Source.asset('services/frontend/dist')],
