@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS combatlogs (
   combatlog_uuid UUID,
   boss_fight_uuid UUID,
   mythicplus_uuid UUID,
-  timestamp timestamp,
+  --timestamp timestamp, NOTE: deactivated till I figure out how to import it
   event_type VARCHAR,
   version int,
   advanced_log_enabled int,
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS combatlogs (
   is_offhand VARCHAR
   TODO: created_at
   TODO: updated_at
-)
+);
 */
 
 //https://mholt.github.io/json-to-go/ best tool EVER

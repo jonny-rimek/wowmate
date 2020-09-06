@@ -1,15 +1,12 @@
 import cdk = require('@aws-cdk/core');
-import route53= require('@aws-cdk/aws-route53');
-import targets = require('@aws-cdk/aws-route53-targets');
 import ec2 = require('@aws-cdk/aws-ec2');
 import rds = require('@aws-cdk/aws-rds');
-import ecs = require('@aws-cdk/aws-ecs');
-import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
-import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import { RetentionDays } from '@aws-cdk/aws-logs';
+import { HttpProxyIntegration, HttpApi, LambdaProxyIntegration, HttpMethod } from '@aws-cdk/aws-apigatewayv2';
 import s3 = require('@aws-cdk/aws-s3');
 import iam = require('@aws-cdk/aws-iam');
+import lambda = require('@aws-cdk/aws-lambda');
 
 export class Api extends cdk.Construct {
 	public readonly vpc: ec2.Vpc;
@@ -88,31 +85,32 @@ export class Api extends cdk.Construct {
 			vpc,
 			securityGroup: dbGroup,
 		});
-		
-		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
-			zoneName: 'wowmate.io',
-			hostedZoneId: 'Z3LVG9ZF2H87DX',
-		});
 
-		/*
-		new ecsPatterns.ApplicationLoadBalancedFargateService(this, 'Service', {
-			vpc: vpc,
-			domainName: 'api.wowmate.io',
-			domainZone: hostedZone,
-			redirectHTTP: true,
-			protocol: elbv2.ApplicationProtocol.HTTPS,
-			memoryLimitMiB: 512,
-			cpu: 256,
-			desiredCount: 1,
-			publicLoadBalancer: true,
-			platformVersion: ecs.FargatePlatformVersion.VERSION1_4,
-			taskImageOptions: {
-				image: ecs.ContainerImage.fromAsset('services/api'),
-				environment: {
-					GIN_MODE: "release"
-				}
+		const topDamageLambda = new lambda.Function(this, 'F', {
+			code: lambda.Code.asset('services/api'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: cdk.Duration.seconds(30),
+			environment: {
 			},
-		});
-		*/
+			reservedConcurrentExecutions: 1, 
+			logRetention: RetentionDays.ONE_WEEK,
+			tracing: lambda.Tracing.ACTIVE,
+			// vpc: vpc,
+			// securityGroups: [dbGroup],
+		})
+
+		const topDamageIntegration = new LambdaProxyIntegration({
+			handler: topDamageLambda
+		})
+
+		const httpApi = new HttpApi(this, 'Api',)
+
+		httpApi.addRoutes({
+			path: '/damage',
+			methods: [HttpMethod.GET],
+			integration: topDamageIntegration,
+		})
 	}
 }

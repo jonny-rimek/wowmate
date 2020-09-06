@@ -1,21 +1,20 @@
 package main
 
 import (
-	"net/http"
+	"context"
 
-	"github.com/gin-gonic/gin"
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
+func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	resp := events.APIGatewayV2HTTPResponse{
+		StatusCode: 200,
+		Body:       "waddup, yo",
+	}
+	return resp, nil
+}
+
 func main() {
-	router := gin.Default()
-
-	router.MaxMultipartMemory = 8 << 20
-
-	router.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong3")
-	})
-	router.GET("/api/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong3")
-	})
-	router.Run(":80")
+	lambda.Start(handler)
 }

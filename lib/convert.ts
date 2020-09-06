@@ -1,6 +1,4 @@
 import cdk = require('@aws-cdk/core');
-import ecs = require('@aws-cdk/aws-ecs');
-import ecsPatterns = require('@aws-cdk/aws-ecs-patterns');
 import ec2 = require('@aws-cdk/aws-ec2');
 import s3 = require('@aws-cdk/aws-s3');
 import sqs = require('@aws-cdk/aws-sqs');
