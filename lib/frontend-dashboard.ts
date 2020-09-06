@@ -125,37 +125,65 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 							period: cdk.Duration.minutes(1),
 						}),
 					],
-					stacked: true,
+					stacked: false,
 					width: 4
 				}),
-	/* 			new GraphWidget({
-					title: 'Age of oldest message',
+				new GraphWidget({
+					title: 'Origin Latency',
 					left: [
+						new cloudwatch.Metric({
+							metricName: 'OriginLatency',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
 					],
 					stacked: false,
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Messages not visible',
+					title: 'Cache Hit Rate',
 					left: [
+						new cloudwatch.Metric({
+							metricName: 'CacheHitRate',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
 					],
 					stacked: false,
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Messages recieved',
+					title: 'Requests',
 					left: [
+						new cloudwatch.Metric({
+							metricName: 'Requests',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
 					],
 					stacked: false,
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'DLQ messages',
+					title: 'Bytes Downloaded ',
 					left: [
+						new cloudwatch.Metric({
+							metricName: 'BytesDownloaded',
+							namespace: 'AWS/CloudFront',
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
 					],
 					stacked: false,
-					width: 4 */
-				// }),
+					width: 4
+				}),
 			)
 		)
 	}
