@@ -83,8 +83,27 @@ export class Api extends cdk.Construct {
 		auroraPostgres.addProxy('DBProxy', {
 			secrets: [auroraPostgres.secret!],
 			vpc: vpc,
+			securityGroups: [dbGroup],
 		})
+/* 
+		const proxy = new rds.DatabaseProxy(this, 'DatabaseProxy', {
+		dbProxyName: 'database-proxy',
+		debugLogging: true,
+		iamAuth: false,
+		requireTLS: true,
+		secrets: [auroraPostgres.secret!],
+		vpc: vpc,
+		vpcSubnets: {
+			subnetType: ec2.SubnetType.PRIVATE,
+		},
+		proxyTarget: rds.ProxyTarget.fromCluster(auroraPostgres),
+		});
 
+		const targetGroup = auroraPostgres.node.findChild('ProxyTargetGroup') as rds.CfnDBProxyTargetGroup;
+		targetGroup.addOverride('Properties.TargetGroupName', 'default');
+		targetGroup.addOverride('Properties.DBClusterIdentifiers', [auroraPostgres.clusterIdentifier]);
+		targetGroup.addOverride('Properties.DBInstanceIdentifiers', []);
+ */
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
 			vpc,
 			securityGroup: dbGroup,
