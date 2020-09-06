@@ -126,7 +126,7 @@ and leaves the AWS network and should be as low as possible.
 							statistic: 'Average',
 							period: cdk.Duration.minutes(1),
 						}),
-						new cloudwatch.Metric({
+/* 						new cloudwatch.Metric({
 							metricName: '401ErrorRate',
 							namespace: 'AWS/CloudFront',
 							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
@@ -168,7 +168,7 @@ and leaves the AWS network and should be as low as possible.
 							statistic: 'Average',
 							period: cdk.Duration.minutes(1),
 						}),
-					],
+	 */				],
 					stacked: false,
 					width: 4
 				}),
@@ -240,7 +240,7 @@ and leaves the AWS network and should be as low as possible.
 				new TextWidget({
 					markdown: `# HTTP API
 
-API Gatewayv2 is fronting all public lambdas					
+API Gatewayv2 is fronting all public lambdas.
 					`,
 					width: 4,
 					height: 6,
@@ -276,6 +276,7 @@ API Gatewayv2 is fronting all public lambdas
 							statistic: 'Average',
 							period: cdk.Duration.minutes(1),
 						}),
+/* 
 						new cloudwatch.Metric({
 							metricName: 'Latency',
 							namespace: 'AWS/ApiGateway',
@@ -304,7 +305,7 @@ API Gatewayv2 is fronting all public lambdas
 							statistic: 'p10',
 							period: cdk.Duration.minutes(1),
 						}),
-					],
+	 */				],
 					stacked: false,
 					width: 4
 				}),
