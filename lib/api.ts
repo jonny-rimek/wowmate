@@ -97,15 +97,15 @@ export class Api extends cdk.Construct {
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
-			// vpc: vpc,
-			// securityGroups: [dbGroup],
+			vpc: vpc,
+			securityGroups: [dbGroup],
 		})
 
 		const topDamageIntegration = new LambdaProxyIntegration({
 			handler: topDamageLambda
 		})
 
-		const httpApi = new HttpApi(this, 'Api',)
+		const httpApi = new HttpApi(this, 'Api')
 
 		httpApi.addRoutes({
 			path: '/damage',
