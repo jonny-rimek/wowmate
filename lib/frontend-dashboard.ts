@@ -106,7 +106,7 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 						new cloudwatch.Metric({
 							metricName: 'TotalErrorRate',
 							namespace: 'AWS/Cloudfront',
-							dimensions: { DistributionId: props.cloudfront.distributionId },
+							dimensions: { DistributionId: props.cloudfront.distributionId, Region: 'Global' },
 							statistic: 'Average',
 							period: cdk.Duration.minutes(1),
 						}),
