@@ -52,7 +52,7 @@ export class Api extends cdk.Construct {
 
 		const auroraPostgres = new rds.DatabaseCluster(this, 'ImportDB', {
 			engine: rds.DatabaseClusterEngine.auroraPostgres({
-				version: rds.AuroraPostgresEngineVersion.VER_11_7,
+				version: rds.AuroraPostgresEngineVersion.VER_10_11,
 			}),
 			masterUser: {
 				username: 'clusteradmin'
@@ -70,7 +70,6 @@ export class Api extends cdk.Construct {
 			cloudwatchLogsExports: ['postgresql'],
 			cloudwatchLogsRetention: RetentionDays.TWO_WEEKS,
 			monitoringInterval: cdk.Duration.seconds(60),
-			
 
 			//NOTE: remove in production
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -81,10 +80,10 @@ export class Api extends cdk.Construct {
 		})
 		this.dbCreds = auroraPostgres.secret!
 
-		auroraPostgres.addProxy('DBProxy', {
-			secrets: [auroraPostgres.secret!],
-			vpc: vpc,
-		})
+		// auroraPostgres.addProxy('DBProxy', {
+		// 	secrets: [auroraPostgres.secret!],
+		// 	vpc: vpc,
+		// })
 
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
 			vpc,

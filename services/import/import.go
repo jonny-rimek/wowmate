@@ -179,13 +179,25 @@ func handler(e SQSEvent) error {
 					'(format csv, DELIMITER '','', HEADER true)',
 					'(%v,%v,us-east-1)');
 			`, s3.Records[0].S3.Bucket.Name, s3.Records[0].S3.Object.Key)
-		_, err = db.Query(q)
 
+		rows, err := db.Query(q)
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Println(err.Error())
 			return err
 		}
-		log.Println("import query successfull")
+
+		defer rows.Close()
+
+		for rows.Next() {
+			var s string
+
+			err = rows.Scan(&s)
+			if err != nil {
+				fmt.Println(err.Error())
+				return err
+			}
+			log.Printf("import query successfull: %v", s)
+		}
 	}
 	return nil
 }
