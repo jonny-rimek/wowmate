@@ -116,6 +116,7 @@ export class Api extends cdk.Construct {
 			timeout: cdk.Duration.seconds(30),
 			environment: {
 				// RDS_PROXY_ENDPOINT: proxy.endpoint,
+				SECRET_ARN: auroraPostgres.secret!.secretArn,
 			},
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
