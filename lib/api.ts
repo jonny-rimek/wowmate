@@ -14,6 +14,7 @@ export class Api extends cdk.Construct {
 	public readonly securityGrp: ec2.SecurityGroup;
 	public readonly dbCreds: secretsmanager.ISecret;
 	public readonly bucket: s3.Bucket;
+	public readonly rdsProxy: rds.DatabaseProxy;
 
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id)
@@ -93,14 +94,20 @@ export class Api extends cdk.Construct {
 			secrets: [auroraPostgres.secret!],
 			vpc: vpc,
 			proxyTarget: rds.ProxyTarget.fromCluster(auroraPostgres),
+			securityGroups: [dbGroup],
 		});
-
-/* 
+		this.rdsProxy = proxy
+/*
 		const targetGroup = auroraPostgres.node.findChild('ProxyTargetGroup') as rds.CfnDBProxyTargetGroup;
 		targetGroup.addOverride('Properties.TargetGroupName', 'default');
 		targetGroup.addOverride('Properties.DBClusterIdentifiers', [auroraPostgres.clusterIdentifier]);
 		targetGroup.addOverride('Properties.DBInstanceIdentifiers', []);
-*/		
+*/
+
+		new CfnOutput(this, 'RdsProxyEndpoint', {
+			description: 'Rds Proxy Endpoint to aurora postgres import cluster',
+			value: proxy.endpoint
+		}),
 
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
 			vpc,
