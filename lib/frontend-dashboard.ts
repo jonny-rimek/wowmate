@@ -37,56 +37,7 @@ export class FrontendDashboard extends cdk.Construct {
 */
 		//NOTE widget height viable values: 3, 6, ?
 		new cloudwatch.Dashboard(this, 'Dashboard').addWidgets(
-			new Row(
-				new TextWidget({
-					markdown: `# Lambda metrics
 
-Those are all customer facing lambdas that access the database, ergo errors should be 0, no throttles and duration should be as low as possible.
-					`,
-					width: 4,
-					height: 6,
-				}),
-				new GraphWidget({
-					title: 'Invocations',
-					left: [
-						props.topDamageLambda.metricInvocations({period: cdk.Duration.minutes(1)}),
-					],
-					stacked: false,
-					width: 4,
-				}),
-				new GraphWidget({
-					title: 'Errors',
-					left: [
-						props.topDamageLambda.metricErrors({period: cdk.Duration.minutes(1)}),
-					],
-					stacked: false,
-					width: 4
-				}),
-				new GraphWidget({
-					title: 'Duration',
-					left: [
-						props.topDamageLambda.metricDuration({period: cdk.Duration.minutes(1)}),
-					],
-					stacked: false,
-					width: 4
-				}),
-				new GraphWidget({
-					title: 'Throttles',
-					left: [
-						props.topDamageLambda.metricThrottles({period: cdk.Duration.minutes(1)}),
-					],
-					stacked: false,
-					width: 4
-				}),
-				new GraphWidget({
-					title: 'Concurrent Executions',
-					left: [
-						props.topDamageLambda.metric('ConcurrentExecutions',{ statistic: 'Maximum', period: cdk.Duration.minutes(1) }),
-					],
-					stacked: false,
-					width: 4
-				}),
-			),
 			new Row(
 				new TextWidget({
 					markdown: `# CloudFront
@@ -235,6 +186,7 @@ and leaves the AWS network and should be as low as possible.
 					stacked: false,
 					width: 4
 				}),
+				//TODO: create metric to display the time a request spends in apigateway (Latency - Integration Latency)
 			),
 			new Row(
 				new TextWidget({
@@ -337,7 +289,57 @@ API Gatewayv2 is fronting all public lambdas.
 					stacked: false,
 					width: 4
 				}),
-			)
+			),
+			new Row(
+				new TextWidget({
+					markdown: `# Lambda metrics
+
+Those are all customer facing lambdas that access the database, ergo errors should be 0, no throttles and duration should be as low as possible.
+					`,
+					width: 4,
+					height: 6,
+				}),
+				new GraphWidget({
+					title: 'Invocations',
+					left: [
+						props.topDamageLambda.metricInvocations({period: cdk.Duration.minutes(1)}),
+					],
+					stacked: false,
+					width: 4,
+				}),
+				new GraphWidget({
+					title: 'Errors',
+					left: [
+						props.topDamageLambda.metricErrors({period: cdk.Duration.minutes(1)}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Duration',
+					left: [
+						props.topDamageLambda.metricDuration({period: cdk.Duration.minutes(1)}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Throttles',
+					left: [
+						props.topDamageLambda.metricThrottles({period: cdk.Duration.minutes(1)}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Concurrent Executions',
+					left: [
+						props.topDamageLambda.metric('ConcurrentExecutions',{ statistic: 'Maximum', period: cdk.Duration.minutes(1) }),
+					],
+					stacked: false,
+					width: 4
+				}),
+			),
 		)
 	}
 }
