@@ -235,6 +235,100 @@ and leaves the AWS network and should be as low as possible.
 					stacked: false,
 					width: 4
 				}),
+			),
+
+			new Row(
+				new TextWidget({
+					markdown: `# HTTP API
+
+					`,
+					width: 4,
+					height: 6,
+				}),
+				new GraphWidget({
+					title: 'Error Rate',
+					left: [
+						new cloudwatch.Metric({
+							metricName: '5xx',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiId: props.api.httpApiId },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: '4xx',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiId: props.api.httpApiId },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+				],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Origin Latency',
+					left: [
+						new cloudwatch.Metric({
+							metricName: 'OriginLatency',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiId: props.api.httpApiId },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Latencies',
+					left: [
+						new cloudwatch.Metric({
+							metricName: 'Latency',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiId: props.api.httpApiId },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: 'IntegrationLatency',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiId: props.api.httpApiId },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Count',
+					left: [
+						new cloudwatch.Metric({
+							metricName: 'Count',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiId: props.api.httpApiId },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Data processed',
+					left: [
+						new cloudwatch.Metric({
+							metricName: 'DataProcessed',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiId: props.api.httpApiId },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+					],
+					stacked: false,
+					width: 4
+				}),
 			)
 		)
 	}
