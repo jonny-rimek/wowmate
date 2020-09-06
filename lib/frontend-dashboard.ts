@@ -236,17 +236,17 @@ and leaves the AWS network and should be as low as possible.
 					width: 4
 				}),
 			),
-
 			new Row(
 				new TextWidget({
 					markdown: `# HTTP API
 
+API Gatewayv2 is fronting all public lambdas					
 					`,
 					width: 4,
 					height: 6,
 				}),
 				new GraphWidget({
-					title: 'Error Rate',
+					title: 'Error Rates',
 					left: [
 						new cloudwatch.Metric({
 							metricName: '5xx',
@@ -267,20 +267,6 @@ and leaves the AWS network and should be as low as possible.
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Origin Latency',
-					left: [
-						new cloudwatch.Metric({
-							metricName: 'OriginLatency',
-							namespace: 'AWS/ApiGateway',
-							dimensions: { ApiId: props.api.httpApiId },
-							statistic: 'Average',
-							period: cdk.Duration.minutes(1),
-						}),
-					],
-					stacked: false,
-					width: 4
-				}),
-				new GraphWidget({
 					title: 'Latencies',
 					left: [
 						new cloudwatch.Metric({
@@ -291,10 +277,31 @@ and leaves the AWS network and should be as low as possible.
 							period: cdk.Duration.minutes(1),
 						}),
 						new cloudwatch.Metric({
-							metricName: 'IntegrationLatency',
+							metricName: 'Latency',
 							namespace: 'AWS/ApiGateway',
 							dimensions: { ApiId: props.api.httpApiId },
-							statistic: 'Average',
+							statistic: 'p90',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: 'Latency',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiId: props.api.httpApiId },
+							statistic: 'p95',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: 'Latency',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiId: props.api.httpApiId },
+							statistic: 'p99',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: 'Latency',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiId: props.api.httpApiId },
+							statistic: 'p10',
 							period: cdk.Duration.minutes(1),
 						}),
 					],
