@@ -12,11 +12,14 @@ export class Wowmate extends Stack {
 		super(scope, id, props);
 
 		//TODO: add - at the end of each name for better readability
-		const frontend = new Frontend(this, 'Frontend')
+		const api = new Api(this, 'Api')
+
+		const frontend = new Frontend(this, 'Frontend', {
+			api: api.api,
+		})
 
 		const presign = new Presign(this, 'Presign')
 
-		const api = new Api(this, 'Api')
 
 		const convert = new Convert(this, 'Convert', {
 			vpc: api.vpc,

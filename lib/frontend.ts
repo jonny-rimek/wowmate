@@ -20,12 +20,17 @@ import { SSLMethod, SecurityPolicyProtocol, OriginAccessIdentity } from '@aws-cd
 import { StateMachineType } from '@aws-cdk/aws-stepfunctions';
 import events = require('@aws-cdk/aws-events');
 import { CfnClientCertificate } from '@aws-cdk/aws-apigateway';
+import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
+
+interface Props extends cdk.StackProps {
+	api: HttpApi
+}
 
 export class Frontend extends cdk.Construct {
 	public readonly cloudfront: cloudfront.CloudFrontWebDistribution;
 	public readonly bucket: s3.Bucket;
 
-	constructor(scope: cdk.Construct, id: string) {
+	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id);
 
 		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
@@ -47,12 +52,13 @@ export class Frontend extends cdk.Construct {
 				id: 'metric',
 			}]
 		});
+		this.bucket = bucket
 
 		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
 			originConfigs: [
 				{
 					customOriginSource: {
-						domainName: 'api.wowmate.io',
+						domainName: props.api.url!,
 					},
 					behaviors: [{
 						pathPattern: '/api/*',
