@@ -366,6 +366,78 @@ Those are all customer facing lambdas that access the database, ergo errors shou
 					width: 4
 				}),
 			),
+			new Row(
+				new TextWidget({
+					markdown: `# S3 metrics
+
+					`,
+					width: 4,
+					height: 6,
+				}),
+				new GraphWidget({
+					title: 'Invocations',
+					left: [
+						new cloudwatch.Metric({
+							metricName: 'GetRequests',
+							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.s3.bucketName },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+					],
+					stacked: false,
+					width: 4,
+				}),
+				new GraphWidget({
+					title: 'Errors',
+					left: [
+						new cloudwatch.Metric({
+							metricName: '4xxErrors',
+							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.s3.bucketName },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Duration',
+					left: [
+						new cloudwatch.Metric({
+							metricName: 'TotalRequestLatency',
+							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.s3.bucketName },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: 'FirstByteLatency',
+							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.s3.bucketName },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Throttles',
+					left: [
+						new cloudwatch.Metric({
+							metricName: 'BytesDownloaded',
+							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.s3.bucketName },
+							statistic: 'Average',
+							period: cdk.Duration.minutes(1),
+						}),
+					],
+					stacked: false,
+					width: 4
+				}),
+			),
 		)
 	}
 }
