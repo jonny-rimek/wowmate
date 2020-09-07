@@ -22,6 +22,32 @@ export class FrontendDashboard extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
+		const agwLatency = new cloudwatch.Metric({
+								metricName: 'Latency',
+								namespace: 'AWS/ApiGateway',
+								dimensions: { ApiId: props.api.httpApiId },
+								statistic: 'Sum',
+								period: cdk.Duration.minutes(1),
+							})
+		
+		const agwIntegrationLatency = new cloudwatch.Metric({
+								metricName: 'IntegrationLatency',
+								namespace: 'AWS/ApiGateway',
+								dimensions: { ApiId: props.api.httpApiId },
+								statistic: 'Sum',
+								period: cdk.Duration.minutes(1),
+							})
+
+		let apiGatewayOverhead = new cloudwatch.MathExpression({
+			expression: 'm1 - m2',
+			label: 'API Gateway overhead',
+			usingMetrics: {
+				m1: agwLatency,
+				m2: agwIntegrationLatency,
+			},
+			period: cdk.Duration.minutes(5)
+		});
+
 		const errorTopic = new sns.Topic(this, 'errorTopic');
 		//TODO: reactivate in prod
 		// errorTopic.addSubscription(new subscriptions.EmailSubscription('jimbo.db@protonmail.com'));
@@ -186,6 +212,14 @@ and leaves the AWS network and should be as low as possible.
 					stacked: false,
 					width: 4
 				}),
+				new GraphWidget({
+					title: 'Time spent in AGW',
+					left: [
+						apiGatewayOverhead
+					],
+					stacked: false,
+					width: 4
+				}),
 				//TODO: create metric to display the time a request spends in apigateway (Latency - Integration Latency)
 			),
 			new Row(
@@ -233,15 +267,8 @@ API Gatewayv2 is fronting all public lambdas.
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Latencies',
 					left: [
-						new cloudwatch.Metric({
-							metricName: 'Latency',
-							namespace: 'AWS/ApiGateway',
-							dimensions: { ApiId: props.api.httpApiId },
-							statistic: 'Average',
-							period: cdk.Duration.minutes(1),
-						}),
+						agwLatency,
 /* 
 						new cloudwatch.Metric({
 							metricName: 'Latency',
