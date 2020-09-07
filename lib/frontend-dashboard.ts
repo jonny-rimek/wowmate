@@ -26,7 +26,7 @@ export class FrontendDashboard extends cdk.Construct {
 								metricName: 'Latency',
 								namespace: 'AWS/ApiGateway',
 								dimensions: { ApiId: props.api.httpApiId },
-								statistic: 'Sum',
+								statistic: 'Avg',
 								period: cdk.Duration.minutes(1),
 							})
 		
@@ -34,7 +34,7 @@ export class FrontendDashboard extends cdk.Construct {
 								metricName: 'IntegrationLatency',
 								namespace: 'AWS/ApiGateway',
 								dimensions: { ApiId: props.api.httpApiId },
-								statistic: 'Sum',
+								statistic: 'Avg',
 								period: cdk.Duration.minutes(1),
 							})
 
@@ -212,15 +212,6 @@ and leaves the AWS network and should be as low as possible.
 					stacked: false,
 					width: 4
 				}),
-				new GraphWidget({
-					title: 'Time spent in AGW',
-					left: [
-						apiGatewayOverhead
-					],
-					stacked: false,
-					width: 4
-				}),
-				//TODO: create metric to display the time a request spends in apigateway (Latency - Integration Latency)
 			),
 			new Row(
 				new TextWidget({
@@ -312,6 +303,14 @@ API Gatewayv2 is fronting all public lambdas.
 							statistic: 'Sum',
 							period: cdk.Duration.minutes(1),
 						}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Time spent in AGW',
+					left: [
+						apiGatewayOverhead
 					],
 					stacked: false,
 					width: 4
