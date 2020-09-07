@@ -308,7 +308,7 @@ API Gatewayv2 is fronting all public lambdas.
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Time spent in AGW',
+					title: 'Time spent in AGW (ms)',
 					left: [
 						apiGatewayOverhead
 					],
