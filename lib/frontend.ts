@@ -58,8 +58,8 @@ export class Frontend extends cdk.Construct {
 			originConfigs: [
 				{
 					customOriginSource: {
-						// domainName: props.api.url!.replace('https://',''),
-						domainName: 'api.wowmate.io',
+						domainName: props.api.url!.replace('https://','').replace('/',''),
+						// domainName: 'api.wowmate.io',
 					},
 					behaviors: [{
 						pathPattern: '/api/*',
