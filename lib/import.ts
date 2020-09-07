@@ -40,7 +40,7 @@ export class Import extends cdk.Construct {
 				queue: dlq,
 				maxReceiveCount: 5,
 			},
-			visibilityTimeout: cdk.Duration.minutes(3)
+			visibilityTimeout: cdk.Duration.minutes(6)
 		});
 		this.queue =  q
 
@@ -67,7 +67,7 @@ export class Import extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(30),
+			timeout: cdk.Duration.seconds(60),
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 				RDS_PROXY_ENDPOINT: props.rdsProxy.endpoint,
