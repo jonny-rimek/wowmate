@@ -16,7 +16,7 @@ export class Api extends cdk.Construct {
 	public readonly bucket: s3.Bucket;
 	public readonly lambda: lambda.Function;
 	public readonly api: HttpApi;
-	// public readonly rdsProxy: rds.DatabaseProxy;
+	public readonly rdsProxy: rds.DatabaseProxy;
 
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id)
@@ -24,7 +24,7 @@ export class Api extends cdk.Construct {
 		const csvBucket = new s3.Bucket(this, 'CSV', {
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-			metrics: [{
+			metrics: [{ //enables advanced s3metrics
 				id: 'metric',
 			}]
 		})
@@ -84,26 +84,16 @@ export class Api extends cdk.Construct {
 		})
 		this.dbCreds = auroraPostgres.secret!
 
-		auroraPostgres.addProxy('DBProxy', {
+		const proxy = auroraPostgres.addProxy('DBProxy', {
 			secrets: [auroraPostgres.secret!],
 			vpc: vpc,
 			securityGroups: [dbGroup],
 		})
-		// const rdsproxy = auroraPostgres.node.findChild('DBProxy') as rds.CfnDBProxy;
-		// rdsproxy.attrEndpoint,
+		this.rdsProxy = proxy
 
-		// const proxy = new rds.DatabaseProxy(this, 'DatabaseProxy', {
-		// 	secrets: [auroraPostgres.secret!],
-		// 	vpc: vpc,
-		// 	proxyTarget: rds.ProxyTarget.fromCluster(auroraPostgres),
-		// 	securityGroups: [dbGroup],
-		// });
-		// this.rdsProxy = proxy
-
-		// new CfnOutput(this, 'RdsProxyEndpoint', {
-		// 	description: 'Rds Proxy Endpoint to aurora postgres import cluster',
-		// 	value: proxy.endpoint
-		// }),
+		new CfnOutput(this, 'RdsProxyEndpoint', {
+			value: proxy.endpoint
+		}),
 
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
 			vpc,
@@ -117,7 +107,7 @@ export class Api extends cdk.Construct {
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(30),
 			environment: {
-				// RDS_PROXY_ENDPOINT: proxy.endpoint,
+				RDS_PROXY_ENDPOINT: proxy.endpoint,
 				SECRET_ARN: auroraPostgres.secret!.secretArn,
 			},
 			reservedConcurrentExecutions: 1, 
@@ -135,7 +125,7 @@ export class Api extends cdk.Construct {
 
 		const httpApi = new HttpApi(this, 'Api')
 
-		new CfnOutput(this, 'HTTP API Combatlogs endpoint', {
+		new CfnOutput(this, 'HttpApiEndpoint', {
 			value: httpApi.url!,
 		}),
 

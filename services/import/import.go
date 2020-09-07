@@ -85,6 +85,14 @@ type SQSEvent struct {
 
 func handler(e SQSEvent) error {
 	secretArn := os.Getenv("SECRET_ARN")
+	if secretArn == "" {
+		return fmt.Errorf("csv bucket env var is empty")
+	}
+
+	proxyEndpoint := os.Getenv("RDS_PROXY_ENDPOINT")
+	if secretArn == "" {
+		return fmt.Errorf("csv bucket env var is empty")
+	}
 
 	sess, err := session.NewSession()
 	if err != nil {
@@ -150,7 +158,7 @@ func handler(e SQSEvent) error {
 		creds.UserName,
 		creds.DatabaseName,
 		// creds.Host,
-		"dbproxy.proxy-cvevooy4lacx.us-east-1.rds.amazonaws.com",
+		proxyEndpoint,
 		creds.Password,
 	)
 	db, err := sql.Open("postgres", connStr)

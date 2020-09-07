@@ -8,12 +8,15 @@ import { RetentionDays } from '@aws-cdk/aws-logs';
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import * as destinations from '@aws-cdk/aws-lambda-destinations';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
+import rds = require('@aws-cdk/aws-rds');
+import { DatabaseProxy } from '@aws-cdk/aws-rds';
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc
 	bucket: s3.Bucket
 	securityGroup: ec2.SecurityGroup
 	secret : secretsmanager.ISecret
+	rdsProxy: DatabaseProxy
 }
 
 export class Import extends cdk.Construct {
@@ -67,6 +70,7 @@ export class Import extends cdk.Construct {
 			timeout: cdk.Duration.seconds(30),
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
+				RDS_PROXY_ENDPOINT: props.rdsProxy.endpoint,
 			},
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,

@@ -31,6 +31,14 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	}
 
 	secretArn := os.Getenv("SECRET_ARN")
+	if secretArn == "" {
+		return serverError, fmt.Errorf("csv bucket env var is empty")
+	}
+
+	proxyEndpoint := os.Getenv("RDS_PROXY_ENDPOINT")
+	if proxyEndpoint == "" {
+		return serverError, fmt.Errorf("csv bucket env var is empty")
+	}
 
 	sess, err := session.NewSession()
 	if err != nil {
@@ -96,7 +104,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		creds.UserName,
 		creds.DatabaseName,
 		// creds.Host,
-		"dbproxy.proxy-cvevooy4lacx.us-east-1.rds.amazonaws.com",
+		proxyEndpoint,
 		creds.Password,
 	)
 	db, err := sql.Open("postgres", connStr)
