@@ -58,7 +58,7 @@ export class Frontend extends cdk.Construct {
 			originConfigs: [
 				{
 					customOriginSource: {
-						domainName: props.api.url!,
+						domainName: props.api.url!.replace('https://',''),
 					},
 					behaviors: [{
 						pathPattern: '/api/*',

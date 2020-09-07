@@ -20,7 +20,6 @@ export class Wowmate extends Stack {
 
 		const presign = new Presign(this, 'Presign')
 
-
 		const convert = new Convert(this, 'Convert', {
 			vpc: api.vpc,
 			csvBucket: api.bucket,

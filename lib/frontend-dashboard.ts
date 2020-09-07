@@ -380,7 +380,7 @@ Those are all customer facing lambdas that access the database, ergo errors shou
 						new cloudwatch.Metric({
 							metricName: 'GetRequests',
 							namespace: 'AWS/S3',
-							dimensions: { BucketName: props.s3.bucketName },
+							dimensions: { BucketName: props.s3.bucketName, FilterId: 'metric' },
 							statistic: 'Sum',
 							period: cdk.Duration.minutes(1),
 						}),
@@ -394,7 +394,7 @@ Those are all customer facing lambdas that access the database, ergo errors shou
 						new cloudwatch.Metric({
 							metricName: '4xxErrors',
 							namespace: 'AWS/S3',
-							dimensions: { BucketName: props.s3.bucketName },
+							dimensions: { BucketName: props.s3.bucketName, FilterId: 'metric' },
 							statistic: 'Sum',
 							period: cdk.Duration.minutes(1),
 						}),
@@ -408,14 +408,14 @@ Those are all customer facing lambdas that access the database, ergo errors shou
 						new cloudwatch.Metric({
 							metricName: 'TotalRequestLatency',
 							namespace: 'AWS/S3',
-							dimensions: { BucketName: props.s3.bucketName },
+							dimensions: { BucketName: props.s3.bucketName, FilterId: 'metric' },
 							statistic: 'Average',
 							period: cdk.Duration.minutes(1),
 						}),
 						new cloudwatch.Metric({
 							metricName: 'FirstByteLatency',
 							namespace: 'AWS/S3',
-							dimensions: { BucketName: props.s3.bucketName },
+							dimensions: { BucketName: props.s3.bucketName, FilterId: 'metric' },
 							statistic: 'Average',
 							period: cdk.Duration.minutes(1),
 						}),
@@ -429,7 +429,7 @@ Those are all customer facing lambdas that access the database, ergo errors shou
 						new cloudwatch.Metric({
 							metricName: 'BytesDownloaded',
 							namespace: 'AWS/S3',
-							dimensions: { BucketName: props.s3.bucketName },
+							dimensions: { BucketName: props.s3.bucketName, FilterId: 'metric' },
 							statistic: 'Average',
 							period: cdk.Duration.minutes(1),
 						}),
