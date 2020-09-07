@@ -424,7 +424,7 @@ Those are all customer facing lambdas that access the database, ergo errors shou
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Throttles',
+					title: 'Bytes downloaded',
 					left: [
 						new cloudwatch.Metric({
 							metricName: 'BytesDownloaded',
