@@ -10,7 +10,10 @@ import * as cloudtrail from '@aws-cdk/aws-cloudtrail';
 import { ReadWriteType } from '@aws-cdk/aws-cloudtrail';
 
 export class Presign extends cdk.Construct {
-	public readonly bucket: s3.Bucket;
+	public readonly bucket: s3.Bucket
+	public readonly lambda: lambda.Function
+	public readonly apiGateway: apigateway.LambdaRestApi
+
 
 	constructor(scope: cdk.Construct, id: string) {
 		super(scope, id)
@@ -58,6 +61,7 @@ export class Presign extends cdk.Construct {
 			handler: 'index.handler',
 			environment: {BUCKET_NAME: uploadBucket.bucketName},
 		});
+		this.lambda = presignLambda
 
 		// uploadBucket.grantWrite(presignLambda);
 		uploadBucket.grantPut(presignLambda);
@@ -88,6 +92,8 @@ export class Presign extends cdk.Construct {
 		});
 		const presign = api.root.addResource('presign');
 		presign.addMethod('POST');
+
+		this.apiGateway = api
 
 		//NOTE: does it make sense to an aaaa record?
 		new route53.ARecord(this, 'CustomDomainAliasRecord', {
