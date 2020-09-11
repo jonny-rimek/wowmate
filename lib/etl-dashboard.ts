@@ -171,7 +171,7 @@ These 3 components (AGW, Lambda and s3 bucket) are responsible to allow users to
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Age of oldest message',
+					title: 'Uploaded',
 					left: [
 						new cloudwatch.Metric({
 							metricName: 'BytesUploaded',
@@ -185,15 +185,45 @@ These 3 components (AGW, Lambda and s3 bucket) are responsible to allow users to
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Messages not visible',
+					title: 'Bucket objects + size',
 					left: [
+						new cloudwatch.Metric({
+							metricName: 'NumberOfObjects',
+							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.uploadBucket.bucketName, StorageType: 'AllStorageTypes' },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(5),
+						}),
+					],
+					right: [
+						new cloudwatch.Metric({
+							metricName: 'BucketSizeBytes',
+							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.uploadBucket.bucketName, StorageType: 'StandardStorage' },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(5),
+						}),
 					],
 					stacked: false,
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Messages recieved',
+					title: '4xx & 5xx bucket errors',
 					left: [
+						new cloudwatch.Metric({
+							metricName: '4xxErrors',
+							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.uploadBucket.bucketName, FilterId: 'metric' },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(5),
+						}),
+						new cloudwatch.Metric({
+							metricName: '5xxErros',
+							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.uploadBucket.bucketName, FilterId: 'metric' },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(5),
+						}),
 					],
 					stacked: false,
 					width: 4
@@ -201,6 +231,20 @@ These 3 components (AGW, Lambda and s3 bucket) are responsible to allow users to
 				new GraphWidget({
 					title: 'DLQ messages',
 					left: [
+						new cloudwatch.Metric({
+							metricName: '4xxErrors',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiName: 'PresignApi' }, //NOTE: ApiName is not exposed on the object
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(5),
+						}),
+						new cloudwatch.Metric({
+							metricName: '5xxErrors',
+							namespace: 'AWS/ApiGateway',
+							dimensions: { ApiName: 'PresignApi' }, //NOTE: ApiName is not exposed on the object
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(5),
+						}),
 					],
 					stacked: false,
 					width: 4
