@@ -103,7 +103,8 @@ export class Api extends cdk.Construct {
 		});
 
 		const topDamageLambda = new lambda.Function(this, 'F', {
-			code: lambda.Code.asset('services/api'),
+			// code: lambda.Code.asset('services/api'),
+			code: lambda.Code.fromAsset('services/api'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
