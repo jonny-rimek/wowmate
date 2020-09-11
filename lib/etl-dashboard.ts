@@ -208,7 +208,7 @@ These 3 components (AGW, Lambda and s3 bucket) are responsible to allow users to
 					width: 4
 				}),
 				new GraphWidget({
-					title: '4xx & 5xx bucket errors',
+					title: 'Bucket errors',
 					left: [
 						new cloudwatch.Metric({
 							metricName: '4xxErrors',
@@ -229,17 +229,17 @@ These 3 components (AGW, Lambda and s3 bucket) are responsible to allow users to
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'DLQ messages',
+					title: 'ApiGateway errors',
 					left: [
 						new cloudwatch.Metric({
-							metricName: '4xxErrors',
+							metricName: '4XXError',
 							namespace: 'AWS/ApiGateway',
 							dimensions: { ApiName: 'PresignApi' }, //NOTE: ApiName is not exposed on the object
 							statistic: 'Sum',
 							period: cdk.Duration.minutes(5),
 						}),
 						new cloudwatch.Metric({
-							metricName: '5xxErrors',
+							metricName: '5XXError',
 							namespace: 'AWS/ApiGateway',
 							dimensions: { ApiName: 'PresignApi' }, //NOTE: ApiName is not exposed on the object
 							statistic: 'Sum',
