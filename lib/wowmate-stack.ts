@@ -32,7 +32,7 @@ export class Wowmate extends Stack {
 			bucket: api.bucket,
 			securityGroup: api.securityGrp,
 			secret: api.dbCreds,
-			rdsProxy: api.rdsProxy,
+			dbEndpoint: api.dbEndpoint,
 		})
 
 		new FrontendDashboard(this, 'Namingthingsishard', {

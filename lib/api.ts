@@ -16,7 +16,7 @@ export class Api extends cdk.Construct {
 	public readonly bucket: s3.Bucket;
 	public readonly lambda: lambda.Function;
 	public readonly api: HttpApi;
-	public readonly rdsProxy: rds.DatabaseProxy;
+	public readonly dbEndpoint: string;
 
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id)
@@ -57,6 +57,7 @@ export class Api extends cdk.Construct {
 		const auroraPostgres = new rds.DatabaseCluster(this, 'ImportDB', {
 			engine: rds.DatabaseClusterEngine.auroraPostgres({
 				version: rds.AuroraPostgresEngineVersion.VER_10_11,
+				// version: rds.AuroraPostgresEngineVersion.VER_11_6,
 			}),
 			masterUser: {
 				username: 'clusteradmin'
@@ -79,21 +80,22 @@ export class Api extends cdk.Construct {
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			deletionProtection: false,
 			//NOTE: remove in production
-
 			// s3ImportBuckets: [csvBucket],
 		})
 		this.dbCreds = auroraPostgres.secret!
 
-		const proxy = auroraPostgres.addProxy('DBProxy', {
-			secrets: [auroraPostgres.secret!],
-			vpc: vpc,
-			securityGroups: [dbGroup],
-		})
-		this.rdsProxy = proxy
+		// const proxy = auroraPostgres.addProxy('DBProxy', {
+		// 	secrets: [auroraPostgres.secret!],
+		// 	vpc: vpc,
+		// 	securityGroups: [dbGroup],
+		// })
+		// this.rdsProxy = proxy.endpoint
+		const endpoint = auroraPostgres.clusterEndpoint.hostname
+		this.dbEndpoint = endpoint
 
-		new CfnOutput(this, 'RdsProxyEndpoint', {
-			value: proxy.endpoint
-		}),
+		// new CfnOutput(this, 'RdsProxyEndpoint', {
+		// 	value: proxy.endpoint
+		// }),
 
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
 			vpc,
@@ -107,7 +109,8 @@ export class Api extends cdk.Construct {
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(30),
 			environment: {
-				RDS_PROXY_ENDPOINT: proxy.endpoint,
+				// RDS_PROXY_ENDPOINT: proxy.endpoint,
+				RDS_PROXY_ENDPOINT: endpoint,
 				SECRET_ARN: auroraPostgres.secret!.secretArn,
 			},
 			reservedConcurrentExecutions: 1, 

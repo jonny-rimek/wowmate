@@ -16,7 +16,7 @@ interface VpcProps extends cdk.StackProps {
 	bucket: s3.Bucket
 	securityGroup: ec2.SecurityGroup
 	secret : secretsmanager.ISecret
-	rdsProxy: DatabaseProxy
+	dbEndpoint: string
 }
 
 export class Import extends cdk.Construct {
@@ -70,7 +70,7 @@ export class Import extends cdk.Construct {
 			timeout: cdk.Duration.seconds(60),
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
-				RDS_PROXY_ENDPOINT: props.rdsProxy.endpoint,
+				RDS_PROXY_ENDPOINT: props.dbEndpoint,
 			},
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
