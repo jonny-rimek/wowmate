@@ -85,6 +85,7 @@ export class Import extends cdk.Construct {
 			//		https://docs.aws.amazon.com/sdk-for-go/api/service/lambda/#Lambda.Invoke
 			//		second example
 		})
+		this.summaryLambda.grantInvoke(this.importLambda)
 
 		this.importLambda.addEventSource(new SqsEventSource(this.queue))
 		props.secret?.grantRead(this.importLambda)
