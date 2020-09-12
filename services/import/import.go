@@ -83,22 +83,22 @@ type SQSEvent struct {
 	} `json:"Records"`
 }
 
-func handler(e SQSEvent) error {
+func handler(e SQSEvent) (string, error) {
 	secretArn := os.Getenv("SECRET_ARN")
 	if secretArn == "" {
-		return fmt.Errorf("csv bucket env var is empty")
+		return "", fmt.Errorf("csv bucket env var is empty")
 	}
 
 	proxyEndpoint := os.Getenv("RDS_PROXY_ENDPOINT")
 	if secretArn == "" {
-		return fmt.Errorf("csv bucket env var is empty")
+		return "", fmt.Errorf("csv bucket env var is empty")
 	}
 
 	sess, err := session.NewSession()
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		log.Println("failed to create new session")
-		return err
+		return "", err
 	}
 
 	//TODO: should move get secret outside of handler, because it dosn't need to run on every invocation
@@ -115,42 +115,42 @@ func handler(e SQSEvent) error {
 			switch aerr.Code() {
 			case secretsmanager.ErrCodeDecryptionFailure:
 				// Secrets Manager can't decrypt the protected secret text using the provided KMS key.
-				fmt.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
-				return err
+				log.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
+				return "", err
 
 			case secretsmanager.ErrCodeInternalServiceError:
 				// An error occurred on the server side.
-				fmt.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
-				return err
+				log.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
+				return "", err
 
 			case secretsmanager.ErrCodeInvalidParameterException:
 				// You provided an invalid value for a parameter.
-				fmt.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
-				return err
+				log.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
+				return "", err
 
 			case secretsmanager.ErrCodeInvalidRequestException:
 				// You provided a parameter value that is not valid for the current state of the resource.
-				fmt.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
-				return err
+				log.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
+				return "", err
 
 			case secretsmanager.ErrCodeResourceNotFoundException:
 				// We can't find the resource that you asked for.
-				fmt.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
-				return err
+				log.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
+				return "", err
 			}
 		} else {
 			// Print the error, cast err to awserr.Error to get the Code and
 			// Message from an error.
-			fmt.Println(err.Error())
-			return err
+			log.Println(err.Error())
+			return "", err
 		}
 	}
 
 	var creds = DatabasesCredentials{}
 	err = json.Unmarshal([]byte(*result.SecretString), &creds)
 	if err != nil {
-		fmt.Println(err.Error())
-		return err
+		log.Println(err.Error())
+		return "", err
 	}
 
 	connStr := fmt.Sprintf(
@@ -163,8 +163,8 @@ func handler(e SQSEvent) error {
 	)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		fmt.Println(err.Error())
-		return err
+		log.Println(err.Error())
+		return "", err
 	}
 	defer db.Close()
 	log.Println("openend connection")
@@ -175,11 +175,11 @@ func handler(e SQSEvent) error {
 		err = json.Unmarshal([]byte(record.Body), &s3)
 		if err != nil {
 			log.Println("Unmarshal sqs json failed")
-			return err
+			return "", err
 		}
 
 		if len(s3.Records) > 1 {
-			return fmt.Errorf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
+			return "", fmt.Errorf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
 		}
 		q := fmt.Sprintf(`
 				SELECT aws_s3.table_import_from_s3(
@@ -192,7 +192,7 @@ func handler(e SQSEvent) error {
 		rows, err := db.Query(q)
 		if err != nil {
 			log.Println(err.Error())
-			return err
+			return "", err
 		}
 
 		defer rows.Close()
@@ -202,13 +202,13 @@ func handler(e SQSEvent) error {
 
 			err = rows.Scan(&s)
 			if err != nil {
-				fmt.Println(err.Error())
-				return err
+				log.Println(err.Error())
+				return "", err
 			}
 			log.Printf("import query successfull: %v", s)
 		}
 	}
-	return nil
+	return "heyho", nil
 }
 
 func main() {
