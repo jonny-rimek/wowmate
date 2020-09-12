@@ -45,6 +45,8 @@ export class Import extends cdk.Construct {
 		});
 
 		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue))
+
+		//TODO: SQS to SNS to get lambda invoked async
 		
 		this.summaryLambda = new lambda.Function(this, 'SummaryLambda', {
 			code: lambda.Code.fromAsset('services/summary'),
@@ -59,8 +61,8 @@ export class Import extends cdk.Construct {
 			reservedConcurrentExecutions: 10, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
-			// vpc: props.vpc,
-			// securityGroups: [props.securityGroup],
+			vpc: props.vpc,
+			securityGroups: [props.securityGroup],
 		})
 		
 		this.importLambda = new lambda.Function(this, 'Lambda', {
@@ -76,10 +78,9 @@ export class Import extends cdk.Construct {
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
-			// vpc: props.vpc,
-			// securityGroups: [props.securityGroup],
+			vpc: props.vpc,
+			securityGroups: [props.securityGroup],
 			onSuccess: new destinations.LambdaDestination(this.summaryLambda),
-			onFailure: new destinations.LambdaDestination(this.summaryLambda),
 		})
 
 		this.importLambda.addEventSource(new SqsEventSource(this.queue))
