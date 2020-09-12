@@ -55,7 +55,7 @@ export class Import extends cdk.Construct {
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 			},
-			reservedConcurrentExecutions: 1, 
+			reservedConcurrentExecutions: 10, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
@@ -78,7 +78,7 @@ export class Import extends cdk.Construct {
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
 			onSuccess: new destinations.LambdaDestination(SummaryLambda, {
-				responseOnly: true,
+				// responseOnly: true,
 			})
 		})
 		this.lambda = importLambda
