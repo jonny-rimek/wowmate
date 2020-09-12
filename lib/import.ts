@@ -77,13 +77,10 @@ export class Import extends cdk.Construct {
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
-			onSuccess: new destinations.LambdaDestination(summaryLambda, {
-				// responseOnly: true,
-			})
+			onSuccess: new destinations.LambdaDestination(summaryLambda),
+			onFailure: new destinations.LambdaDestination(summaryLambda),
 		})
 		this.lambda = importLambda
-
-		summaryLambda.grantInvoke(importLambda)
 
 		importLambda.addEventSource(new SqsEventSource(q))
 		props.secret?.grantRead(importLambda)
