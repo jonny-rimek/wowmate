@@ -84,6 +84,8 @@ type SQSEvent struct {
 }
 
 func handler(e SQSEvent) (string, error) {
+	return "lolw", nil 
+
 	secretArn := os.Getenv("SECRET_ARN")
 	if secretArn == "" {
 		return "", fmt.Errorf("secret arn env var is empty")

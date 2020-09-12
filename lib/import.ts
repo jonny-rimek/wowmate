@@ -76,8 +76,8 @@ export class Import extends cdk.Construct {
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
-			vpc: props.vpc,
-			securityGroups: [props.securityGroup],
+			// vpc: props.vpc,
+			// securityGroups: [props.securityGroup],
 			onSuccess: new destinations.LambdaDestination(this.summaryLambda),
 			onFailure: new destinations.LambdaDestination(this.summaryLambda),
 		})
