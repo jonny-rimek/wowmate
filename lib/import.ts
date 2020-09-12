@@ -72,7 +72,7 @@ export class Import extends cdk.Construct {
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 				DB_ENDPOINT: props.dbEndpoint,
-				SUMMARY_LAMBDA_ARN: this.summaryLambda.functionArn,
+				SUMMARY_LAMBDA_ARN: this.summaryLambda.functionName,
 			},
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
@@ -80,8 +80,10 @@ export class Import extends cdk.Construct {
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
 			// onSuccess: new destinations.LambdaDestination(this.summaryLambda),
-			//NOTE: SQS invokes lambda synchronisly and thus lambda Destinations
-			//		doesn't work. I have to call the summary lambda in the code
+			//NOTE: SQS invokes lambda synchronously and thus lambda Destinations
+			//		don't work. I have to call the summary lambda in the code
+			//		https://docs.aws.amazon.com/sdk-for-go/api/service/lambda/#Lambda.Invoke
+			//		second example
 		})
 
 		this.importLambda.addEventSource(new SqsEventSource(this.queue))
