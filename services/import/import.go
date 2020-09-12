@@ -89,8 +89,8 @@ func handler(e SQSEvent) (string, error) {
 		return "", fmt.Errorf("csv bucket env var is empty")
 	}
 
-	proxyEndpoint := os.Getenv("RDS_PROXY_ENDPOINT")
-	if secretArn == "" {
+	dbEndpoint := os.Getenv("DB_ENDPOINT")
+	if dbEndpoint == "" {
 		return "", fmt.Errorf("csv bucket env var is empty")
 	}
 
@@ -158,7 +158,7 @@ func handler(e SQSEvent) (string, error) {
 		creds.UserName,
 		creds.DatabaseName,
 		// creds.Host,
-		proxyEndpoint,
+		dbEndpoint,
 		creds.Password,
 	)
 	db, err := sql.Open("postgres", connStr)

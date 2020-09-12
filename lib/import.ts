@@ -20,33 +20,33 @@ interface VpcProps extends cdk.StackProps {
 }
 
 export class Import extends cdk.Construct {
-	public readonly lambda: lambda.Function;
+	public readonly importLambda: lambda.Function;
+	public readonly summaryLambda: lambda.Function;
 	public readonly queue: sqs.Queue;
 	public readonly dlq: sqs.Queue;
+
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
 		const bucket = props.bucket
 
-		const dlq = new sqs.Queue(this, 'DeadLetterQueue', {
+		this.dlq = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
 		});
-		this.dlq = dlq
 
 		//NOTE: sometimes the db import fails, thats why the maxReceiveCount is so high
 		//		the error fixes itself on the next try or two
-		const q = new sqs.Queue(this, 'ProcessingQueue', {
+		this.queue = new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
-				queue: dlq,
+				queue: this.dlq,
 				maxReceiveCount: 5,
 			},
 			visibilityTimeout: cdk.Duration.minutes(6)
 		});
-		this.queue =  q
 
-		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
+		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue))
 		
-		const summaryLambda = new lambda.Function(this, 'SummaryLambda', {
+		this.summaryLambda = new lambda.Function(this, 'SummaryLambda', {
 			code: lambda.Code.fromAsset('services/summary'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -54,15 +54,16 @@ export class Import extends cdk.Construct {
 			timeout: cdk.Duration.seconds(3),
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
+				DB_ENDPOINT: props.dbEndpoint,
 			},
 			reservedConcurrentExecutions: 10, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
-			vpc: props.vpc,
-			securityGroups: [props.securityGroup],
+			// vpc: props.vpc,
+			// securityGroups: [props.securityGroup],
 		})
 		
-		const importLambda = new lambda.Function(this, 'Lambda', {
+		this.importLambda = new lambda.Function(this, 'Lambda', {
 			code: lambda.Code.fromAsset('services/import'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -70,19 +71,18 @@ export class Import extends cdk.Construct {
 			timeout: cdk.Duration.seconds(60),
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
-				RDS_PROXY_ENDPOINT: props.dbEndpoint,
+				DB_ENDPOINT: props.dbEndpoint,
 			},
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
-			onSuccess: new destinations.LambdaDestination(summaryLambda),
-			onFailure: new destinations.LambdaDestination(summaryLambda),
+			onSuccess: new destinations.LambdaDestination(this.summaryLambda),
+			onFailure: new destinations.LambdaDestination(this.summaryLambda),
 		})
-		this.lambda = importLambda
 
-		importLambda.addEventSource(new SqsEventSource(q))
-		props.secret?.grantRead(importLambda)
+		this.importLambda.addEventSource(new SqsEventSource(this.queue))
+		props.secret?.grantRead(this.importLambda)
 	}
 }

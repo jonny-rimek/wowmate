@@ -89,13 +89,12 @@ export class Api extends cdk.Construct {
 		// 	vpc: vpc,
 		// 	securityGroups: [dbGroup],
 		// })
-		// this.rdsProxy = proxy.endpoint
-		const endpoint = auroraPostgres.clusterEndpoint.hostname
-		this.dbEndpoint = endpoint
+		// this.dbEndpoint = proxy.endpoint
+		this.dbEndpoint = auroraPostgres.clusterEndpoint.hostname
 
-		// new CfnOutput(this, 'RdsProxyEndpoint', {
-		// 	value: proxy.endpoint
-		// }),
+		new CfnOutput(this, 'DBEndpoint', {
+			value: this.dbEndpoint
+		}),
 
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
 			vpc,
@@ -109,8 +108,7 @@ export class Api extends cdk.Construct {
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(30),
 			environment: {
-				// RDS_PROXY_ENDPOINT: proxy.endpoint,
-				RDS_PROXY_ENDPOINT: endpoint,
+				DB_ENDPOINT: this.dbEndpoint,
 				SECRET_ARN: auroraPostgres.secret!.secretArn,
 			},
 			reservedConcurrentExecutions: 1, 

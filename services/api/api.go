@@ -35,8 +35,8 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		return serverError, fmt.Errorf("csv bucket env var is empty")
 	}
 
-	proxyEndpoint := os.Getenv("RDS_PROXY_ENDPOINT")
-	if proxyEndpoint == "" {
+	dbEndpoint := os.Getenv("DB_ENDPOINT")
+	if dbEndpoint == "" {
 		return serverError, fmt.Errorf("csv bucket env var is empty")
 	}
 
@@ -104,7 +104,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		creds.UserName,
 		creds.DatabaseName,
 		// creds.Host,
-		proxyEndpoint,
+		dbEndpoint,
 		creds.Password,
 	)
 	db, err := sql.Open("postgres", connStr)
