@@ -45,9 +45,9 @@ export class Import extends cdk.Construct {
 		this.queue =  q
 
 		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
-/* 
-		const SummaryLambda = new lambda.Function(this, 'F', {
-			code: lambda.Code.asset('services/summary'),
+		
+		const SummaryLambda = new lambda.Function(this, 'SummaryLambda', {
+			code: lambda.Code.fromAsset('services/summary'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -61,9 +61,9 @@ export class Import extends cdk.Construct {
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
 		})
-	 */
-		const importLambda = new lambda.Function(this, 'F', {
-			code: lambda.Code.asset('services/import'),
+		
+		const importLambda = new lambda.Function(this, 'Lambda', {
+			code: lambda.Code.fromAsset('services/import'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -77,7 +77,9 @@ export class Import extends cdk.Construct {
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
-			// onSuccess: new destinations.LambdaDestination(SummaryLambda)
+			onSuccess: new destinations.LambdaDestination(SummaryLambda, {
+				responseOnly: true,
+			})
 		})
 		this.lambda = importLambda
 

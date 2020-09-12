@@ -102,8 +102,7 @@ export class Api extends cdk.Construct {
 			securityGroup: dbGroup,
 		});
 
-		const topDamageLambda = new lambda.Function(this, 'F', {
-			// code: lambda.Code.asset('services/api'),
+		const topDamageLambda = new lambda.Function(this, 'TopDamage', {
 			code: lambda.Code.fromAsset('services/api'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
