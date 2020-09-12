@@ -4,8 +4,10 @@ import s3 = require('@aws-cdk/aws-s3');
 import sqs = require('@aws-cdk/aws-sqs');
 import s3n = require('@aws-cdk/aws-s3-notifications');
 import lambda = require('@aws-cdk/aws-lambda');
+import * as sns from '@aws-cdk/aws-sns';
+import * as subs from '@aws-cdk/aws-sns-subscriptions';
 import { RetentionDays } from '@aws-cdk/aws-logs';
-import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
+import { SnsEventSource, SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import * as destinations from '@aws-cdk/aws-lambda-destinations';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import rds = require('@aws-cdk/aws-rds');
@@ -46,8 +48,11 @@ export class Import extends cdk.Construct {
 
 		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue))
 
-		//TODO: SQS to SNS to get lambda invoked async
-		
+		const SNS = new sns.Topic(this, 'asyncSqs');
+		SNS.addSubscription(new subs.SqsSubscription(this.queue, {
+			rawMessageDelivery: true,
+		}))
+
 		this.summaryLambda = new lambda.Function(this, 'SummaryLambda', {
 			code: lambda.Code.fromAsset('services/summary'),
 			handler: 'main',
@@ -83,7 +88,7 @@ export class Import extends cdk.Construct {
 			onSuccess: new destinations.LambdaDestination(this.summaryLambda),
 		})
 
-		this.importLambda.addEventSource(new SqsEventSource(this.queue))
+		this.importLambda.addEventSource(new SnsEventSource(SNS))
 		props.secret?.grantRead(this.importLambda)
 	}
 }
