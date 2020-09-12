@@ -46,7 +46,7 @@ export class Import extends cdk.Construct {
 
 		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
 		
-		const SummaryLambda = new lambda.Function(this, 'SummaryLambda', {
+		const summaryLambda = new lambda.Function(this, 'SummaryLambda', {
 			code: lambda.Code.fromAsset('services/summary'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -77,11 +77,13 @@ export class Import extends cdk.Construct {
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
-			onSuccess: new destinations.LambdaDestination(SummaryLambda, {
+			onSuccess: new destinations.LambdaDestination(summaryLambda, {
 				// responseOnly: true,
 			})
 		})
 		this.lambda = importLambda
+
+		summaryLambda.grantInvoke(importLambda)
 
 		importLambda.addEventSource(new SqsEventSource(q))
 		props.secret?.grantRead(importLambda)
