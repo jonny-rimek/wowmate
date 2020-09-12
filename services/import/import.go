@@ -198,6 +198,9 @@ func handler(e SQSEvent) error {
 		rows, err := db.Query(q)
 		if err != nil {
 			log.Println(err.Error())
+			//IMPROVE: check if error is: 
+			//pq: duplicate key value violates unique constraint "combatlogs_pkey": Error
+			//if yes don't fail just continue
 			return err
 		}
 
@@ -218,7 +221,6 @@ func handler(e SQSEvent) error {
 				FunctionName:   aws.String(summaryLambdaName),
 				InvocationType: aws.String("Event"),
 				Payload:        []byte("{}"),
-				Qualifier:      aws.String("$LATEST"),
 			}
 
 			result, err := svc.Invoke(input)
