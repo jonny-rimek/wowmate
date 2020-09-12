@@ -37,7 +37,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 
 	dbEndpoint := os.Getenv("DB_ENDPOINT")
 	if dbEndpoint == "" {
-		return serverError, fmt.Errorf("csv bucket env var is empty")
+		return serverError, fmt.Errorf("db endpoint env var is empty")
 	}
 
 	sess, err := session.NewSession()

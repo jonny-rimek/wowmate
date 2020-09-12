@@ -86,12 +86,12 @@ type SQSEvent struct {
 func handler(e SQSEvent) (string, error) {
 	secretArn := os.Getenv("SECRET_ARN")
 	if secretArn == "" {
-		return "", fmt.Errorf("csv bucket env var is empty")
+		return "", fmt.Errorf("secret arn env var is empty")
 	}
 
 	dbEndpoint := os.Getenv("DB_ENDPOINT")
 	if dbEndpoint == "" {
-		return "", fmt.Errorf("csv bucket env var is empty")
+		return "", fmt.Errorf("db endpoint env var is empty")
 	}
 
 	sess, err := session.NewSession()
