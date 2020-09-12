@@ -72,13 +72,16 @@ export class Import extends cdk.Construct {
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 				DB_ENDPOINT: props.dbEndpoint,
+				SUMMARY_LAMBDA_ARN: this.summaryLambda.functionArn,
 			},
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
-			onSuccess: new destinations.LambdaDestination(this.summaryLambda),
+			// onSuccess: new destinations.LambdaDestination(this.summaryLambda),
+			//NOTE: SQS invokes lambda synchronisly and thus lambda Destinations
+			//		doesn't work. I have to call the summary lambda in the code
 		})
 
 		this.importLambda.addEventSource(new SqsEventSource(this.queue))
