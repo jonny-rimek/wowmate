@@ -95,6 +95,11 @@ func handler(e SQSEvent) error {
 		return fmt.Errorf("db endpoint env var is empty")
 	}
 
+	summaryLambdaName := os.Getenv("SUMMARY_LAMBDA_NAME")
+	if summaryLambdaName == "" {
+		return fmt.Errorf("summary lambda name env var is empty")
+	}
+
 	sess, err := session.NewSession()
 	if err != nil {
 		log.Println(err.Error())
@@ -208,82 +213,80 @@ func handler(e SQSEvent) error {
 			}
 			log.Printf("import query successfull: %v", s)
 
-			svc := lambdaservice.New(session.New())
-input := &lambdaservice.InvokeInput{
-    FunctionName:   aws.String("my-function"),
-    InvocationType: aws.String("Event"),
-    Payload:        []byte("{}"),
-    Qualifier:      aws.String("$LATEST"),
-}
+			svc := lambdaservice.New(sess)
+			input := &lambdaservice.InvokeInput{
+				FunctionName:   aws.String(summaryLambdaName),
+				InvocationType: aws.String("Event"),
+				Payload:        []byte("{}"),
+				Qualifier:      aws.String("$LATEST"),
+			}
 
-result, err := svc.Invoke(input)
-if err != nil {
-    if aerr, ok := err.(awserr.Error); ok {
-        switch aerr.Code() {
-        case lambdaservice.ErrCodeServiceException:
-            fmt.Println(lambdaservice.ErrCodeServiceException, aerr.Error())
-        case lambdaservice.ErrCodeResourceNotFoundException:
-            fmt.Println(lambdaservice.ErrCodeResourceNotFoundException, aerr.Error())
-        case lambdaservice.ErrCodeInvalidRequestContentException:
-            fmt.Println(lambdaservice.ErrCodeInvalidRequestContentException, aerr.Error())
-        case lambdaservice.ErrCodeRequestTooLargeException:
-            fmt.Println(lambdaservice.ErrCodeRequestTooLargeException, aerr.Error())
-        case lambdaservice.ErrCodeUnsupportedMediaTypeException:
-            fmt.Println(lambdaservice.ErrCodeUnsupportedMediaTypeException, aerr.Error())
-        case lambdaservice.ErrCodeTooManyRequestsException:
-            fmt.Println(lambdaservice.ErrCodeTooManyRequestsException, aerr.Error())
-        case lambdaservice.ErrCodeInvalidParameterValueException:
-            fmt.Println(lambdaservice.ErrCodeInvalidParameterValueException, aerr.Error())
-        case lambdaservice.ErrCodeEC2UnexpectedException:
-            fmt.Println(lambdaservice.ErrCodeEC2UnexpectedException, aerr.Error())
-        case lambdaservice.ErrCodeSubnetIPAddressLimitReachedException:
-            fmt.Println(lambdaservice.ErrCodeSubnetIPAddressLimitReachedException, aerr.Error())
-        case lambdaservice.ErrCodeENILimitReachedException:
-            fmt.Println(lambdaservice.ErrCodeENILimitReachedException, aerr.Error())
-        case lambdaservice.ErrCodeEFSMountConnectivityException:
-            fmt.Println(lambdaservice.ErrCodeEFSMountConnectivityException, aerr.Error())
-        case lambdaservice.ErrCodeEFSMountFailureException:
-            fmt.Println(lambdaservice.ErrCodeEFSMountFailureException, aerr.Error())
-        case lambdaservice.ErrCodeEFSMountTimeoutException:
-            fmt.Println(lambdaservice.ErrCodeEFSMountTimeoutException, aerr.Error())
-        case lambdaservice.ErrCodeEFSIOException:
-            fmt.Println(lambdaservice.ErrCodeEFSIOException, aerr.Error())
-        case lambdaservice.ErrCodeEC2ThrottledException:
-            fmt.Println(lambdaservice.ErrCodeEC2ThrottledException, aerr.Error())
-        case lambdaservice.ErrCodeEC2AccessDeniedException:
-            fmt.Println(lambdaservice.ErrCodeEC2AccessDeniedException, aerr.Error())
-        case lambdaservice.ErrCodeInvalidSubnetIDException:
-            fmt.Println(lambdaservice.ErrCodeInvalidSubnetIDException, aerr.Error())
-        case lambdaservice.ErrCodeInvalidSecurityGroupIDException:
-            fmt.Println(lambdaservice.ErrCodeInvalidSecurityGroupIDException, aerr.Error())
-        case lambdaservice.ErrCodeInvalidZipFileException:
-            fmt.Println(lambdaservice.ErrCodeInvalidZipFileException, aerr.Error())
-        case lambdaservice.ErrCodeKMSDisabledException:
-            fmt.Println(lambdaservice.ErrCodeKMSDisabledException, aerr.Error())
-        case lambdaservice.ErrCodeKMSInvalidStateException:
-            fmt.Println(lambdaservice.ErrCodeKMSInvalidStateException, aerr.Error())
-        case lambdaservice.ErrCodeKMSAccessDeniedException:
-            fmt.Println(lambdaservice.ErrCodeKMSAccessDeniedException, aerr.Error())
-        case lambdaservice.ErrCodeKMSNotFoundException:
-            fmt.Println(lambdaservice.ErrCodeKMSNotFoundException, aerr.Error())
-        case lambdaservice.ErrCodeInvalidRuntimeException:
-            fmt.Println(lambdaservice.ErrCodeInvalidRuntimeException, aerr.Error())
-        case lambdaservice.ErrCodeResourceConflictException:
-            fmt.Println(lambdaservice.ErrCodeResourceConflictException, aerr.Error())
-        case lambdaservice.ErrCodeResourceNotReadyException:
-            fmt.Println(lambdaservice.ErrCodeResourceNotReadyException, aerr.Error())
-        default:
-            fmt.Println(aerr.Error())
-        }
-    } else {
-        // Print the error, cast err to awserr.Error to get the Code and
-        // Message from an error.
-        fmt.Println(err.Error())
-    }
-    return err
-}
+			result, err := svc.Invoke(input)
+			if err != nil {
+				if aerr, ok := err.(awserr.Error); ok {
+					switch aerr.Code() {
+					case lambdaservice.ErrCodeServiceException:
+						log.Println(lambdaservice.ErrCodeServiceException, aerr.Error())
+					case lambdaservice.ErrCodeResourceNotFoundException:
+						log.Println(lambdaservice.ErrCodeResourceNotFoundException, aerr.Error())
+					case lambdaservice.ErrCodeInvalidRequestContentException:
+						log.Println(lambdaservice.ErrCodeInvalidRequestContentException, aerr.Error())
+					case lambdaservice.ErrCodeRequestTooLargeException:
+						log.Println(lambdaservice.ErrCodeRequestTooLargeException, aerr.Error())
+					case lambdaservice.ErrCodeUnsupportedMediaTypeException:
+						log.Println(lambdaservice.ErrCodeUnsupportedMediaTypeException, aerr.Error())
+					case lambdaservice.ErrCodeTooManyRequestsException:
+						log.Println(lambdaservice.ErrCodeTooManyRequestsException, aerr.Error())
+					case lambdaservice.ErrCodeInvalidParameterValueException:
+						log.Println(lambdaservice.ErrCodeInvalidParameterValueException, aerr.Error())
+					case lambdaservice.ErrCodeEC2UnexpectedException:
+						log.Println(lambdaservice.ErrCodeEC2UnexpectedException, aerr.Error())
+					case lambdaservice.ErrCodeSubnetIPAddressLimitReachedException:
+						log.Println(lambdaservice.ErrCodeSubnetIPAddressLimitReachedException, aerr.Error())
+					case lambdaservice.ErrCodeENILimitReachedException:
+						log.Println(lambdaservice.ErrCodeENILimitReachedException, aerr.Error())
+					case lambdaservice.ErrCodeEFSMountConnectivityException:
+						log.Println(lambdaservice.ErrCodeEFSMountConnectivityException, aerr.Error())
+					case lambdaservice.ErrCodeEFSMountFailureException:
+						log.Println(lambdaservice.ErrCodeEFSMountFailureException, aerr.Error())
+					case lambdaservice.ErrCodeEFSMountTimeoutException:
+						log.Println(lambdaservice.ErrCodeEFSMountTimeoutException, aerr.Error())
+					case lambdaservice.ErrCodeEFSIOException:
+						log.Println(lambdaservice.ErrCodeEFSIOException, aerr.Error())
+					case lambdaservice.ErrCodeEC2ThrottledException:
+						log.Println(lambdaservice.ErrCodeEC2ThrottledException, aerr.Error())
+					case lambdaservice.ErrCodeEC2AccessDeniedException:
+						log.Println(lambdaservice.ErrCodeEC2AccessDeniedException, aerr.Error())
+					case lambdaservice.ErrCodeInvalidSubnetIDException:
+						log.Println(lambdaservice.ErrCodeInvalidSubnetIDException, aerr.Error())
+					case lambdaservice.ErrCodeInvalidSecurityGroupIDException:
+						log.Println(lambdaservice.ErrCodeInvalidSecurityGroupIDException, aerr.Error())
+					case lambdaservice.ErrCodeInvalidZipFileException:
+						log.Println(lambdaservice.ErrCodeInvalidZipFileException, aerr.Error())
+					case lambdaservice.ErrCodeKMSDisabledException:
+						log.Println(lambdaservice.ErrCodeKMSDisabledException, aerr.Error())
+					case lambdaservice.ErrCodeKMSInvalidStateException:
+						log.Println(lambdaservice.ErrCodeKMSInvalidStateException, aerr.Error())
+					case lambdaservice.ErrCodeKMSAccessDeniedException:
+						log.Println(lambdaservice.ErrCodeKMSAccessDeniedException, aerr.Error())
+					case lambdaservice.ErrCodeKMSNotFoundException:
+						log.Println(lambdaservice.ErrCodeKMSNotFoundException, aerr.Error())
+					case lambdaservice.ErrCodeInvalidRuntimeException:
+						log.Println(lambdaservice.ErrCodeInvalidRuntimeException, aerr.Error())
+					case lambdaservice.ErrCodeResourceConflictException:
+						log.Println(lambdaservice.ErrCodeResourceConflictException, aerr.Error())
+					case lambdaservice.ErrCodeResourceNotReadyException:
+						log.Println(lambdaservice.ErrCodeResourceNotReadyException, aerr.Error())
+					default:
+						log.Println(aerr.Error())
+					}
+				} else {
+					log.Println(err.Error())
+				}
+				return err
+			}
 
-log.Println(result)
+			log.Println(result)
 		}
 	}
 	return nil

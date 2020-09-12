@@ -72,7 +72,7 @@ export class Import extends cdk.Construct {
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 				DB_ENDPOINT: props.dbEndpoint,
-				SUMMARY_LAMBDA_ARN: this.summaryLambda.functionName,
+				SUMMARY_LAMBDA_NAME: this.summaryLambda.functionName,
 			},
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
