@@ -5,7 +5,7 @@
     "wowmate": "bin/wowmate.js"
   },
   "scripts": {
-    "build": "cd services/import && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . && cd ../api && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . && cd ../api && go mod tidy && gofmt -w -s . && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags='-s -w' -o main . && cd ../convert && go mod tidy && gofmt -w -s . && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags='-s -w' -o main . && cd ../presign && npm install && cd ../.. && tsc",
+    "build": "cd services/summary && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main .  && cd ../import && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . && cd ../api && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . && cd ../api && go mod tidy && gofmt -w -s . && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags='-s -w' -o main . && cd ../convert && go mod tidy && gofmt -w -s . && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags='-s -w' -o main . && cd ../presign && npm install && cd ../.. && tsc",
     "buildf": "cd services/frontend && yarn build && cd ../.. && tsc",
     "watch": "tsc -w",
     "test": "jest",
