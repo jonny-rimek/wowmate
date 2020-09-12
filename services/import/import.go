@@ -84,7 +84,7 @@ type SQSEvent struct {
 }
 
 func handler(e SQSEvent) (string, error) {
-	return "lolw", nil 
+	return "lolw", nil
 
 	secretArn := os.Getenv("SECRET_ARN")
 	if secretArn == "" {
