@@ -128,6 +128,7 @@ func handler(e Event) error {
 				AND caster_id LIkE 'Player-%'
 			GROUP BY
 				caster_name
+			)
 			`, strings.TrimSuffix(e.Filename, ".csv"))
 
 	rows, err := db.Query(q)
