@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -24,75 +24,12 @@ type DatabasesCredentials struct {
 	Host         string `json:"host"`
 }
 
-//S3Event is the data that come from s3 and contains all the information about the event
-type S3Event struct {
-	Records []struct {
-		EventVersion string    `json:"eventVersion"`
-		EventSource  string    `json:"eventSource"`
-		AwsRegion    string    `json:"awsRegion"`
-		EventTime    time.Time `json:"eventTime"`
-		EventName    string    `json:"eventName"`
-		UserIdentity struct {
-			PrincipalID string `json:"principalId"`
-		} `json:"userIdentity"`
-		RequestParameters struct {
-			SourceIPAddress string `json:"sourceIPAddress"`
-		} `json:"requestParameters"`
-		ResponseElements struct {
-			XAmzRequestID string `json:"x-amz-request-id"`
-			XAmzID2       string `json:"x-amz-id-2"`
-		} `json:"responseElements"`
-		S3 struct {
-			S3SchemaVersion string `json:"s3SchemaVersion"`
-			ConfigurationID string `json:"configurationId"`
-			Bucket          struct {
-				Name          string `json:"name"`
-				OwnerIdentity struct {
-					PrincipalID string `json:"principalId"`
-				} `json:"ownerIdentity"`
-				Arn string `json:"arn"`
-			} `json:"bucket"`
-			Object struct {
-				Key       string `json:"key"`
-				Size      int    `json:"size"`
-				ETag      string `json:"eTag"`
-				Sequencer string `json:"sequencer"`
-			} `json:"object"`
-		} `json:"s3"`
-	} `json:"Records"`
-}
-
-//SQSEvent is all the data that gets passed into the lambda from the q
-type SQSEvent struct {
-	Records []struct {
-		MessageID     string `json:"messageId"`
-		ReceiptHandle string `json:"receiptHandle"`
-		Body          string `json:"body"`
-		Attributes    struct {
-			ApproximateReceiveCount          string `json:"ApproximateReceiveCount"`
-			SentTimestamp                    string `json:"SentTimestamp"`
-			SenderID                         string `json:"SenderId"`
-			ApproximateFirstReceiveTimestamp string `json:"ApproximateFirstReceiveTimestamp"`
-		} `json:"attributes"`
-		MessageAttributes struct {
-		} `json:"messageAttributes"`
-		Md5OfBody      string `json:"md5OfBody"`
-		EventSource    string `json:"eventSource"`
-		EventSourceARN string `json:"eventSourceARN"`
-		AwsRegion      string `json:"awsRegion"`
-	} `json:"Records"`
-}
-
 type Event struct {
 	Filename string `json:"filename"`
 }
 
-func handler(ev Event) error {
-
-	log.Println("hello world: " + ev.Filename)
-	return nil
-
-	e := SQSEvent{}
+func handler(e Event) error {
+	log.Println("hello world: " + e.Filename)
 
 	secretArn := os.Getenv("SECRET_ARN")
 	if secretArn == "" {
@@ -178,45 +115,38 @@ func handler(ev Event) error {
 	}
 	defer db.Close()
 	log.Println("openend connection")
-	log.Printf("number of messages: %v", len(e.Records))
 
-	for _, record := range e.Records {
-		s3 := S3Event{}
-		err = json.Unmarshal([]byte(record.Body), &s3)
+	q := `
+			INSERT INTO summary(caster_name, damage)
+			(SELECT
+				caster_name, SUM(actual_amount) AS damage
+			FROM
+				combatlogs
+			WHERE
+				upload_uuid = '$1'
+				AND event_type = 'SPELL_DAMAGE'
+				AND caster_id LIkE 'Player-%'
+			GROUP BY
+				caster_name
+			`
+
+	rows, err := db.Query(q, strings.TrimSuffix(e.Filename, ".csv"))
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var s string
+
+		err = rows.Scan(&s)
 		if err != nil {
-			log.Println("Unmarshal sqs json failed")
+			fmt.Println(err.Error())
 			return err
 		}
-
-		if len(s3.Records) > 1 {
-			return fmt.Errorf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
-		}
-		q := fmt.Sprintf(`
-				SELECT aws_s3.table_import_from_s3(
-					'combatlogs',
-					'',
-					'(format csv, DELIMITER '','', HEADER true)',
-					'(%v,%v,us-east-1)');
-			`, s3.Records[0].S3.Bucket.Name, s3.Records[0].S3.Object.Key)
-
-		rows, err := db.Query(q)
-		if err != nil {
-			log.Println(err.Error())
-			return err
-		}
-
-		defer rows.Close()
-
-		for rows.Next() {
-			var s string
-
-			err = rows.Scan(&s)
-			if err != nil {
-				fmt.Println(err.Error())
-				return err
-			}
-			log.Printf("import query successfull: %v", s)
-		}
+		log.Printf("query successfull: %v", s)
 	}
 	return nil
 }
