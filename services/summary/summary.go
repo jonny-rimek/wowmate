@@ -131,9 +131,11 @@ func handler(e Event) error {
 			);
 			`, strings.TrimSuffix(e.Filename, ".csv"))
 
+	log.Println(q)
+
 	rows, err := db.Query(q)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("query" + err.Error())
 		return err
 	}
 
@@ -144,7 +146,7 @@ func handler(e Event) error {
 
 		err = rows.Scan(&s)
 		if err != nil {
-			fmt.Println(err.Error())
+			fmt.Println("rows scan" + err.Error())
 			return err
 		}
 		log.Printf("query successfull: %v", s)
