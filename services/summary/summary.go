@@ -116,21 +116,21 @@ func handler(e Event) error {
 	defer db.Close()
 	log.Println("openend connection")
 
-	q := `
+	q := fmt.Sprintf(`
 			INSERT INTO summary(caster_name, damage)
 			(SELECT
 				caster_name, SUM(actual_amount) AS damage
 			FROM
 				combatlogs
 			WHERE
-				upload_uuid = '$1'
+				upload_uuid = '%v'
 				AND event_type = 'SPELL_DAMAGE'
 				AND caster_id LIkE 'Player-%'
 			GROUP BY
 				caster_name
-			`
+			`, strings.TrimSuffix(e.Filename, ".csv"))
 
-	rows, err := db.Query(q, strings.TrimSuffix(e.Filename, ".csv"))
+	rows, err := db.Query(q)
 	if err != nil {
 		log.Println(err.Error())
 		return err
