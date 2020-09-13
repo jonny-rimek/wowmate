@@ -39,19 +39,19 @@ export class Import extends cdk.Construct {
 		this.queue = new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
 				queue: this.dlq,
-				maxReceiveCount: 5,
+				maxReceiveCount: 10,
 			},
-			visibilityTimeout: cdk.Duration.minutes(6)
+			visibilityTimeout: cdk.Duration.minutes(10)
 		});
 
 		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue))
-		
+
 		this.summaryLambda = new lambda.Function(this, 'SummaryLambda', {
 			code: lambda.Code.fromAsset('services/summary'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(3),
+			timeout: cdk.Duration.seconds(10),
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 				DB_ENDPOINT: props.dbEndpoint,
@@ -62,13 +62,14 @@ export class Import extends cdk.Construct {
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
 		})
+		props.secret?.grantRead(this.summaryLambda)
 		
 		this.importLambda = new lambda.Function(this, 'Lambda', {
 			code: lambda.Code.fromAsset('services/import'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(60),
+			timeout: cdk.Duration.seconds(180),
 			environment: {
 				SECRET_ARN: props.secret.secretArn,
 				DB_ENDPOINT: props.dbEndpoint,
