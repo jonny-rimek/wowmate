@@ -83,9 +83,16 @@ type SQSEvent struct {
 	} `json:"Records"`
 }
 
-func handler(e SQSEvent) error {
-	log.Println("hello world")
+type Event struct {
+	Filename string `json:"filename"`
+}
+
+func handler(ev Event) error {
+
+	log.Println("hello world: " + ev.Filename)
 	return nil
+
+	e := SQSEvent{}
 
 	secretArn := os.Getenv("SECRET_ARN")
 	if secretArn == "" {
