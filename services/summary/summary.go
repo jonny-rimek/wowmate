@@ -125,11 +125,11 @@ func handler(e Event) error {
 			WHERE
 				upload_uuid = '%v'
 				AND event_type = 'SPELL_DAMAGE'
-				AND caster_id LIKE 'Player-%'
+				AND caster_id LIKE '%v'
 			GROUP BY
 				caster_name
 			);
-			`, strings.TrimSuffix(e.Filename, ".csv"))
+			`, strings.TrimSuffix(e.Filename, ".csv"), "Player-%")
 
 	log.Println(q)
 
