@@ -36,7 +36,7 @@ func handler(e Event) error {
 		return fmt.Errorf("csv bucket env var is empty")
 	}
 
-	proxyEndpoint := os.Getenv("RDS_PROXY_ENDPOINT")
+	proxyEndpoint := os.Getenv("DB_ENDPOINT")
 	if secretArn == "" {
 		return fmt.Errorf("csv bucket env var is empty")
 	}
