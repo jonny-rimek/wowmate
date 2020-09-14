@@ -27,7 +27,7 @@ type DatabasesCredentials struct {
 
 type DamageResult struct {
 	PlayerName string `json:"player_name"`
-	Damage int `json:"damage"`
+	Damage     int    `json:"damage"`
 }
 
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
@@ -121,7 +121,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	defer db.Close()
 	log.Println("openend connection")
 
-	rows, err := db.Query(`SELECT caster_name, damage FROM summary WHERE id = $1;`, 1)
+	rows, err := db.Query(`SELECT caster_name, damage FROM summary WHERE combatlog_uuid = $1;`, request.PathParameters["combatlog_uuid"])
 	if err != nil {
 		log.Println(err.Error())
 		return serverError, err
@@ -136,13 +136,12 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		if err != nil {
 			log.Println(err.Error())
 			return serverError, err
-			// return err
 		}
 		log.Printf("import query successfull: %v", s)
 	}
 	respBody := DamageResult{
 		PlayerName: s,
-		Damage: i,
+		Damage:     i,
 	}
 
 	b, err := json.Marshal(respBody)

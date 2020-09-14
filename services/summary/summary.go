@@ -16,6 +16,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+//CREATE TABLE summary (id bigserial, caster_name character varying, damage int, combatlog_uuid uuid);
+
 //DatabasesCredentials are the data to log into the db
 type DatabasesCredentials struct {
 	DatabaseName string `json:"dbname"`
@@ -117,9 +119,9 @@ func handler(e Event) error {
 	log.Println("openend connection")
 
 	q := fmt.Sprintf(`
-			INSERT INTO summary(caster_name, damage)
+			INSERT INTO summary(caster_name, damage, combatlog_uuid)
 			(SELECT
-				caster_name, SUM(actual_amount) AS damage
+				caster_name, SUM(actual_amount), combatlog_uuid AS damage
 			FROM
 				combatlogs
 			WHERE
