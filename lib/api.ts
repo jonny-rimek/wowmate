@@ -111,7 +111,6 @@ export class Api extends cdk.Construct {
 				DB_ENDPOINT: this.dbEndpoint,
 				SECRET_ARN: auroraPostgres.secret!.secretArn,
 			},
-			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: vpc,
@@ -131,7 +130,7 @@ export class Api extends cdk.Construct {
 		}),
 
 		httpApi.addRoutes({
-			path: '/api/combatlog/{combatlog_uuid}/damage',
+			path: '/api/combatlog/summary/{combatlog_uuid}/damage',
 			methods: [HttpMethod.GET],
 			integration: topDamageIntegration,
 		})

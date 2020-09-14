@@ -25,12 +25,15 @@ type DatabasesCredentials struct {
 	Host         string `json:"host"`
 }
 
+type DamageResult struct {
+	PlayerName string `json:"player_name"`
+	Damage int `json:"damage"`
+}
+
 func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	serverError := events.APIGatewayV2HTTPResponse{
 		StatusCode: 500,
 	}
-	log.Println(request.RouteKey)
-	log.Println(request.QueryStringParameters["combatlog_uuid"])
 	log.Println(request.PathParameters["combatlog_uuid"])
 
 	secretArn := os.Getenv("SECRET_ARN")
@@ -118,20 +121,18 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	defer db.Close()
 	log.Println("openend connection")
 
-	// q := fmt.Sprintf(`SELECT COUNT(*) FROM combatlogs;`)
-
-	rows, err := db.Query(`SELECT COUNT(*) FROM combatlogs;`)
+	rows, err := db.Query(`SELECT caster_name, damage FROM summary WHERE id = $1;`, 1)
 	if err != nil {
 		log.Println(err.Error())
 		return serverError, err
-		// return err
 	}
 
 	defer rows.Close()
 
 	var s string
+	var i int
 	for rows.Next() {
-		err = rows.Scan(&s)
+		err = rows.Scan(&s, &i)
 		if err != nil {
 			log.Println(err.Error())
 			return serverError, err
@@ -139,9 +140,20 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 		}
 		log.Printf("import query successfull: %v", s)
 	}
+	respBody := DamageResult{
+		PlayerName: s,
+		Damage: i,
+	}
+
+	b, err := json.Marshal(respBody)
+	if err != nil {
+		fmt.Println(err)
+		return serverError, err
+	}
+
 	resp := events.APIGatewayV2HTTPResponse{
 		StatusCode: 200,
-		Body:       s,
+		Body:       string(b),
 	}
 	return resp, nil
 }
