@@ -129,7 +129,7 @@ func handler(e Event) error {
 				AND event_type = 'SPELL_DAMAGE'
 				AND caster_id LIKE '%v'
 			GROUP BY
-				caster_name
+				caster_name, combatlog_uuid
 			);
 			`, strings.TrimSuffix(e.Filename, ".csv"), "Player-%")
 
