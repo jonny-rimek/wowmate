@@ -129,6 +129,7 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 
 	defer rows.Close()
 
+	var r []DamageResult
 	var s string
 	var i int
 	for rows.Next() {
@@ -137,14 +138,15 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 			log.Println(err.Error())
 			return serverError, err
 		}
-		log.Printf("import query successfull: %v", s)
+		res := DamageResult{
+			PlayerName: s,
+			Damage:     i,
+		}
+		r = append(r, res)
 	}
-	respBody := DamageResult{
-		PlayerName: s,
-		Damage:     i,
-	}
+	log.Printf("query successfull")
 
-	b, err := json.Marshal(respBody)
+	b, err := json.Marshal(r)
 	if err != nil {
 		fmt.Println(err)
 		return serverError, err
