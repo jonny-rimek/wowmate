@@ -131,7 +131,7 @@ export class Api extends cdk.Construct {
 		}),
 
 		httpApi.addRoutes({
-			path: '/api/combatlog/:combatlog_uuid/damage',
+			path: '/api/combatlog/{combatlog_uuid}/damage',
 			methods: [HttpMethod.GET],
 			integration: topDamageIntegration,
 		})

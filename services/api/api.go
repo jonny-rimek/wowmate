@@ -29,6 +29,9 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	serverError := events.APIGatewayV2HTTPResponse{
 		StatusCode: 500,
 	}
+	log.Println(request.RouteKey)
+	log.Println(request.QueryStringParameters["combatlog_uuid"])
+	log.Println(request.PathParameters["combatlog_uuid"])
 
 	secretArn := os.Getenv("SECRET_ARN")
 	if secretArn == "" {
