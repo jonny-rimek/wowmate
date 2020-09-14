@@ -8,6 +8,7 @@ import lambda = require('@aws-cdk/aws-lambda');
 import sqs = require('@aws-cdk/aws-sqs');
 import s3 = require('@aws-cdk/aws-s3');
 import apigateway = require('@aws-cdk/aws-apigateway');
+import rds = require('@aws-cdk/aws-rds');
 
 interface Props extends cdk.StackProps {
 	convertLambda: lambda.Function
@@ -19,6 +20,7 @@ interface Props extends cdk.StackProps {
 	presignLambda: lambda.Function
 	uploadBucket: s3.Bucket
 	presignApiGateway: apigateway.LambdaRestApi
+	cluster: rds.DatabaseCluster;
 }
 
 export class EtlDashboard extends cdk.Construct {
@@ -38,6 +40,56 @@ export class EtlDashboard extends cdk.Construct {
 
 		//NOTE widget height viable values: 3, 6, ?
 		new cloudwatch.Dashboard(this, 'Dashboard').addWidgets(
+			new Row(
+				new TextWidget({
+					markdown: `# Postgres Aurora Cluster
+
+Crucial is the write IOPS, because we are ingesting a ton of data
+					`,
+					width: 4,
+					height: 6,
+				}),
+				new GraphWidget({
+					title: 'Write IOPS',
+					left: [
+						props.cluster.metricVolumeWriteIOPs({period: cdk.Duration.minutes(1)}),
+					],
+					stacked: false,
+					width: 4,
+				}),
+				new GraphWidget({
+					title: 'Network recieve througput',
+					left: [
+						props.cluster.metricNetworkReceiveThroughput({period: cdk.Duration.minutes(1)}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'CPU utilization',
+					left: [
+						props.cluster.metricCPUUtilization({period: cdk.Duration.minutes(1)}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Storage',
+					left: [
+						props.cluster.metricVolumeBytesUsed({period: cdk.Duration.minutes(1)}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Connections',
+					left: [
+						props.cluster.metricDatabaseConnections({period: cdk.Duration.minutes(1)}),
+					],
+					stacked: false,
+					width: 4
+				}),
+			),
 			new Row(
 				new TextWidget({
 					markdown: `# Lambda metrics

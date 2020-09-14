@@ -17,6 +17,7 @@ export class Api extends cdk.Construct {
 	public readonly lambda: lambda.Function;
 	public readonly api: HttpApi;
 	public readonly dbEndpoint: string;
+	public readonly cluster: rds.DatabaseCluster;
 
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id)
@@ -54,7 +55,7 @@ export class Api extends cdk.Construct {
 		this.vpc = vpc
 		this.securityGrp = dbGroup
 
-		const auroraPostgres = new rds.DatabaseCluster(this, 'ImportDB', {
+		this.cluster = new rds.DatabaseCluster(this, 'ImportDB', {
 			engine: rds.DatabaseClusterEngine.auroraPostgres({
 				version: rds.AuroraPostgresEngineVersion.VER_10_11,
 				// version: rds.AuroraPostgresEngineVersion.VER_11_6,
@@ -82,7 +83,7 @@ export class Api extends cdk.Construct {
 			//NOTE: remove in production
 			// s3ImportBuckets: [csvBucket],
 		})
-		this.dbCreds = auroraPostgres.secret!
+		this.dbCreds = this.cluster.secret!
 
 		// const proxy = auroraPostgres.addProxy('DBProxy', {
 		// 	secrets: [auroraPostgres.secret!],
@@ -90,7 +91,7 @@ export class Api extends cdk.Construct {
 		// 	securityGroups: [dbGroup],
 		// })
 		// this.dbEndpoint = proxy.endpoint
-		this.dbEndpoint = auroraPostgres.clusterEndpoint.hostname
+		this.dbEndpoint = this.cluster.clusterEndpoint.hostname
 
 		new CfnOutput(this, 'DBEndpoint', {
 			value: this.dbEndpoint
@@ -109,7 +110,7 @@ export class Api extends cdk.Construct {
 			timeout: cdk.Duration.seconds(30),
 			environment: {
 				DB_ENDPOINT: this.dbEndpoint,
-				SECRET_ARN: auroraPostgres.secret!.secretArn,
+				SECRET_ARN: this.cluster.secret!.secretArn,
 			},
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
@@ -117,7 +118,7 @@ export class Api extends cdk.Construct {
 			securityGroups: [dbGroup],
 		})
 		this.lambda = topDamageLambda
-		auroraPostgres.secret?.grantRead(topDamageLambda)
+		this.cluster.secret?.grantRead(topDamageLambda)
 
 		const topDamageIntegration = new LambdaProxyIntegration({
 			handler: topDamageLambda
