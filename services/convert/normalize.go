@@ -270,7 +270,8 @@ type Event struct {
 //Import converts the combatlog to a slice of Event structs
 func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session, csvBucket string) error {
 	var combatEvents []Event
-	CombatlogUUID := ""
+	//UploadUUID //for the whole file
+	CombatlogUUID := "" //after every COMBAT_LOG_VERSION
 	BossFightUUID := ""
 	MythicplusUUID := ""
 
@@ -352,7 +353,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 				return err
 			}
 
-			err = uploadS3(r, sess, uploadUUID, csvBucket)
+			err = uploadS3(r, sess, e.MythicplusUUID, csvBucket)
 			if err != nil {
 				return err
 			}
