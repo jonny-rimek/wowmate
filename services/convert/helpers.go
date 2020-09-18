@@ -251,7 +251,9 @@ func (e *Event) importHeal(params []string) (err error) {
 	return nil
 }
 
-func EventsAsStringSlices(events *[]Event, ss *[][]string) error {
+func EventsAsStringSlices(events *[]Event) ([][]string, error) {
+	var ss [][]string
+
 	for _, e := range *events {
 		s := []string{
 			e.ColumnUUID,
@@ -319,9 +321,9 @@ func EventsAsStringSlices(events *[]Event, ss *[][]string) error {
 			e.Crushing,
 			e.IsOffhand,
 		}
-		*ss = append(*ss, s)
+		ss = append(ss, s)
 	}
-	return nil
+	return ss, nil
 }
 
 func (s *Event) String() string {

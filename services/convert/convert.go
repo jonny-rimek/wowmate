@@ -141,39 +141,29 @@ func handler(e SQSEvent) error {
 	log.Printf("amount of messages %v", len(e.Records))
 
 	for j, msg := range e.Records {
+		err := timeMessageInQueue(e, j)
+		if err != nil {
+			return nil
+		}
+
 		log.Printf("index j: %v", j+1)
-		i, err := strconv.ParseInt(msg.Attributes.ApproximateFirstReceiveTimestamp, 10, 64)
-		if err != nil {
-			log.Printf("Failed to parse int: %v", err)
-			return err
-		}
-		tm1 := time.Unix(0, i*int64(1000000))
 
-		ii, err := strconv.ParseInt(msg.Attributes.SentTimestamp, 10, 64)
-		if err != nil {
-			return err
-		}
-		tm2 := time.Unix(0, ii*int64(1000000))
-
-		log.Printf("seconds the message was unprocessed in the queue: %v", tm1.Sub(tm2).Seconds())
-
+		//get sqs message body which contains the s3 event
 		body := msg.Body
 
 		req := Request{}
 		err = json.Unmarshal([]byte(body), &req)
 		if err != nil {
-			log.Printf("Failed Unmarshal: %v", err.Error())
 			return err
 		}
-
-		downloader := s3manager.NewDownloader(sess)
-
-		fileContent := &aws.WriteAtBuffer{}
 
 		if len(req.Records) > 1 {
 			log.Printf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
 			return err
 		}
+		
+		downloader := s3manager.NewDownloader(sess)
+		fileContent := &aws.WriteAtBuffer{}
 
 		_, err = downloader.Download(
 			fileContent,
@@ -191,36 +181,79 @@ func handler(e SQSEvent) error {
 		s := bufio.NewScanner(bytes.NewReader(fileContent.Bytes()))
 		uploadUUID := uuid.Must(uuid.NewV4()).String()
 
-		events, err := Import(s, uploadUUID)
+		events, err := Normalize(s, uploadUUID)
 		if err != nil {
 			return err
 		}
 
-		var buf bytes.Buffer
-		var ss [][]string
-		w := csv.NewWriter(&buf)
-
-		_ = EventsAsStringSlices(&events, &ss)
-		if err := w.WriteAll(ss); err != nil {
-			log.Fatalln("error writing record to csv:", err)
-		}
-
-		r := io.Reader(&buf)
-
-		log.Println("converted to csv")
-
-		uploader := s3manager.NewUploader(sess)
-		result, err := uploader.Upload(&s3manager.UploadInput{
-			Bucket: aws.String(csvBucket),
-			Key:    aws.String(fmt.Sprintf("%v.csv", uploadUUID)),
-			Body:   r,
-		})
+		r, err := convertToCSV(events)
 		if err != nil {
-			log.Println("Failed to upload to S3")
 			return err
 		}
-		log.Println("Upload finished! location: " + result.Location)
+
+		err = uploadS3(r, sess, uploadUUID, csvBucket)
+		if err != nil {
+			return err
+		}
+
 	}
+	return nil
+}
+
+func convertToCSV(events []Event) (io.Reader, error) {
+	var buf bytes.Buffer
+	w := csv.NewWriter(&buf)
+
+	ss, err := EventsAsStringSlices(&events)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("converted to struct to string slice")
+
+	//flushes the string slice as csv to buffer
+	if err := w.WriteAll(ss); err != nil {
+		return nil, err
+	}
+	log.Println("converted to csv")
+
+	events = nil
+
+	return io.Reader(&buf), nil
+}
+
+func uploadS3(r io.Reader, sess *session.Session, uploadUUID string, csvBucket string) error {
+	uploader := s3manager.NewUploader(sess)
+
+	result, err := uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String(csvBucket),
+		Key:    aws.String(fmt.Sprintf("%v.csv", uploadUUID)),
+		Body:   r,
+	})
+	if err != nil {
+		log.Println("Failed to upload to S3")
+		return err
+	}
+	log.Println("Upload finished! location: " + result.Location)
+
+	return nil
+}
+
+func timeMessageInQueue(e SQSEvent, i int) error {
+	j, err := strconv.ParseInt(e.Records[i].Attributes.ApproximateFirstReceiveTimestamp, 10, 64)
+	if err != nil {
+		log.Printf("Failed to parse int: %v", err)
+		return err
+	}
+	tm1 := time.Unix(0, j*int64(1000000))
+
+	ii, err := strconv.ParseInt(e.Records[i].Attributes.SentTimestamp, 10, 64)
+	if err != nil {
+		return err
+	}
+	tm2 := time.Unix(0, ii*int64(1000000))
+
+	log.Printf("seconds the message was unprocessed in the queue: %v", tm1.Sub(tm2).Seconds())
+
 	return nil
 }
 

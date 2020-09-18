@@ -267,7 +267,7 @@ type Event struct {
 //6/30 21:54:37.112  SPELL_INTERRUPT,Player-970-00307C5B,"Brimidreki-Sylvanas",0x512,0x0,Creature-0-4160-1763-15940-128434-0000B7FA28,"Feasting Skyscreamer",0x10a48,0x0,116705,"Spear Hand Strike",0x1,255041,"Terrifying Screech",32
 
 //Import converts the combatlog to a slice of Event structs
-func Import(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event, err error) {
+func Normalize(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event, err error) {
 	CombatlogUUID := ""
 	BossFightUUID := ""
 	MythicplusUUID := ""
@@ -334,11 +334,13 @@ func Import(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event, er
 			}
 
 		case "CHALLENGE_MODE_END":
-			MythicplusUUID = ""
 			err = e.importChallengeModeEnd(params)
 			if err != nil {
 				return nil, err
 			}
+			MythicplusUUID = ""
+
+			//NOTE: export to s3 and clear data
 
 			/*
 				case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
