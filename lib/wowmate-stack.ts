@@ -45,12 +45,12 @@ export class Wowmate extends Stack {
 		new EtlDashboard(this, 'ETL', {
 			convertLambda: convert.lambda,
 			convertQueue: convert.queue,
-			convertDLQ: convert.dlq,
+			convertDLQ: convert.DLQ,
 			importLambda: importz.importLambda,
 			importQueue: importz.queue,
-			importDLQ: importz.dlq,
-			//sumaryLambda
-			//summaryDlq
+			importDLQ: importz.DLQ,
+			summaryLambda: importz.summaryLambda,
+			summaryDLQ: importz.summaryDLQ,
 			presignLambda: presign.lambda,
 			uploadBucket: presign.bucket,
 			presignApiGateway: presign.apiGateway,

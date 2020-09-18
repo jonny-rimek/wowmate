@@ -17,6 +17,8 @@ interface Props extends cdk.StackProps {
 	importLambda: lambda.Function
 	importQueue: sqs.Queue
 	importDLQ: sqs.Queue
+	summaryLambda: lambda.Function
+	summaryDLQ: sqs.Queue
 	presignLambda: lambda.Function
 	uploadBucket: s3.Bucket
 	presignApiGateway: apigateway.LambdaRestApi
@@ -106,6 +108,7 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 					left: [
 						props.convertLambda.metricInvocations({period: cdk.Duration.minutes(1)}),
 						props.importLambda.metricInvocations({period: cdk.Duration.minutes(1)}),
+						props.summaryLambda.metricInvocations({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4,
@@ -115,6 +118,7 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 					left: [
 						props.convertLambda.metricErrors({period: cdk.Duration.minutes(1)}),
 						props.importLambda.metricErrors({period: cdk.Duration.minutes(1)}),
+						props.summaryLambda.metricErrors({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
@@ -124,6 +128,7 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 					left: [
 						props.convertLambda.metricThrottles({period: cdk.Duration.minutes(1)}),
 						props.importLambda.metricThrottles({period: cdk.Duration.minutes(1)}),
+						props.summaryLambda.metricThrottles({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
@@ -133,6 +138,7 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 					left: [
 						props.convertLambda.metricDuration({period: cdk.Duration.minutes(1)}),
 						props.importLambda.metricDuration({period: cdk.Duration.minutes(1)}),
+						props.summaryLambda.metricDuration({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
@@ -142,6 +148,7 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 					left: [
 						props.convertLambda.metric('ConcurrentExecutions',{ statistic: 'Maximum', period: cdk.Duration.minutes(1) }),
 						props.importLambda.metric('ConcurrentExecutions',{ statistic: 'Maximum', period: cdk.Duration.minutes(1) }),
+						props.summaryLambda.metric('ConcurrentExecutions',{ statistic: 'Maximum', period: cdk.Duration.minutes(1) }),
 					],
 					stacked: false,
 					width: 4
@@ -199,6 +206,7 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 					left: [
 						props.convertDLQ.metricApproximateNumberOfMessagesVisible({period: cdk.Duration.minutes(1)}),
 						props.importDLQ.metricApproximateNumberOfMessagesVisible({period: cdk.Duration.minutes(1)}),
+						props.summaryDLQ.metricApproximateNumberOfMessagesVisible({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4

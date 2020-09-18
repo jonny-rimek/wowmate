@@ -16,19 +16,18 @@ interface VpcProps extends cdk.StackProps {
 export class Convert extends cdk.Construct {
 	public readonly lambda: lambda.Function;
 	public readonly queue: sqs.Queue;
-	public readonly dlq: sqs.Queue;
+	public readonly DLQ: sqs.Queue;
 
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
-		const dlq = new sqs.Queue(this, 'DeadLetterQueue', {
+		this.DLQ = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
 		});
-		this.dlq = dlq
 
 		const q = new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
-				queue: dlq,
+				queue: this.DLQ,
 				maxReceiveCount: 1, //NOTE: I want failed messages to directly land in dlq
 			},
 			//NOTE: 1minute is too low, it's that low for debugging purposed
