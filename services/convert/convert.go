@@ -165,7 +165,8 @@ func handler(e SQSEvent) error {
 		downloader := s3manager.NewDownloader(sess)
 		fileContent := &aws.WriteAtBuffer{}
 
-		_, err = downloader.Download(
+		//IMPROVE: _ is downloaded bytes, should log to debug size related issues
+		size, err := downloader.Download(
 			fileContent,
 			&s3.GetObjectInput{
 				Bucket: aws.String(req.Records[0].S3.Bucket.Name),
@@ -176,7 +177,7 @@ func handler(e SQSEvent) error {
 			log.Printf("Failed to download item from bucket")
 			return err
 		}
-		log.Println("downloaded from s3")
+		log.Printf("downloaded %v (%v MB) from s3", req.Records[0].S3.Object.Key, size/1024/1024)
 
 		s := bufio.NewScanner(bytes.NewReader(fileContent.Bytes()))
 		uploadUUID := uuid.Must(uuid.NewV4()).String()
