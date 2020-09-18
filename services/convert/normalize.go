@@ -317,7 +317,10 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			//3. generate report uuid
 			CombatlogUUID = uuid.Must(uuid.NewV4()).String()
 			e.CombatlogUUID = CombatlogUUID
-			break
+
+			//NOTE:
+			//break is implicit in go, that means after the first match it exits
+			//the switch statement
 
 		case "ENCOUNTER_START":
 			BossFightUUID = uuid.Must(uuid.NewV4()).String()
@@ -326,7 +329,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
-			break
 
 		case "ENCOUNTER_END":
 			//I want to entry with encounter_end to have the id, just the records after should be nil again
@@ -335,7 +337,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
-			break
 
 		case "CHALLENGE_MODE_START":
 			MythicplusUUID = uuid.Must(uuid.NewV4()).String()
@@ -344,7 +345,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
-			break
 
 		case "CHALLENGE_MODE_END":
 			err = e.importChallengeModeEnd(params)
@@ -365,7 +365,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 
 			combatEvents = nil
 			MythicplusUUID = ""
-			break
 
 		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
 		// 	err = e.importHeal(params)
@@ -374,14 +373,13 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
-			break
 
 		default:
 			e.Unsupported = true
 		}
 
 		if params[0] == "CHALLENGE_MODE_END" {
-			continue; //I'm appending inside the case statement because im uploading the summary after
+			continue //I'm appending inside the case statement because im uploading the summary after
 		}
 		combatEvents = append(combatEvents, e)
 	}
