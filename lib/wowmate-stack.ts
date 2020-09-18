@@ -49,6 +49,8 @@ export class Wowmate extends Stack {
 			importLambda: importz.importLambda,
 			importQueue: importz.queue,
 			importDLQ: importz.dlq,
+			//sumaryLambda
+			//summaryDlq
 			presignLambda: presign.lambda,
 			uploadBucket: presign.bucket,
 			presignApiGateway: presign.apiGateway,

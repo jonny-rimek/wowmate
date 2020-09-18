@@ -24,11 +24,16 @@ export class Import extends cdk.Construct {
 	public readonly summaryLambda: lambda.Function;
 	public readonly queue: sqs.Queue;
 	public readonly dlq: sqs.Queue;
+	public readonly summaryDlq: sqs.Queue;
 
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
 		const bucket = props.bucket
+
+		this.summaryDlq = new sqs.Queue(this, 'SummaryDeadLetterQueue', {
+			retentionPeriod: cdk.Duration.days(14)
+		})
 
 		this.dlq = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
@@ -61,6 +66,7 @@ export class Import extends cdk.Construct {
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
+			onFailure: new destinations.SqsDestination(this.summaryDlq)
 		})
 		props.secret?.grantRead(this.summaryLambda)
 		
