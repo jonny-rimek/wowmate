@@ -128,6 +128,7 @@ type SQSEvent struct {
 }
 
 func handler(e SQSEvent) error {
+
 	csvBucket := os.Getenv("CSV_BUCKET_NAME")
 	if csvBucket == "" {
 		return fmt.Errorf("csv bucket env var is empty")
@@ -161,7 +162,7 @@ func handler(e SQSEvent) error {
 			log.Printf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
 			return err
 		}
-		
+
 		downloader := s3manager.NewDownloader(sess)
 		fileContent := &aws.WriteAtBuffer{}
 

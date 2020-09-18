@@ -292,7 +292,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 
 		params := strings.Split(row[1], ",")
 
-		e := &Event{
+		e := Event{
 			UploadUUID:     uploadUUID,
 			CombatlogUUID:  CombatlogUUID,
 			BossFightUUID:  BossFightUUID,
@@ -310,6 +310,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			//3. generate report uuid
 			CombatlogUUID = uuid.Must(uuid.NewV4()).String()
 			e.CombatlogUUID = CombatlogUUID
+			combatEvents = append(combatEvents, e)
 
 		case "ENCOUNTER_START":
 			BossFightUUID = uuid.Must(uuid.NewV4()).String()
@@ -318,6 +319,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
+			combatEvents = append(combatEvents, e)
 
 		case "ENCOUNTER_END":
 			//I want to entry with encounter_end to have the id, just the records after should be nil again
@@ -326,6 +328,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
+			combatEvents = append(combatEvents, e)
 
 		case "CHALLENGE_MODE_START":
 			MythicplusUUID = uuid.Must(uuid.NewV4()).String()
@@ -334,15 +337,16 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
+			combatEvents = append(combatEvents, e)
 
 		case "CHALLENGE_MODE_END":
 			err = e.importChallengeModeEnd(params)
 			if err != nil {
 				return err
 			}
-			combatEvents = append(combatEvents, *e)
+			combatEvents = append(combatEvents, e)
 			MythicplusUUID = ""
-			
+
 			r, err := convertToCSV(&combatEvents)
 			if err != nil {
 				return err
@@ -354,7 +358,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			}
 
 			combatEvents = nil
-			e = nil
 
 			//NOTE: export to s3 and clear data
 
@@ -367,11 +370,12 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
+			combatEvents = append(combatEvents, e)
 
 		default:
 			e.Unsupported = true
+			combatEvents = append(combatEvents, e)
 		}
-		combatEvents = append(combatEvents, *e)
 	}
 	return nil
 }
