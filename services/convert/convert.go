@@ -213,6 +213,8 @@ func convertToCSV(events *[]Event) (io.Reader, error) {
 func uploadS3(r io.Reader, sess *session.Session, mythicplugUUID string, csvBucket string) error {
 	uploader := s3manager.NewUploader(sess)
 
+	//TODO: check that mythicplusUUID is not ""
+
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(csvBucket),
 		Key:    aws.String(fmt.Sprintf("%v.csv", mythicplugUUID)),

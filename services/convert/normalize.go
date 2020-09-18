@@ -311,7 +311,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			//3. generate report uuid
 			CombatlogUUID = uuid.Must(uuid.NewV4()).String()
 			e.CombatlogUUID = CombatlogUUID
-			combatEvents = append(combatEvents, e)
 
 		case "ENCOUNTER_START":
 			BossFightUUID = uuid.Must(uuid.NewV4()).String()
@@ -320,7 +319,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
-			combatEvents = append(combatEvents, e)
 
 		case "ENCOUNTER_END":
 			//I want to entry with encounter_end to have the id, just the records after should be nil again
@@ -329,7 +327,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
-			combatEvents = append(combatEvents, e)
 
 		case "CHALLENGE_MODE_START":
 			MythicplusUUID = uuid.Must(uuid.NewV4()).String()
@@ -338,7 +335,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
-			combatEvents = append(combatEvents, e)
 
 		case "CHALLENGE_MODE_END":
 			err = e.importChallengeModeEnd(params)
@@ -371,12 +367,15 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
-			combatEvents = append(combatEvents, e)
 
 		default:
 			e.Unsupported = true
-			combatEvents = append(combatEvents, e)
 		}
+
+		if params[0] == "CHALLENGE_MODE_END" {
+			continue; //I'm appending inside the case statement because im uploading the summary after
+		}
+		combatEvents = append(combatEvents, e)
 	}
 	return nil
 }
