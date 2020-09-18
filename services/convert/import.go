@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	uuid "github.com/gofrs/uuid"
 	_ "github.com/xitongsys/parquet-go/parquet" //is needed to define the parquet type in the combat struct
 )
@@ -267,7 +268,8 @@ type Event struct {
 //6/30 21:54:37.112  SPELL_INTERRUPT,Player-970-00307C5B,"Brimidreki-Sylvanas",0x512,0x0,Creature-0-4160-1763-15940-128434-0000B7FA28,"Feasting Skyscreamer",0x10a48,0x0,116705,"Spear Hand Strike",0x1,255041,"Terrifying Screech",32
 
 //Import converts the combatlog to a slice of Event structs
-func Normalize(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event, err error) {
+func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session, csvBucket string) error {
+	var combatEvents []Event
 	CombatlogUUID := ""
 	BossFightUUID := ""
 	MythicplusUUID := ""
@@ -285,7 +287,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event,
 
 		timestamp, err := convertToTimestampMilli(row[0])
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		params := strings.Split(row[1], ",")
@@ -314,7 +316,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event,
 			e.BossFightUUID = BossFightUUID
 			err = e.importEncounterStart(params)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 		case "ENCOUNTER_END":
@@ -322,7 +324,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event,
 			BossFightUUID = ""
 			err = e.importEncounterEnd(params)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 		case "CHALLENGE_MODE_START":
@@ -330,15 +332,29 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event,
 			e.MythicplusUUID = MythicplusUUID
 			err = e.importChallengeModeStart(params)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 		case "CHALLENGE_MODE_END":
 			err = e.importChallengeModeEnd(params)
 			if err != nil {
-				return nil, err
+				return err
 			}
+			combatEvents = append(combatEvents, *e)
 			MythicplusUUID = ""
+			
+			r, err := convertToCSV(&combatEvents)
+			if err != nil {
+				return err
+			}
+
+			err = uploadS3(r, sess, uploadUUID, csvBucket)
+			if err != nil {
+				return err
+			}
+
+			combatEvents = nil
+			e = nil
 
 			//NOTE: export to s3 and clear data
 
@@ -349,7 +365,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event,
 		case "SPELL_DAMAGE":
 			err = e.importDamage(params)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 		default:
@@ -357,5 +373,5 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (combatEvents []Event,
 		}
 		combatEvents = append(combatEvents, *e)
 	}
-	return combatEvents, err
+	return nil
 }

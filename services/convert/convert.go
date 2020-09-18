@@ -182,30 +182,19 @@ func handler(e SQSEvent) error {
 		s := bufio.NewScanner(bytes.NewReader(fileContent.Bytes()))
 		uploadUUID := uuid.Must(uuid.NewV4()).String()
 
-		events, err := Normalize(s, uploadUUID)
+		err = Normalize(s, uploadUUID, sess, csvBucket)
 		if err != nil {
 			return err
 		}
-
-		r, err := convertToCSV(events)
-		if err != nil {
-			return err
-		}
-
-		err = uploadS3(r, sess, uploadUUID, csvBucket)
-		if err != nil {
-			return err
-		}
-
 	}
 	return nil
 }
 
-func convertToCSV(events []Event) (io.Reader, error) {
+func convertToCSV(events *[]Event) (io.Reader, error) {
 	var buf bytes.Buffer
 	w := csv.NewWriter(&buf)
 
-	ss, err := EventsAsStringSlices(&events)
+	ss, err := EventsAsStringSlices(events)
 	if err != nil {
 		return nil, err
 	}
@@ -216,8 +205,6 @@ func convertToCSV(events []Event) (io.Reader, error) {
 		return nil, err
 	}
 	log.Println("converted to csv")
-
-	events = nil
 
 	return io.Reader(&buf), nil
 }
