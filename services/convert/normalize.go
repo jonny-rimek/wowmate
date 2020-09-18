@@ -303,14 +303,21 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			EventType:      params[0],
 		}
 
+		if params[0] != "CHALLENGE_MODE_START" && MythicplusUUID == "" {
+			//I don't want to add events if they are outside of a combatlog
+			continue
+		}
+
 		//if strings.Contains(params[0], "SPELLHEAL") {
 		switch params[0] {
 		case "COMBAT_LOG_VERSION":
+			//TODO:
 			//1. check version
 			//2. check advanced logging
 			//3. generate report uuid
 			CombatlogUUID = uuid.Must(uuid.NewV4()).String()
 			e.CombatlogUUID = CombatlogUUID
+			break
 
 		case "ENCOUNTER_START":
 			BossFightUUID = uuid.Must(uuid.NewV4()).String()
@@ -319,6 +326,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
+			break
 
 		case "ENCOUNTER_END":
 			//I want to entry with encounter_end to have the id, just the records after should be nil again
@@ -327,6 +335,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
+			break
 
 		case "CHALLENGE_MODE_START":
 			MythicplusUUID = uuid.Must(uuid.NewV4()).String()
@@ -335,6 +344,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
+			break
 
 		case "CHALLENGE_MODE_END":
 			err = e.importChallengeModeEnd(params)
@@ -342,7 +352,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 				return err
 			}
 			combatEvents = append(combatEvents, e)
-			MythicplusUUID = ""
 
 			r, err := convertToCSV(&combatEvents)
 			if err != nil {
@@ -355,18 +364,17 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			}
 
 			combatEvents = nil
+			MythicplusUUID = ""
+			break
 
-			//NOTE: export to s3 and clear data
-
-			/*
-				case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
-					err = e.importHeal(params)
-			*/
+		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
+		// 	err = e.importHeal(params)
 		case "SPELL_DAMAGE":
 			err = e.importDamage(params)
 			if err != nil {
 				return err
 			}
+			break
 
 		default:
 			e.Unsupported = true

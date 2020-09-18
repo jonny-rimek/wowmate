@@ -211,6 +211,11 @@ func convertToCSV(events *[]Event) (io.Reader, error) {
 }
 
 func uploadS3(r io.Reader, sess *session.Session, mythicplugUUID string, csvBucket string) error {
+	if mythicplugUUID == "" {
+		//sometimes there are more CHALLANGE_MODE_END events than there are start events
+		//it shouldn't come to this, because we aren't adding anything unless we have a started event
+		return nil
+	}
 	uploader := s3manager.NewUploader(sess)
 
 	//TODO: check that mythicplusUUID is not ""
