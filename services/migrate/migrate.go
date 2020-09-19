@@ -89,21 +89,23 @@ func handler() error {
 		return err
 	}
 
-	connStr := fmt.Sprintf("postgres://%v:%v@%v:%v/%v?sslmode=require", 
-		creds.UserName, 
+	connStr := fmt.Sprintf("postgres://%v:%v@%v:%v/%v?sslmode=require",
+		creds.UserName,
 		url.PathEscape(creds.Password),
-		creds.Host, 
+		creds.Host,
 		5432,
 		creds.DatabaseName,
 	)
 
 	m, err := migrate.New("file://sql", connStr)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("new migrate")
+		return err
 	}
 
 	if err := m.Up(); err != nil {
-		log.Fatal(err)
+		log.Println("up migrate")
+		return err
 	}
 
 	return nil
