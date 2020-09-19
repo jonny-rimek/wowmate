@@ -99,7 +99,9 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 
 **Convert** takes the combatlog, normal or compressed, and converts it to a csv and passes it into the csvBucket
 
-**Import** takes the processed combat log and loads it into postgres aurora
+**Import** takes the processed combat log and loads it into postgres aurora. There can only be 1 import lambda at a time, to not overwhelm the database. Because of this throttles for this lambda are to be expected.
+
+**Summary** queries the freshly imported data to create summaries like overall damage. Those summaries are stored indefinitely. The raw imported data on the other hand is deleted from the database after a while.
 					`,
 					width: 4,
 					height: 6,
@@ -217,7 +219,7 @@ messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
 				new TextWidget({
 					markdown: `# Presign/Upload Metrics
 					
-These 3 components (AGW, Lambda and s3 bucket) are responsible to allow users to upload to a private bucket.
+These components (AGW, Lambda and s3 bucket) are responsible to allow users to upload to a private bucket.
 					`,
 					width: 4,
 					height: 6,
