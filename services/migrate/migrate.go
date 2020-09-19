@@ -112,6 +112,8 @@ func handler() error {
 		return err
 	}
 
+	log.Println("migration successful")
+	//TODO: print query excecuted
 	return nil
 }
 
