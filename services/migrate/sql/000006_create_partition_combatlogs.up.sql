@@ -1,7 +1,7 @@
 BEGIN;
 DROP TABLE combatlogs;
 CREATE TABLE IF NOT EXISTS combatlogs (
-column_uuid UUID PRIMARY KEY,
+column_uuid UUID NOT NULL,
 upload_uuid UUID,
 unsupported boolean,
 combatlog_uuid UUID,
