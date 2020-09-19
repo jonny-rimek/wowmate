@@ -57,8 +57,8 @@ export class Api extends cdk.Construct {
 
 		this.cluster = new rds.DatabaseCluster(this, 'ImportDB', {
 			engine: rds.DatabaseClusterEngine.auroraPostgres({
-				version: rds.AuroraPostgresEngineVersion.VER_10_11,
-				// version: rds.AuroraPostgresEngineVersion.VER_11_6,
+				// version: rds.AuroraPostgresEngineVersion.VER_10_11,
+				version: rds.AuroraPostgresEngineVersion.VER_11_6,
 			}),
 			masterUser: {
 				username: 'clusteradmin'
@@ -85,8 +85,10 @@ export class Api extends cdk.Construct {
 		})
 		this.dbCreds = this.cluster.secret!
 
-		// const proxy = auroraPostgres.addProxy('DBProxy', {
-		// 	secrets: [auroraPostgres.secret!],
+		//NOTE: 11.6 works with the proxy, just activate and remove the old this.dbEndpoint
+		//		every lambda should still work
+		// const proxy = this.cluster.addProxy('DBProxy', {
+		// 	secrets: [this.cluster.secret!],
 		// 	vpc: vpc,
 		// 	securityGroups: [dbGroup],
 		// })
