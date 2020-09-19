@@ -1,1 +1,1 @@
-CREATE TABLE summary (id bigserial, caster_name character varying, damage int, combatlog_uuid uuid);
+CREATE TABLE summary (id bigserial, caster_name character varying, damage int, mythicplus_uuid uuid);

@@ -16,8 +16,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-//CREATE TABLE summary (id bigserial, caster_name character varying, damage int, combatlog_uuid uuid);
-
 //DatabasesCredentials are the data to log into the db
 type DatabasesCredentials struct {
 	DatabaseName string `json:"dbname"`
