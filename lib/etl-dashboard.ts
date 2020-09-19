@@ -21,6 +21,7 @@ interface Props extends cdk.StackProps {
 	summaryDLQ: sqs.Queue
 	presignLambda: lambda.Function
 	uploadBucket: s3.Bucket
+	csvBucket: s3.Bucket
 	presignApiGateway: apigateway.LambdaRestApi
 	cluster: rds.DatabaseCluster;
 }
@@ -134,7 +135,7 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Duration',
+					title: 'Average Duration',
 					left: [
 						props.convertLambda.metricDuration({period: cdk.Duration.minutes(1)}),
 						props.importLambda.metricDuration({period: cdk.Duration.minutes(1)}),
@@ -236,6 +237,13 @@ These 3 components (AGW, Lambda and s3 bucket) are responsible to allow users to
 						new cloudwatch.Metric({
 							metricName: 'BytesUploaded',
 							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.csvBucket.bucketName, FilterId: 'metric' },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: 'BytesUploaded',
+							namespace: 'AWS/S3',
 							dimensions: { BucketName: props.uploadBucket.bucketName, FilterId: 'metric' },
 							statistic: 'Sum',
 							period: cdk.Duration.minutes(1),
@@ -250,12 +258,26 @@ These 3 components (AGW, Lambda and s3 bucket) are responsible to allow users to
 						new cloudwatch.Metric({
 							metricName: 'NumberOfObjects',
 							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.csvBucket.bucketName, StorageType: 'AllStorageTypes' },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: 'NumberOfObjects',
+							namespace: 'AWS/S3',
 							dimensions: { BucketName: props.uploadBucket.bucketName, StorageType: 'AllStorageTypes' },
 							statistic: 'Sum',
 							period: cdk.Duration.minutes(1),
 						}),
 					],
 					right: [
+						new cloudwatch.Metric({
+							metricName: 'BucketSizeBytes',
+							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.csvBucket.bucketName, StorageType: 'StandardStorage' },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
 						new cloudwatch.Metric({
 							metricName: 'BucketSizeBytes',
 							namespace: 'AWS/S3',
