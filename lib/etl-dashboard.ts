@@ -166,7 +166,7 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 					
 visible messages and message age *should* be as low as possible
 
-messages in convert DLQ *should* be 0, the import DLQ _must_ be 0
+messages in convert DLQ *should* be 0, the import and summary DLQ *must* be 0
 					`,
 					width: 4,
 					height: 6,
