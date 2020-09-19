@@ -301,6 +301,7 @@ func handler(e SQSEvent) error {
 			log.Println(result)
 		}
 	}
+	log.Println("summary successfully created")
 	return nil
 }
 

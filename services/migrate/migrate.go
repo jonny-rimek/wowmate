@@ -102,6 +102,8 @@ func handler() error {
 		return err
 	}
 
+	m.Log.Verbose()
+
 	if err := m.Up(); err != nil {
 		if err.Error() == "no change" {
 			//don't fail only because there was no change
