@@ -117,19 +117,19 @@ func handler(e Event) error {
 	log.Println("openend connection")
 
 	q := fmt.Sprintf(`
-			INSERT INTO summary(caster_name, damage, combatlog_uuid)
-			(SELECT
-				caster_name, SUM(actual_amount), combatlog_uuid AS damage
-			FROM
-				combatlogs
-			WHERE
-				upload_uuid = '%v'
-				AND event_type = 'SPELL_DAMAGE'
-				AND caster_id LIKE '%v'
-			GROUP BY
-				caster_name, combatlog_uuid
-			);
-			`, strings.TrimSuffix(e.Filename, ".csv"), "Player-%")
+		INSERT INTO summary(caster_name, damage, mythicplus_uuid)
+		(SELECT
+			caster_name, SUM(actual_amount), mythicplus_uuid 
+		FROM
+			combatlogs
+		WHERE
+			mythicplus_uuid = '%v'
+			AND event_type = 'SPELL_DAMAGE'
+			AND caster_id LIKE '%v'
+		GROUP BY
+			caster_name, mythicplus_uuid
+		);
+		`, strings.TrimSuffix(e.Filename, ".csv"), "Player-%")
 
 	log.Println(q)
 
