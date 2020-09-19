@@ -89,7 +89,7 @@ func handler() error {
 		return err
 	}
 
-	connStr := fmt.Sprintf("postgres://%v:%v@%v:%v/%v?sslmode=enable", 
+	connStr := fmt.Sprintf("postgres://%v:%v@%v:%v/%v?sslmode=require", 
 		creds.UserName, 
 		url.PathEscape(creds.Password),
 		creds.Host, 
