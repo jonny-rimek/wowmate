@@ -1,0 +1,1 @@
+ALTER TABLE combatlogs ADD COLUMN IF NOT EXISTS created_at timestamp default current_timestamp;

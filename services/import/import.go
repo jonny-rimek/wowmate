@@ -192,7 +192,7 @@ func handler(e SQSEvent) error {
 		q := fmt.Sprintf(`
 				SELECT aws_s3.table_import_from_s3(
 					'combatlogs',
-					'',
+					'column_uuid,upload_uuid,unsupported,combatlog_uuid,boss_fight_uuid,mythicplus_uuid,event_type,version,advanced_log_enabled,dungeon_name,dungeon_id,key_unkown_1,key_level,key_array,key_duration,encounter_id,encounter_name,encounter_unkown_1,encounter_unkown_2,killed,caster_id,caster_name,caster_type,source_flag,target_id,target_name,target_type,dest_flag,spell_id,spell_name,spell_type,extra_spell_id,extra_spell_name,extra_school,aura_type,another_player_id,d0,d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,damage_unknown_14,actual_amount,base_amount,overhealing,overkill,school,resisted,blocked,absorbed,critical,glancing,crushing,is_offhand',
 					'(format csv, DELIMITER '','', HEADER true)',
 					'(%v,%v,us-east-1)');
 			`, s3.Records[0].S3.Bucket.Name, s3.Records[0].S3.Object.Key)
