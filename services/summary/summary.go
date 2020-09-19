@@ -116,6 +116,7 @@ func handler(e Event) error {
 	defer db.Close()
 	log.Println("openend connection")
 
+	//TODO: check result if 0 rows imported throw an error
 	q := fmt.Sprintf(`
 		INSERT INTO summary(caster_name, damage, mythicplus_uuid)
 		(SELECT
