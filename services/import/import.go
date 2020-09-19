@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -155,7 +156,6 @@ func handler(e SQSEvent) error {
 	var creds = DatabasesCredentials{}
 	err = json.Unmarshal([]byte(*result.SecretString), &creds)
 	if err != nil {
-		log.Println(err.Error())
 		return err
 	}
 
@@ -164,12 +164,14 @@ func handler(e SQSEvent) error {
 		creds.UserName,
 		creds.DatabaseName,
 		// creds.Host,
+		//NOTE:
+		//we aren't using the host from the secret, because we are passing it in
+		//through the env var, because it could be a proxy or a read only endpoint
 		dbEndpoint,
 		creds.Password,
 	)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Println(err.Error())
 		return err
 	}
 	defer db.Close()
@@ -197,7 +199,15 @@ func handler(e SQSEvent) error {
 
 		rows, err := db.Query(q)
 		if err != nil {
-			log.Println(err.Error())
+			if strings.Contains(err.Error(), "duplicate") {
+				//NOTE: this can happen because sometimes the import takes 10x the normal time and
+				//		the impport finished, after the lambda timed out
+				//		which causes the lambda to be triggered again from SQS, instead of failing
+				//		till it lands in the DLQ we will just delete it from the queue,
+				//		because it got actually imported to the DB
+				log.Printf("duplicate key for %v, error msg: %v ", s3.Records[0].S3.Object.Key, err.Error())
+				return nil
+			}
 			//IMPROVE: check if error is:
 			//pq: duplicate key value violates unique constraint "combatlogs_pkey": Error
 			//if yes don't fail just continue
