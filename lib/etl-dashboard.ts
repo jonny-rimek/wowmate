@@ -300,6 +300,20 @@ These components (AGW, Lambda and s3 bucket) are responsible to allow users to u
 						new cloudwatch.Metric({
 							metricName: '4xxErrors',
 							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.csvBucket.bucketName, FilterId: 'metric' },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: '5xxErros',
+							namespace: 'AWS/S3',
+							dimensions: { BucketName: props.csvBucket.bucketName, FilterId: 'metric' },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: '4xxErrors',
+							namespace: 'AWS/S3',
 							dimensions: { BucketName: props.uploadBucket.bucketName, FilterId: 'metric' },
 							statistic: 'Sum',
 							period: cdk.Duration.minutes(1),
