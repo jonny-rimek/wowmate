@@ -87,7 +87,10 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 				new GraphWidget({
 					title: 'Connections',
 					left: [
-						props.cluster.metricDatabaseConnections({period: cdk.Duration.minutes(1)}),
+						props.cluster.metricDatabaseConnections({
+							period: cdk.Duration.minutes(1),
+							statistic: 'max',
+						}),
 					],
 					stacked: false,
 					width: 4
