@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS combatlogs (
   critical VARCHAR,
   glancing VARCHAR,
   crushing VARCHAR,
-  is_offhand VARCHAR
+  is_offhand VARCHAR,
   created_at timestamp default current_timestamp
 ) PARTITION BY RANGE (created_at);
 COMMIT;
