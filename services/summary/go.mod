@@ -1,6 +1,6 @@
 module github.com/jonny-rimek/wowmate/services/summary
 
-go 1.14
+go 1.15
 
 require (
 	github.com/aws/aws-lambda-go v1.19.1
