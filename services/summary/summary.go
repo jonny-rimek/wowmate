@@ -132,7 +132,7 @@ func handler(e Event) error {
 		);
 		`, strings.TrimSuffix(e.Filename, ".csv"), "Player-%")
 
-	log.Println(q)
+	// log.Println(q)
 
 	rows, err := db.Query(q)
 	if err != nil {
@@ -152,6 +152,7 @@ func handler(e Event) error {
 		}
 		log.Printf("query successfull: %v", s)
 	}
+	log.Println("summary successfull")
 	return nil
 }
 
