@@ -99,12 +99,16 @@ func handler() error {
 
 	m, err := migrate.New("file://sql", connStr)
 	if err != nil {
-		log.Println("new migrate")
 		return err
 	}
 
 	if err := m.Up(); err != nil {
-		log.Println("up migrate")
+		if err.Error() == "no change" {
+			//don't fail only because there was no change
+			//I run the migration after every push
+			log.Println("no change")
+			return nil
+		}
 		return err
 	}
 
