@@ -102,7 +102,25 @@ export class Api extends cdk.Construct {
 			securityGroup: dbGroup,
 		});
 
-		const topDamageLambda = new lambda.Function(this, 'TopDamage', {
+		const migrateLambda = new lambda.Function(this, 'MigrateLambda', {
+			code: lambda.Code.fromAsset('services/migrate'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: cdk.Duration.seconds(30),
+			environment: {
+				SECRET_ARN: this.cluster.secret!.secretArn,
+			},
+			logRetention: RetentionDays.ONE_WEEK,
+			tracing: lambda.Tracing.ACTIVE,
+			vpc: vpc,
+			securityGroups: [dbGroup],
+			//TODO: add DLQ
+		})
+		this.cluster.secret?.grantRead(migrateLambda)
+
+
+		const topDamageLambda = new lambda.Function(this, 'TopDamageLambda', {
 			code: lambda.Code.fromAsset('services/api'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
