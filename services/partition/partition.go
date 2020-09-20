@@ -158,7 +158,7 @@ func handler() error {
 		}
 		log.Printf("query successfull: %v", s)
 	}
-	log.Println("summary successfull")
+	log.Println("partition successfully created")
 	return nil
 }
 
