@@ -6,6 +6,9 @@ import lambda = require('@aws-cdk/aws-lambda');
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import s3n = require('@aws-cdk/aws-s3-notifications');
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
+import * as efs from '@aws-cdk/aws-efs';
+import { Vpc } from './vpc';
+import { RemovalPolicy } from '@aws-cdk/core';
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc;
@@ -17,6 +20,7 @@ export class Convert extends cdk.Construct {
 	public readonly lambda: lambda.Function;
 	public readonly queue: sqs.Queue;
 	public readonly DLQ: sqs.Queue;
+	public readonly efs: efs.FileSystem;
 
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
@@ -35,8 +39,26 @@ export class Convert extends cdk.Construct {
 		});
 		this.queue = q
 
+		this.efs = new efs.FileSystem(this, 'Efs', {
+			vpc: props.vpc,
+			encrypted: false,
+			performanceMode: efs.PerformanceMode.GENERAL_PURPOSE,
+			throughputMode: efs.ThroughputMode.BURSTING,
+			//TODO: remove in prod
+			removalPolicy: RemovalPolicy.DESTROY,
+		})
+
+		const accessPoint = this.efs.addAccessPoint('ConvertAccessPoint', {
+			path: '/convert/',
+			createAcl: {
+				ownerGid: '1001',
+				ownerUid: '1001',
+				permissions: '755',
+			},
+		})
+
 		const convertLambda = new lambda.Function(this, 'F', {
-			code: lambda.Code.asset('services/convert'),
+			code: lambda.Code.fromAsset('services/convert'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
@@ -47,6 +69,7 @@ export class Convert extends cdk.Construct {
 			reservedConcurrentExecutions: 50, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
+			filesystem: lambda.FileSystem.fromEfsAccessPoint(accessPoint, '/mnt/')
 			//NOTE: not in VPC by design, because I don't have an S3 endpoint and it would incur
 			//		additional charges
 			//		if I endup using EFS I need to add it to the VPC tho
