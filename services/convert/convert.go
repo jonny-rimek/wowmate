@@ -163,7 +163,7 @@ func handler(e SQSEvent) error {
 		bucketName := req.Records[0].S3.Bucket.Name
 		objectKey := req.Records[0].S3.Object.Key
 
-		objectSize, err := sizeOfS3Object(sess, bucketName, objectKey) 
+		objectSize, err := sizeOfS3Object(sess, bucketName, objectKey)
 		if err != nil {
 			return err
 		}
@@ -172,7 +172,7 @@ func handler(e SQSEvent) error {
 		if objectSize < 300 {
 			fileContent := &aws.WriteAtBuffer{}
 
-			err := downloadFromS3(sess, bucketName, objectKey, fileContent)
+			err := downloadS3(sess, bucketName, objectKey, fileContent)
 			if err != nil {
 				return err
 			}
@@ -186,6 +186,17 @@ func handler(e SQSEvent) error {
 			}
 		} else if objectSize >= 300 && objectSize < 20000 {
 			log.Println("file between 300MB and 20GB")
+
+			file, err := os.Create("/mnt/efs/" + objectKey)
+			if err != nil {
+				return err
+			}
+
+			err = downloadS3(sess, bucketName, objectKey, file)
+			if err != nil {
+				return err
+			}
+
 		} else {
 			return fmt.Errorf("can't process files larger than 20GB")
 		}
@@ -193,7 +204,7 @@ func handler(e SQSEvent) error {
 	return nil
 }
 
-func downloadFromS3(sess *session.Session, bucketName string, objectKey string, fileContent *aws.WriteAtBuffer) error {
+func downloadS3(sess *session.Session, bucketName string, objectKey string, fileContent io.WriterAt) error {
 	downloader := s3manager.NewDownloader(sess)
 
 	_, err := downloader.Download(
