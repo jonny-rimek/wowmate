@@ -110,17 +110,29 @@ func handler() error {
 	defer db.Close()
 	log.Println("openend connection")
 
+	ystd := time.Now().AddDate(0, 0, -1)
+	td := time.Now()
 	tmrw := time.Now().AddDate(0, 0, 1)
-	
+
 	const (
-		layoutISO = "2006-01-02"
-		layoutTable  = "2006_01_02"
+		layoutISO   = "2006-01-02"
+		layoutTable = "2006_01_02"
 	)
 
 	q := fmt.Sprintf(`
-		CREATE TABLE combatlogs_%v PARTITION OF combatlogs 
-			FOR VALUES FROM ('%v 00:00:00') TO ('%v 23:59:59')
+		CREATE TABLE IF NOT EXISTS combatlogs_%v PARTITION OF combatlogs 
+			FOR VALUES FROM ('%v 00:00:00') TO ('%v 23:59:59');
+		CREATE TABLE IF NOT EXISTS combatlogs_%v PARTITION OF combatlogs 
+			FOR VALUES FROM ('%v 00:00:00') TO ('%v 23:59:59');
+		CREATE TABLE IF NOT EXISTS combatlogs_%v PARTITION OF combatlogs 
+			FOR VALUES FROM ('%v 00:00:00') TO ('%v 23:59:59');
 		`,
+		ystd.Format(layoutTable),
+		ystd.Format(layoutISO),
+		ystd.Format(layoutISO),
+		td.Format(layoutTable),
+		td.Format(layoutISO),
+		td.Format(layoutISO),
 		tmrw.Format(layoutTable),
 		tmrw.Format(layoutISO),
 		tmrw.Format(layoutISO),
