@@ -9,7 +9,8 @@ import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import * as destinations from '@aws-cdk/aws-lambda-destinations';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import rds = require('@aws-cdk/aws-rds');
-import { DatabaseProxy } from '@aws-cdk/aws-rds';
+import * as events from '@aws-cdk/aws-events';
+import * as eventTargets from '@aws-cdk/aws-events-targets';
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc
@@ -96,5 +97,35 @@ export class Import extends cdk.Construct {
 
 		this.importLambda.addEventSource(new SqsEventSource(this.queue))
 		props.secret?.grantRead(this.importLambda)
+		
+		const partitionLambda = new lambda.Function(this, 'PartitionLambda', {
+			code: lambda.Code.fromAsset('services/partition'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 3008,
+			timeout: cdk.Duration.seconds(60),
+			environment: {
+				SECRET_ARN: props.secret.secretArn,
+				DB_ENDPOINT: props.dbEndpoint,
+			},
+			reservedConcurrentExecutions: 10, 
+			logRetention: RetentionDays.ONE_WEEK,
+			tracing: lambda.Tracing.ACTIVE,
+			vpc: props.vpc,
+			securityGroups: [props.securityGroup],
+			onFailure: new destinations.SqsDestination(this.summaryDLQ)
+		})
+		props.secret?.grantRead(this.summaryLambda)
+
+		const partitionTarget = new eventTargets.LambdaFunction(partitionLambda)
+
+		new events.Rule(this, 'PartitionSchedule', {
+			//run every day at 4:30 am
+			schedule: events.Schedule.cron({ 
+				minute: '30',
+				hour: '4',
+			}),
+			targets: [partitionTarget],
+		})
 	}
 }
