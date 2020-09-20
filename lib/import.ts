@@ -113,9 +113,8 @@ export class Import extends cdk.Construct {
 			tracing: lambda.Tracing.ACTIVE,
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
-			onFailure: new destinations.SqsDestination(this.summaryDLQ)
 		})
-		props.secret?.grantRead(this.summaryLambda)
+		props.secret?.grantRead(partitionLambda)
 
 		const partitionTarget = new eventTargets.LambdaFunction(partitionLambda)
 
