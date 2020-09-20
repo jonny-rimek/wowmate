@@ -128,8 +128,7 @@ func handler() error {
 		CREATE TABLE IF NOT EXISTS combatlogs_%v PARTITION OF combatlogs 
 			FOR VALUES FROM ('%v 00:00:00') TO ('%v 23:59:59');
 
-		DROP TABLE IF EXISTS combatlogs_%v PARTITION OF combatlogs 
-			FOR VALUES FROM ('%v 00:00:00') TO ('%v 23:59:59');
+		DROP TABLE IF EXISTS combatlogs_%v;
 		`,
 		yesterday.Format(layoutTable),
 		yesterday.Format(layoutISO),
@@ -141,8 +140,6 @@ func handler() error {
 		tomorrow.Format(layoutISO),
 		tomorrow.Format(layoutISO),
 		monthAgo.Format(layoutTable),
-		monthAgo.Format(layoutISO),
-		monthAgo.Format(layoutISO),
 	)
 
 	log.Println(q)
