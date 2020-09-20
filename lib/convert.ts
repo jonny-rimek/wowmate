@@ -49,7 +49,7 @@ export class Convert extends cdk.Construct {
 		})
 
 		const accessPoint = this.efs.addAccessPoint('ConvertAccessPoint', {
-			path: '/convert/',
+			path: '/convert',
 			createAcl: {
 				ownerGid: '1001',
 				ownerUid: '1001',
