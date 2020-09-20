@@ -167,26 +167,15 @@ func handler(e SQSEvent) error {
 		if err != nil {
 			return err
 		}
+		log.Printf("Object is %v MB", objectSize)
 
 		if objectSize < 300 {
-			log.Println("Object is smaller than 300mb")
-
-			downloader := s3manager.NewDownloader(sess)
 			fileContent := &aws.WriteAtBuffer{}
 
-			//IMPROVE: _ is downloaded bytes, should log to debug size related issues
-			size, err := downloader.Download(
-				fileContent,
-				&s3.GetObjectInput{
-					Bucket: aws.String(bucketName),
-					Key:    aws.String(objectKey),
-				},
-			)
+			err := downloadFromS3(sess, bucketName, objectKey, fileContent)
 			if err != nil {
-				log.Printf("Failed to download item from bucket")
 				return err
 			}
-			log.Printf("downloaded %v (%v MB) from s3", req.Records[0].S3.Object.Key, size/1024/1024)
 
 			s := bufio.NewScanner(bytes.NewReader(fileContent.Bytes()))
 			uploadUUID := uuid.Must(uuid.NewV4()).String()
@@ -195,8 +184,29 @@ func handler(e SQSEvent) error {
 			if err != nil {
 				return err
 			}
+		} else if objectSize >= 300 && objectSize < 20000 {
+			log.Println("file between 300MB and 20GB")
+		} else {
+			return fmt.Errorf("can't process files larger than 20GB")
 		}
 	}
+	return nil
+}
+
+func downloadFromS3(sess *session.Session, bucketName string, objectKey string, fileContent *aws.WriteAtBuffer) error {
+	downloader := s3manager.NewDownloader(sess)
+
+	_, err := downloader.Download(
+		fileContent,
+		&s3.GetObjectInput{
+			Bucket: aws.String(bucketName),
+			Key:    aws.String(objectKey),
+		},
+	)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
