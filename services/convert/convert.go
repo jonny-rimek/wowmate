@@ -118,9 +118,6 @@ type SQSEvent struct {
 			SenderID                         string `json:"SenderId"`
 			ApproximateFirstReceiveTimestamp string `json:"ApproximateFirstReceiveTimestamp"`
 		} `json:"attributes"`
-		MessageAttributes struct {
-		} `json:"messageAttributes"`
-		Md5OfBody      string `json:"md5OfBody"`
 		EventSource    string `json:"eventSource"`
 		EventSourceARN string `json:"eventSourceARN"`
 		AwsRegion      string `json:"awsRegion"`
@@ -163,29 +160,41 @@ func handler(e SQSEvent) error {
 			return err
 		}
 
-		downloader := s3manager.NewDownloader(sess)
-		fileContent := &aws.WriteAtBuffer{}
+		bucketName := req.Records[0].S3.Bucket.Name
+		objectKey := req.Records[0].S3.Object.Key
 
-		//IMPROVE: _ is downloaded bytes, should log to debug size related issues
-		size, err := downloader.Download(
-			fileContent,
-			&s3.GetObjectInput{
-				Bucket: aws.String(req.Records[0].S3.Bucket.Name),
-				Key:    aws.String(req.Records[0].S3.Object.Key),
-			},
-		)
+		objectSize, err := sizeOfS3Object(sess, bucketName, objectKey) 
 		if err != nil {
-			log.Printf("Failed to download item from bucket")
 			return err
 		}
-		log.Printf("downloaded %v (%v MB) from s3", req.Records[0].S3.Object.Key, size/1024/1024)
 
-		s := bufio.NewScanner(bytes.NewReader(fileContent.Bytes()))
-		uploadUUID := uuid.Must(uuid.NewV4()).String()
+		if objectSize < 300 {
+			log.Println("Object is smaller than 300mb")
 
-		err = Normalize(s, uploadUUID, sess, csvBucket)
-		if err != nil {
-			return err
+			downloader := s3manager.NewDownloader(sess)
+			fileContent := &aws.WriteAtBuffer{}
+
+			//IMPROVE: _ is downloaded bytes, should log to debug size related issues
+			size, err := downloader.Download(
+				fileContent,
+				&s3.GetObjectInput{
+					Bucket: aws.String(bucketName),
+					Key:    aws.String(objectKey),
+				},
+			)
+			if err != nil {
+				log.Printf("Failed to download item from bucket")
+				return err
+			}
+			log.Printf("downloaded %v (%v MB) from s3", req.Records[0].S3.Object.Key, size/1024/1024)
+
+			s := bufio.NewScanner(bytes.NewReader(fileContent.Bytes()))
+			uploadUUID := uuid.Must(uuid.NewV4()).String()
+
+			err = Normalize(s, uploadUUID, sess, csvBucket)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -208,6 +217,21 @@ func convertToCSV(events *[]Event) (io.Reader, error) {
 	log.Println("converted to csv")
 
 	return io.Reader(&buf), nil
+}
+
+func sizeOfS3Object(sess *session.Session, bucketName string, objectKey string) (int, error) {
+	svc := s3.New(sess)
+
+	output, err := svc.HeadObject(
+		&s3.HeadObjectInput{
+			Bucket: aws.String(bucketName),
+			Key:    aws.String(objectKey),
+		})
+	if err != nil {
+		return 0, fmt.Errorf("Unable to to send head request to item %q, %v", objectKey, err)
+	}
+
+	return int(*output.ContentLength / 1024 / 1024), nil
 }
 
 func uploadS3(r io.Reader, sess *session.Session, mythicplugUUID string, csvBucket string) error {

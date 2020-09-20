@@ -102,6 +102,10 @@ func handler() error {
 		return err
 	}
 
+	//IMPROVE: as far as I can tell, it doesn't automatically close the db connection
+	//			it's not that big a problem, because I don't run that many migrations
+	//			but I should keep an eye on it
+	//			it will be even less of a problem with the db proxy
 	if err := m.Up(); err != nil {
 		if err.Error() == "no change" {
 			//don't fail only because there was no change
