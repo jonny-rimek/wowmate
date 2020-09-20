@@ -115,7 +115,7 @@ func handler() error {
 	q := fmt.Sprintf(`
 		CREATE TABLE combatlogs_%v_%v_%v PARTITION OF combatlogs 
 			FOR VALUES FROM ('%v-%v-%v 00:00:00') TO ('%v-%v-%v 23:59:59')
-		`, 
+		`,
 		tmrw.Year(),
 		tmrw.Month(),
 		tmrw.Day(),
