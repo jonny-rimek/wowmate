@@ -69,7 +69,7 @@ export class Convert extends cdk.Construct {
 			reservedConcurrentExecutions: 50, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
-			filesystem: lambda.FileSystem.fromEfsAccessPoint(accessPoint, '/mnt/')
+			filesystem: lambda.FileSystem.fromEfsAccessPoint(accessPoint, '/mnt/efs')
 			//NOTE: not in VPC by design, because I don't have an S3 endpoint and it would incur
 			//		additional charges
 			//		if I endup using EFS I need to add it to the VPC tho
