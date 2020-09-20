@@ -111,20 +111,19 @@ func handler() error {
 	log.Println("openend connection")
 
 	tmrw := time.Now().AddDate(0, 0, 1)
+	
+	const (
+		layoutISO = "2006-01-02"
+		layoutTable  = "2006_01_02"
+	)
 
 	q := fmt.Sprintf(`
-		CREATE TABLE combatlogs_%v_%v_%v PARTITION OF combatlogs 
-			FOR VALUES FROM ('%v-%v-%v 00:00:00') TO ('%v-%v-%v 23:59:59')
+		CREATE TABLE combatlogs_%v PARTITION OF combatlogs 
+			FOR VALUES FROM ('%v 00:00:00') TO ('%v 23:59:59')
 		`,
-		tmrw.Year(),
-		tmrw.Month(),
-		tmrw.Day(),
-		tmrw.Year(),
-		tmrw.Month(),
-		tmrw.Day(),
-		tmrw.Year(),
-		tmrw.Month(),
-		tmrw.Day(),
+		tmrw.Format(layoutTable),
+		tmrw.Format(layoutISO),
+		tmrw.Format(layoutISO),
 	)
 
 	log.Println(q)
