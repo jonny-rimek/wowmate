@@ -110,9 +110,10 @@ func handler() error {
 	defer db.Close()
 	log.Println("openend connection")
 
-	ystd := time.Now().AddDate(0, 0, -1)
-	td := time.Now()
-	tmrw := time.Now().AddDate(0, 0, 1)
+	yesterday := time.Now().AddDate(0, 0, -1)
+	today := time.Now()
+	tomorrow := time.Now().AddDate(0, 0, 1)
+	monthAgo := time.Now().AddDate(0, 0, -30)
 
 	const (
 		layoutISO   = "2006-01-02"
@@ -126,16 +127,22 @@ func handler() error {
 			FOR VALUES FROM ('%v 00:00:00') TO ('%v 23:59:59');
 		CREATE TABLE IF NOT EXISTS combatlogs_%v PARTITION OF combatlogs 
 			FOR VALUES FROM ('%v 00:00:00') TO ('%v 23:59:59');
+
+		DROP TABLE IF EXISTS combatlogs_%v PARTITION OF combatlogs 
+			FOR VALUES FROM ('%v 00:00:00') TO ('%v 23:59:59');
 		`,
-		ystd.Format(layoutTable),
-		ystd.Format(layoutISO),
-		ystd.Format(layoutISO),
-		td.Format(layoutTable),
-		td.Format(layoutISO),
-		td.Format(layoutISO),
-		tmrw.Format(layoutTable),
-		tmrw.Format(layoutISO),
-		tmrw.Format(layoutISO),
+		yesterday.Format(layoutTable),
+		yesterday.Format(layoutISO),
+		yesterday.Format(layoutISO),
+		today.Format(layoutTable),
+		today.Format(layoutISO),
+		today.Format(layoutISO),
+		tomorrow.Format(layoutTable),
+		tomorrow.Format(layoutISO),
+		tomorrow.Format(layoutISO),
+		monthAgo.Format(layoutTable),
+		monthAgo.Format(layoutISO),
+		monthAgo.Format(layoutISO),
 	)
 
 	log.Println(q)
