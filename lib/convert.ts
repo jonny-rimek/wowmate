@@ -55,6 +55,10 @@ export class Convert extends cdk.Construct {
 				ownerUid: '1001',
 				permissions: '755',
 			},
+			posixUser: {
+				uid: '1001',
+				gid: '1001',
+			},
 		})
 
 		const convertLambda = new lambda.Function(this, 'F', {
