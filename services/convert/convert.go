@@ -150,7 +150,6 @@ func handler(e SQSEvent) error {
 		body := msg.Body
 
 		req := Request{}
-		log.Println(body)
 		err = json.Unmarshal([]byte(body), &req)
 		if err != nil {
 			return err

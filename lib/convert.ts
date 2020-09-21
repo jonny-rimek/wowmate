@@ -38,28 +38,28 @@ export class Convert extends cdk.Construct {
 		});
 		this.queue = q
 
-		this.efs = new efs.FileSystem(this, 'Efs', {
-			vpc: props.vpc,
-			encrypted: false,
-			// performanceMode: efs.PerformanceMode.GENERAL_PURPOSE,
-			performanceMode: efs.PerformanceMode.MAX_IO,
-			throughputMode: efs.ThroughputMode.BURSTING,
-			//TODO: remove in prod
-			removalPolicy: RemovalPolicy.DESTROY,
-		})
+		// this.efs = new efs.FileSystem(this, 'Efs', {
+		// 	vpc: props.vpc,
+		// 	encrypted: false,
+		// 	// performanceMode: efs.PerformanceMode.GENERAL_PURPOSE,
+		// 	performanceMode: efs.PerformanceMode.MAX_IO,
+		// 	throughputMode: efs.ThroughputMode.BURSTING,
+		// 	//TODO: remove in prod
+		// 	removalPolicy: RemovalPolicy.DESTROY,
+		// })
 
-		const accessPoint = this.efs.addAccessPoint('ConvertAccessPoint', {
-			path: '/convert',
-			createAcl: {
-				ownerGid: '1001',
-				ownerUid: '1001',
-				permissions: '755',
-			},
-			posixUser: {
-				uid: '1001',
-				gid: '1001',
-			},
-		})
+		// const accessPoint = this.efs.addAccessPoint('ConvertAccessPoint', {
+		// 	path: '/convert',
+		// 	createAcl: {
+		// 		ownerGid: '1001',
+		// 		ownerUid: '1001',
+		// 		permissions: '755',
+		// 	},
+		// 	posixUser: {
+		// 		uid: '1001',
+		// 		gid: '1001',
+		// 	},
+		// })
 
 		const convertLambda = new lambda.Function(this, 'F', {
 			code: lambda.Code.fromAsset('services/convert'),
@@ -73,11 +73,8 @@ export class Convert extends cdk.Construct {
 			reservedConcurrentExecutions: 50, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
-			filesystem: lambda.FileSystem.fromEfsAccessPoint(accessPoint, '/mnt/efs'),
-			vpc: props.vpc,
-			//NOTE: not in VPC by design, because I don't have an S3 endpoint and it would incur
-			//		additional charges
-			//		if I endup using EFS I need to add it to the VPC tho
+			// filesystem: lambda.FileSystem.fromEfsAccessPoint(accessPoint, '/mnt/efs'),
+			// vpc: props.vpc,
 		})
 		this.lambda = convertLambda
 		convertLambda.addEventSource(new SqsEventSource(q))
