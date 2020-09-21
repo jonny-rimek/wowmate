@@ -34,15 +34,15 @@ export class Convert extends cdk.Construct {
 				queue: this.DLQ,
 				maxReceiveCount: 1, //NOTE: I want failed messages to directly land in dlq
 			},
-			//NOTE: 1minute is too low, it's that low for debugging purposed
-			visibilityTimeout: cdk.Duration.minutes(6)
+			visibilityTimeout: cdk.Duration.minutes(20)
 		});
 		this.queue = q
 
 		this.efs = new efs.FileSystem(this, 'Efs', {
 			vpc: props.vpc,
 			encrypted: false,
-			performanceMode: efs.PerformanceMode.GENERAL_PURPOSE,
+			// performanceMode: efs.PerformanceMode.GENERAL_PURPOSE,
+			performanceMode: efs.PerformanceMode.MAX_IO,
 			throughputMode: efs.ThroughputMode.BURSTING,
 			//TODO: remove in prod
 			removalPolicy: RemovalPolicy.DESTROY,
@@ -66,7 +66,7 @@ export class Convert extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.minutes(5),
+			timeout: cdk.Duration.minutes(15),
 			environment: {
 				CSV_BUCKET_NAME: props.csvBucket.bucketName,
 			},
