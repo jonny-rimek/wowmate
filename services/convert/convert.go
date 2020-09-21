@@ -169,37 +169,25 @@ func handler(e SQSEvent) error {
 		}
 		log.Printf("Object is %v MB", objectSize)
 
-		if objectSize < 300 {
-			fileContent := &aws.WriteAtBuffer{}
-
-			err := downloadS3(sess, bucketName, objectKey, fileContent)
-			if err != nil {
-				return err
-			}
-
-			s := bufio.NewScanner(bytes.NewReader(fileContent.Bytes()))
-			uploadUUID := uuid.Must(uuid.NewV4()).String()
-
-			err = Normalize(s, uploadUUID, sess, csvBucket)
-			if err != nil {
-				return err
-			}
-		} else if objectSize >= 300 && objectSize < 20000 {
-			log.Println("file between 300MB and 20GB")
-
-			file, err := os.Create("/mnt/efs/" + objectKey)
-			if err != nil {
-				return err
-			}
-
-			err = downloadS3(sess, bucketName, objectKey, file)
-			if err != nil {
-				return err
-			}
-
-		} else {
-			return fmt.Errorf("can't process files larger than 20GB")
+		if objectSize > 300 {
+			return fmt.Errorf("wow that's way too big. um phrasing?")
 		}
+
+		fileContent := &aws.WriteAtBuffer{}
+
+		err = downloadS3(sess, bucketName, objectKey, fileContent)
+		if err != nil {
+			return err
+		}
+
+		s := bufio.NewScanner(bytes.NewReader(fileContent.Bytes()))
+		uploadUUID := uuid.Must(uuid.NewV4()).String()
+
+		err = Normalize(s, uploadUUID, sess, csvBucket)
+		if err != nil {
+			return err
+		}
+
 	}
 	return nil
 }
@@ -240,6 +228,7 @@ func convertToCSV(events *[]Event) (io.Reader, error) {
 	return io.Reader(&buf), nil
 }
 
+//checks the file size without actually downloading it
 func sizeOfS3Object(sess *session.Session, bucketName string, objectKey string) (int, error) {
 	svc := s3.New(sess)
 
@@ -255,6 +244,7 @@ func sizeOfS3Object(sess *session.Session, bucketName string, objectKey string) 
 	return int(*output.ContentLength / 1024 / 1024), nil
 }
 
+//TODO: try to pass io.Reader as a reference
 func uploadS3(r io.Reader, sess *session.Session, mythicplugUUID string, csvBucket string) error {
 	if mythicplugUUID == "" {
 		//sometimes there are more CHALLANGE_MODE_END events than there are start events
@@ -262,8 +252,6 @@ func uploadS3(r io.Reader, sess *session.Session, mythicplugUUID string, csvBuck
 		return nil
 	}
 	uploader := s3manager.NewUploader(sess)
-
-	//TODO: check that mythicplusUUID is not ""
 
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(csvBucket),
