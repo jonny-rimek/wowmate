@@ -32,9 +32,9 @@ export class Convert extends cdk.Construct {
 		const q = new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
 				queue: this.DLQ,
-				maxReceiveCount: 1, //NOTE: I want failed messages to directly land in dlq
+				maxReceiveCount: 1, //NOTE: I want failed messages to directly land in dlq during dev
 			},
-			visibilityTimeout: cdk.Duration.minutes(20)
+			visibilityTimeout: cdk.Duration.minutes(15)
 		});
 		this.queue = q
 
@@ -66,7 +66,7 @@ export class Convert extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.minutes(15),
+			timeout: cdk.Duration.minutes(3),
 			environment: {
 				CSV_BUCKET_NAME: props.csvBucket.bucketName,
 			},

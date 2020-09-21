@@ -169,7 +169,7 @@ func handler(e SQSEvent) error {
 		}
 		log.Printf("Object is %v MB", objectSize)
 
-		if objectSize > 3000 {
+		if objectSize > 300 {
 			return fmt.Errorf("wow that's way too big. um phrasing?")
 		}
 
