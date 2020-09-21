@@ -188,7 +188,7 @@ func handler(e SQSEvent) error {
 		} else if objectSize >= 300 && objectSize < 20000 {
 			log.Println("file between 300MB and 20GB")
 
-			file, err := os.Create("/mnt/efs/convert/" + objectKey)
+			file, err := os.Create("/mnt/efs/" + objectKey)
 			if err != nil {
 				return err
 			}
