@@ -245,7 +245,7 @@ func sizeOfS3Object(sess *session.Session, bucketName string, objectKey string) 
 }
 
 //TODO: try to pass io.Reader as a reference
-func uploadS3(r io.Reader, sess *session.Session, mythicplugUUID string, csvBucket string) error {
+func uploadS3(r *io.Reader, sess *session.Session, mythicplugUUID string, csvBucket string) error {
 	if mythicplugUUID == "" {
 		//sometimes there are more CHALLANGE_MODE_END events than there are start events
 		//it shouldn't come to this, because we aren't adding anything unless we have a started event
@@ -256,7 +256,7 @@ func uploadS3(r io.Reader, sess *session.Session, mythicplugUUID string, csvBuck
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(csvBucket),
 		Key:    aws.String(fmt.Sprintf("%v.csv", mythicplugUUID)),
-		Body:   r,
+		Body:   *r,
 	})
 	if err != nil {
 		log.Println("Failed to upload to S3")

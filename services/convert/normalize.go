@@ -283,9 +283,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
-
-			//TODO: try to pass io.Reader as a reference
-			err = uploadS3(r, sess, e.MythicplusUUID, csvBucket)
+			err = uploadS3(&r, sess, e.MythicplusUUID, csvBucket)
 			if err != nil {
 				return err
 			}
