@@ -31,17 +31,17 @@ export class Api extends cdk.Construct {
 		})
 		this.bucket = csvBucket
 
-		const role = new iam.Role(this, "Role", {
-			assumedBy: new iam.ServicePrincipal("rds.amazonaws.com"), // required
-		});
+		// const role = new iam.Role(this, "Role", {
+		// 	assumedBy: new iam.ServicePrincipal("rds.amazonaws.com"), // required
+		// });
 
-		role.addToPolicy(
-			new iam.PolicyStatement({
-				effect: iam.Effect.ALLOW,
-				resources: [csvBucket.bucketArn, `${csvBucket.bucketArn}/*`],
-				actions: ["s3:GetObject", "s3:ListBucket"],
-			})
-		);
+		// role.addToPolicy(
+		// 	new iam.PolicyStatement({
+		// 		effect: iam.Effect.ALLOW,
+		// 		resources: [csvBucket.bucketArn, `${csvBucket.bucketArn}/*`],
+		// 		actions: ["s3:GetObject", "s3:ListBucket"],
+		// 	})
+		// );
 
 		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
 			natGateways: 1,
@@ -57,7 +57,6 @@ export class Api extends cdk.Construct {
 
 		this.cluster = new rds.DatabaseCluster(this, 'ImportDB', {
 			engine: rds.DatabaseClusterEngine.auroraPostgres({
-				// version: rds.AuroraPostgresEngineVersion.VER_10_11,
 				version: rds.AuroraPostgresEngineVersion.VER_11_6,
 			}),
 			masterUser: {
@@ -81,7 +80,7 @@ export class Api extends cdk.Construct {
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			deletionProtection: false,
 			//NOTE: remove in production
-			// s3ImportBuckets: [csvBucket],
+			s3ImportBuckets: [csvBucket],
 		})
 		this.dbCreds = this.cluster.secret!
 
