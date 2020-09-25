@@ -16,3 +16,6 @@ main
 #combatlog
 *.txt
 *.txt.gz
+
+#goland
+.idea
