@@ -31,18 +31,6 @@ export class Api extends cdk.Construct {
 		})
 		this.bucket = csvBucket
 
-		// const role = new iam.Role(this, "Role", {
-		// 	assumedBy: new iam.ServicePrincipal("rds.amazonaws.com"), // required
-		// });
-
-		// role.addToPolicy(
-		// 	new iam.PolicyStatement({
-		// 		effect: iam.Effect.ALLOW,
-		// 		resources: [csvBucket.bucketArn, `${csvBucket.bucketArn}/*`],
-		// 		actions: ["s3:GetObject", "s3:ListBucket"],
-		// 	})
-		// );
-
 		const vpc = new ec2.Vpc(this, 'WowmateVpc', {
 			natGateways: 1,
 		})

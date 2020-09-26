@@ -175,7 +175,7 @@ func handler(e SQSEvent) error {
 		return err
 	}
 	defer db.Close()
-	log.Println("openend connection")
+	log.Println("opened connection")
 	log.Printf("number of messages: %v", len(e.Records))
 
 	for _, record := range e.Records {
@@ -187,7 +187,7 @@ func handler(e SQSEvent) error {
 		}
 
 		if len(s3.Records) > 1 {
-			return fmt.Errorf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
+			return fmt.Errorf("failed: the S3 event contains more than 1 element, not sure how that would happen")
 		}
 		q := fmt.Sprintf(`
 				SELECT aws_s3.table_import_from_s3(
@@ -201,7 +201,7 @@ func handler(e SQSEvent) error {
 		if err != nil {
 			if strings.Contains(err.Error(), "duplicate") {
 				//NOTE: this can happen because sometimes the import takes 10x the normal time and
-				//		the impport finished, after the lambda timed out
+				//		the import finished, after the lambda timed out
 				//		which causes the lambda to be triggered again from SQS, instead of failing
 				//		till it lands in the DLQ we will just delete it from the queue,
 				//		because it got actually imported to the DB
