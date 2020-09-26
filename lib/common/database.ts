@@ -1,4 +1,3 @@
-
 import cdk = require('@aws-cdk/core');
 import ec2 = require('@aws-cdk/aws-ec2');
 import rds = require('@aws-cdk/aws-rds');
@@ -6,7 +5,6 @@ import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import s3 = require('@aws-cdk/aws-s3');
 import { CfnOutput } from '@aws-cdk/core';
-import { RemovalPolicy } from '@aws-cdk/core';
 
 interface Props extends cdk.StackProps {
 	csvBucket: s3.Bucket

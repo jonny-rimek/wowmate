@@ -7,7 +7,6 @@ import { RetentionDays } from '@aws-cdk/aws-logs';
 import s3n = require('@aws-cdk/aws-s3-notifications');
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import * as efs from '@aws-cdk/aws-efs';
-import { RemovalPolicy } from '@aws-cdk/core';
 
 interface Props extends cdk.StackProps {
 	vpc: ec2.IVpc;

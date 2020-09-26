@@ -1,11 +1,5 @@
 import cdk = require('@aws-cdk/core');
-import targets = require('@aws-cdk/aws-route53-targets');
-import route53= require('@aws-cdk/aws-route53');
-import * as lambda from '@aws-cdk/aws-lambda';
-import apigateway = require('@aws-cdk/aws-apigateway');
-import acm = require('@aws-cdk/aws-certificatemanager');
 import s3 = require('@aws-cdk/aws-s3');
-import { RemovalPolicy } from '@aws-cdk/core';
 import * as cloudtrail from '@aws-cdk/aws-cloudtrail';
 import { ReadWriteType } from '@aws-cdk/aws-cloudtrail';
 

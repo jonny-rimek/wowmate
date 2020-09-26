@@ -5,11 +5,9 @@ import { SnsAction } from '@aws-cdk/aws-cloudwatch-actions';
 import sns = require('@aws-cdk/aws-sns');
 import * as subscriptions from '@aws-cdk/aws-sns-subscriptions';
 import lambda = require('@aws-cdk/aws-lambda');
-import sqs = require('@aws-cdk/aws-sqs');
 import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 import s3 = require('@aws-cdk/aws-s3');
 import cloudfront = require('@aws-cdk/aws-cloudfront');
-import { cfnTagToCloudFormation } from '@aws-cdk/core';
 
 interface Props extends cdk.StackProps {
 	topDamageLambda: lambda.Function
