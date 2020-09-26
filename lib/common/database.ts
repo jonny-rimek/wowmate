@@ -8,71 +8,31 @@ import s3 = require('@aws-cdk/aws-s3');
 import { CfnOutput } from '@aws-cdk/core';
 import { RemovalPolicy } from '@aws-cdk/core';
 
-export class Common extends cdk.Construct {
-	public readonly vpc: ec2.Vpc;
+interface Props extends cdk.StackProps {
+	csvBucket: s3.Bucket
+	vpc: ec2.Vpc
+}
+
+export class Database extends cdk.Construct {
 	public readonly dbSecGrp: ec2.SecurityGroup;
 	public readonly dbSecret: secretsmanager.ISecret;
 	public readonly dbEndpoint: string;
 	public readonly cluster: rds.DatabaseCluster;
-	public readonly csvBucket: s3.Bucket;
-	public readonly uploadBucket: s3.Bucket;
 
-	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
-		//EXTRACT
-		this.uploadBucket = new s3.Bucket(this, 'Upload', {
-			removalPolicy: RemovalPolicy.DESTROY,
-			// blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-			cors: [
-				{
-					allowedOrigins: [
-						"*", //if I only do wowmate.io it will not work locally
-					],
-					allowedMethods: [
-						s3.HttpMethods.POST,
-						s3.HttpMethods.GET, //should be removable
-						s3.HttpMethods.PUT,//should be removable
-						s3.HttpMethods.HEAD,
-					],
-					allowedHeaders: [
-						"*", //dunno
-					],
-				}
-			],
-			metrics: [{
-				id: 'metric',
-			}]
-		})
-
-		this.csvBucket = new s3.Bucket(this, 'CSV', {
-			removalPolicy: cdk.RemovalPolicy.DESTROY,
-			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-			metrics: [{ //enables advanced s3metrics
-				id: 'metric',
-			}]
-		})
-
-		this.vpc = new ec2.Vpc(this, 'Vpc', {
-			natGateways: 1,
-		})
-		let vpc = this.vpc
-
-		this.dbSecGrp = new ec2.SecurityGroup(this, 'DBAccess', {
-			vpc,
-		})
 		this.dbSecGrp.addIngressRule(this.dbSecGrp, ec2.Port.tcp(5432), 'allow db connection')
-
 
 		this.cluster = new rds.DatabaseCluster(this, 'DB', {
 			engine: rds.DatabaseClusterEngine.auroraPostgres({
 				version: rds.AuroraPostgresEngineVersion.VER_11_6,
 			}),
 			masterUser: {
-				username: 'clusteradmin'
+				username: 'admin'
 			},
 			instanceProps: {
-				vpc: this.vpc,
+				vpc: props.vpc,
 				securityGroups: [this.dbSecGrp],
 				instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MEDIUM),
 				enablePerformanceInsights: true,
@@ -89,7 +49,7 @@ export class Common extends cdk.Construct {
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			deletionProtection: false,
 			//NOTE: remove in production
-			s3ImportBuckets: [this.csvBucket],
+			s3ImportBuckets: [props.csvBucket],
 		})
 		this.dbSecret = this.cluster.secret!
 
@@ -101,6 +61,7 @@ export class Common extends cdk.Construct {
 		// 	securityGroups: [dbGroup],
 		// })
 		// this.dbEndpoint = proxy.endpoint
+
 		this.dbEndpoint = this.cluster.clusterEndpoint.hostname
 
 		new CfnOutput(this, 'DBEndpoint', {
@@ -108,7 +69,7 @@ export class Common extends cdk.Construct {
 		}),
 
 		new ec2.BastionHostLinux(this, 'BastionHost', { 
-			vpc,
+			vpc: props.vpc,
 			securityGroup: this.dbSecGrp,
 		});
 	}

@@ -7,36 +7,50 @@ import { Summary } from './upload/summary';
 import { Presign } from './upload/presign';
 import { EtlDashboard } from './upload/etl-dashboard';
 import { ApiFrontendDashboard } from './common/api-frontend-dashboard';
-import { Common } from './common/common';
+import { Vpc } from './common/vpc';
+import { Database } from './common/database';
+import { Buckets } from './common/buckets';
 import { Migrate } from './common/migrate';
 import { Partition } from './common/partition';
+import { Cloudtrail } from './common/cloudtrail';
 
 export class Wowmate extends Stack {
 	constructor(scope: Construct, id: string, props?: StackProps) {
 		super(scope, id, props);
 
-		const common = new Common(this, 'Common-')
+		const buckets = new Buckets(this, 'Buckets-')
+
+		const vpc = new Vpc(this, 'Vpc-')
+
+		new Cloudtrail(this, 'Cloudtrail-', {
+			uploadBucket: buckets.uploadBucket,
+		})
+
+		const db = new Database(this, 'Database-',{
+			vpc: vpc.vpc,
+			csvBucket: buckets.csvBucket,
+		})
 
 		//lambda is exported, metrics could be displayed somewhere
 		new Migrate(this, 'Migrate-',{
-			dbSecret: common.dbSecret,
-			vpc: common.vpc,
-			dbSecGrp: common.dbSecGrp,
+			dbSecret: db.dbSecret,
+			vpc: vpc.vpc,
+			dbSecGrp: db.dbSecGrp,
 		})
 
 		//lambda is exported, metrics could be displayed somewhere
 		new Partition(this, 'Partition-',{
-			dbSecret: common.dbSecret,
-			vpc: common.vpc,
-			dbSecGrp: common.dbSecGrp,
-			dbEndpoint: common.dbEndpoint,
+			dbSecret: db.dbSecret,
+			vpc: vpc.vpc,
+			dbSecGrp: db.dbSecGrp,
+			dbEndpoint: db.dbEndpoint,
 		})
 
 		const api = new Api(this, 'Api-', {
-			dbSecret: common.dbSecret,
-			dbEndpoint: common.dbEndpoint,
-			vpc: common.vpc,
-			dbSecGrp: common.dbSecGrp,
+			dbSecret: db.dbSecret,
+			dbEndpoint: db.dbEndpoint,
+			vpc: vpc.vpc,
+			dbSecGrp: db.dbSecGrp,
 		})
 
 		const frontend = new Frontend(this, 'Frontend-', {
@@ -44,30 +58,30 @@ export class Wowmate extends Stack {
 		})
 
 		const presign = new Presign(this, 'Presign-', {
-			uploadBucket: common.uploadBucket,
+			uploadBucket: buckets.uploadBucket,
 		})
 
 		const convert = new Convert(this, 'Convert-', {
-			vpc: common.vpc,
-			csvBucket: common.csvBucket,
-			uploadBucket: common.uploadBucket,
+			vpc: vpc.vpc,
+			csvBucket: buckets.csvBucket,
+			uploadBucket: buckets.uploadBucket,
 		})
 
 		const summary = new Summary(this, 'Summary-', {
-			vpc: common.vpc,
-			csvBucket: common.csvBucket,
-			dbSecGrp: common.dbSecGrp,
-			dbSecret: common.dbSecret,
-			dbEndpoint: common.dbEndpoint,
+			vpc: vpc.vpc,
+			csvBucket: buckets.csvBucket,
+			dbSecGrp: db.dbSecGrp,
+			dbSecret: db.dbSecret,
+			dbEndpoint: db.dbEndpoint,
 		})
 
 		//NOTE: import is a saved keyword
 		const importz = new Import(this, 'Import-', {
-			vpc: common.vpc,
-			csvBucket: common.csvBucket,
-			dbSecGrp: common.dbSecGrp,
-			dbSecret: common.dbSecret,
-			dbEndpoint: common.dbEndpoint,
+			vpc: vpc.vpc,
+			csvBucket: buckets.csvBucket,
+			dbSecGrp: db.dbSecGrp,
+			dbSecret: db.dbSecret,
+			dbEndpoint: db.dbEndpoint,
 			summaryLambda: summary.summaryLambda,
 		})
 
@@ -88,10 +102,10 @@ export class Wowmate extends Stack {
 			summaryLambda: summary.summaryLambda,
 			summaryDLQ: summary.summaryDLQ,
 			presignLambda: presign.lambda,
-			uploadBucket: common.uploadBucket,
-			csvBucket: common.csvBucket,
+			uploadBucket: buckets.uploadBucket,
+			csvBucket: buckets.csvBucket,
 			presignApiGateway: presign.apiGateway,
-			cluster: common.cluster,
+			cluster: db.cluster,
 		})
 	}
 }

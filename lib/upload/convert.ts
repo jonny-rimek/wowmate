@@ -9,7 +9,7 @@ import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import * as efs from '@aws-cdk/aws-efs';
 import { RemovalPolicy } from '@aws-cdk/core';
 
-interface VpcProps extends cdk.StackProps {
+interface Props extends cdk.StackProps {
 	vpc: ec2.IVpc;
 	csvBucket: s3.Bucket
 	uploadBucket: s3.Bucket
@@ -21,7 +21,7 @@ export class Convert extends cdk.Construct {
 	public readonly DLQ: sqs.Queue;
 	public readonly efs: efs.FileSystem;
 
-	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
+	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
 		this.DLQ = new sqs.Queue(this, 'DeadLetterQueue', {

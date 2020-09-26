@@ -5,9 +5,6 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import apigateway = require('@aws-cdk/aws-apigateway');
 import acm = require('@aws-cdk/aws-certificatemanager');
 import s3 = require('@aws-cdk/aws-s3');
-import { RemovalPolicy } from '@aws-cdk/core';
-import * as cloudtrail from '@aws-cdk/aws-cloudtrail';
-import { ReadWriteType } from '@aws-cdk/aws-cloudtrail';
 
 interface Props extends cdk.StackProps {
 	uploadBucket: s3.Bucket;
@@ -17,21 +14,9 @@ export class Presign extends cdk.Construct {
 	public readonly lambda: lambda.Function
 	public readonly apiGateway: apigateway.LambdaRestApi
 
-
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
-		
-		//EXRACT
-		const trail = new cloudtrail.Trail(this, 'Cloudtrail', {
-			managementEvents: ReadWriteType.WRITE_ONLY,
-			sendToCloudWatchLogs: true,
-			// cloudWatchLogsRetention:^
-		});
 
-		trail.addS3EventSelector([{
-			bucket: props.uploadBucket, 
-		}]);
-		
 		const presignLambda = new lambda.Function(this, 'PresignLambda', {
 			runtime: lambda.Runtime.NODEJS_12_X,
 			code: lambda.Code.fromAsset('services/presign'),
