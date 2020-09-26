@@ -24,13 +24,13 @@ export class Import extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
-		this.ImportDLQ= new sqs.Queue(this, '-DeadLetterQueue', {
+		this.ImportDLQ= new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
 		});
 
 		//NOTE: sometimes the db import fails, thats why the maxReceiveCount is so high
 		//		the error fixes itself on the next try or two
-		this.importQueue= new sqs.Queue(this, '-ProcessingQueue', {
+		this.importQueue= new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
 				queue: this.ImportDLQ,
 				maxReceiveCount: 10,
@@ -38,7 +38,7 @@ export class Import extends cdk.Construct {
 			visibilityTimeout: cdk.Duration.minutes(10)
 		});
 
-		this.importLambda = new lambda.Function(this, '-Lambda', {
+		this.importLambda = new lambda.Function(this, 'Lambda', {
 			code: lambda.Code.fromAsset('services/import'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,

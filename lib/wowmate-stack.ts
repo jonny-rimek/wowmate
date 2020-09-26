@@ -53,12 +53,13 @@ export class Wowmate extends Stack {
 			dbSecGrp: db.dbSecGrp,
 		})
 
-		const frontend = new Frontend(this, 'Frontend-', {
-			api: api.api,
-		})
-
 		const presign = new Presign(this, 'Presign-', {
 			uploadBucket: buckets.uploadBucket,
+		})
+
+		const frontend = new Frontend(this, 'Frontend-', {
+			api: api.api,
+			presignApi: presign.api,
 		})
 
 		const convert = new Convert(this, 'Convert-', {
@@ -104,7 +105,7 @@ export class Wowmate extends Stack {
 			presignLambda: presign.lambda,
 			uploadBucket: buckets.uploadBucket,
 			csvBucket: buckets.csvBucket,
-			presignApiGateway: presign.apiGateway,
+			presignApiGateway: presign.api,
 			cluster: db.cluster,
 		})
 	}

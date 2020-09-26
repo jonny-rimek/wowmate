@@ -24,6 +24,7 @@ import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 
 interface Props extends cdk.StackProps {
 	api: HttpApi
+	presignApi: apigateway.LambdaRestApi
 }
 
 export class Frontend extends cdk.Construct {
@@ -43,7 +44,13 @@ export class Frontend extends cdk.Construct {
 			hostedZone,
 		});
 
-		//TODO: private bucket
+		//if the bucket would be private we can't make it a website bucket
+		//which results in strange behaviour
+		//e.g. you have to call the file exactly /page.html simply /page won't work
+		//the disadvantage is that people could access the bucket directly which would
+		//result in a slower website, but more importantly it could be used as a denial of wallet
+		//as it doesn't get cached and data transfer out is billed every time. as the bucket name
+		//is random and not having smart redirect seems worse, I'm going with a public website bucket
 		const bucket = new s3.Bucket(this, 'Bucket', {
 			websiteIndexDocument: 'index.html',
 			publicReadAccess: true,
@@ -59,8 +66,6 @@ export class Frontend extends cdk.Construct {
 				{
 					customOriginSource: {
 						domainName: props.api.url!.replace('https://','').replace('/',''),
-						// domainName: 'api.wowmate.io',
-
 					},
 					behaviors: [{
 						pathPattern: '/api/*',
@@ -69,7 +74,7 @@ export class Frontend extends cdk.Construct {
 				},
 				{
 					customOriginSource: {
-						domainName: 'presign.wowmate.io',
+						domainName: props.presignApi.url!.replace('https://','').replace('/',''),
 					},
 					behaviors: [{
 						pathPattern: '/presign',
@@ -89,6 +94,12 @@ export class Frontend extends cdk.Construct {
 				}
 			],
 			errorConfigurations: [
+				// {
+				// errorCode
+				// errorCachingMinTtl
+				// responseCode
+				// responsePagePath
+				// }
 			],
 			aliasConfiguration: {
 				names: ['wowmate.io'],

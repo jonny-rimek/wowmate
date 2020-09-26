@@ -12,7 +12,7 @@ interface Props extends cdk.StackProps {
 
 export class Presign extends cdk.Construct {
 	public readonly lambda: lambda.Function
-	public readonly apiGateway: apigateway.LambdaRestApi
+	public readonly api: apigateway.LambdaRestApi
 
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
@@ -27,41 +27,41 @@ export class Presign extends cdk.Construct {
 
 		props.uploadBucket.grantPut(presignLambda);
 
-		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
-			zoneName: 'wowmate.io',
-			hostedZoneId: 'Z3LVG9ZF2H87DX',
-		});
+		// const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+		// 	zoneName: 'wowmate.io',
+		// 	hostedZoneId: 'Z3LVG9ZF2H87DX',
+		// });
 
-		const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
-			domainName: 'presign.wowmate.io',
-			hostedZone: hostedZone,
-		});
+		// const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
+		// 	domainName: 'presign.wowmate.io',
+		// 	hostedZone: hostedZone,
+		// });
 
-		this.apiGateway = new apigateway.LambdaRestApi(this, 'PresignApi', {
+		this.api = new apigateway.LambdaRestApi(this, 'PresignApi', {
 			handler: presignLambda,
 			proxy: false,
 			endpointTypes: [apigateway.EndpointType.REGIONAL],
-			domainName: {
-				domainName: 'presign.wowmate.io',
-				certificate: cert,
-				securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
-			},
+			// domainName: {
+			// 	domainName: 'presign.wowmate.io',
+			// 	certificate: cert,
+			// 	securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
+			// },
 			//TODO: test if i need cors after I activated CORS on the bucket
 			defaultCorsPreflightOptions: {
 				allowOrigins: apigateway.Cors.ALL_ORIGINS,
 			}
 		});
-		const presign = this.apiGateway.root.addResource('presign');
+		const presign = this.api.root.addResource('presign');
 		presign.addMethod('POST');
 
 		//NOTE: does it make sense to an aaaa record?
-		new route53.ARecord(this, 'CustomDomainAliasRecord', {
-			zone: hostedZone,
-			target: route53.RecordTarget.fromAlias(new targets.ApiGateway(this.apiGateway)),
-			recordName: 'presign.wowmate.io',
-		});
+		// new route53.ARecord(this, 'CustomDomainAliasRecord', {
+		// 	zone: hostedZone,
+		// 	target: route53.RecordTarget.fromAlias(new targets.ApiGateway(this.apiGateway)),
+		// 	recordName: 'presign.wowmate.io',
+		// });
 		new cdk.CfnOutput(this, 'HTTP API Url', {
-			value: this.apiGateway.url ?? 'Something went wrong with the deploy'
+			value: this.api.url ?? 'Something went wrong with the deploy'
 		});
 	}
 }
