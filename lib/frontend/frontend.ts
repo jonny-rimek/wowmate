@@ -70,6 +70,12 @@ export class Frontend extends cdk.Construct {
 					behaviors: [{
 						pathPattern: '/api/*',
 						compress: true,
+						// allowedMethods
+						// cachedMethods
+						// defaultTtl
+						// forwardedValues
+						// maxTtl
+						// minTtl
 					}]
 				},
 				{
@@ -107,6 +113,15 @@ export class Frontend extends cdk.Construct {
 				sslMethod: SSLMethod.SNI,
 				securityPolicy: SecurityPolicyProtocol.TLS_V1_2_2018,
 			},
+			// comment
+			// defaultRootObject
+			// enableIpV6
+			// httpVersion
+			// loggingConfig
+			// priceClass
+			// viewerCertificate
+			// viewerProtocolPolicy //redirect to https
+			// webACLId //WAF config
 		});
 		this.cloudfront = distribution
 
