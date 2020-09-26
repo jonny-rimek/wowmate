@@ -53,7 +53,7 @@ export class Wowmate extends Stack {
 			uploadBucket: common.uploadBucket,
 		})
 
-		const summary = new Summary(this, 'Import-', {
+		const summary = new Summary(this, 'Summary-', {
 			vpc: common.vpc,
 			csvBucket: common.csvBucket,
 			dbSecGrp: common.dbSecGrp,

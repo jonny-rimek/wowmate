@@ -22,7 +22,7 @@ export class Api extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
-		this.topDamageLambda = new lambda.Function(this, '-TopDamageLambda', {
+		this.topDamageLambda = new lambda.Function(this, 'TopDamageLambda', {
 			code: lambda.Code.fromAsset('services/api'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -43,7 +43,7 @@ export class Api extends cdk.Construct {
 			handler: this.topDamageLambda
 		})
 
-		const httpApi = new HttpApi(this, '-Api')
+		const httpApi = new HttpApi(this, 'Api')
 
 		new CfnOutput(this, 'HttpApiEndpoint', {
 			value: httpApi.url!,

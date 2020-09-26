@@ -24,11 +24,11 @@ export class Convert extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
-		this.DLQ = new sqs.Queue(this, '-DeadLetterQueue', {
+		this.DLQ = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
 		});
 
-		const q = new sqs.Queue(this, '-ProcessingQueue', {
+		const q = new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
 				queue: this.DLQ,
 				maxReceiveCount: 1, //NOTE: I want failed messages to directly land in dlq during dev
@@ -37,7 +37,7 @@ export class Convert extends cdk.Construct {
 		});
 		this.queue = q
 
-		const convertLambda = new lambda.Function(this, '-F', {
+		const convertLambda = new lambda.Function(this, 'F', {
 			code: lambda.Code.fromAsset('services/convert'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,

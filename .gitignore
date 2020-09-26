@@ -1,9 +1,11 @@
-bin/*.js
-lib/*.js
-lib/legacy/*.js
+bin/**.js
+lib/**.js
+# bin/**.d.ts
+# lib/**.d.ts
+*.js
+*.d.ts
 
 !jest.config.js
-*.d.ts
 node_modules
 
 # CDK asset staging directory

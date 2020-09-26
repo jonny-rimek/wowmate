@@ -22,7 +22,7 @@ export class Presign extends cdk.Construct {
 		super(scope, id)
 		
 		//EXRACT
-		const trail = new cloudtrail.Trail(this, '-Cloudtrail', {
+		const trail = new cloudtrail.Trail(this, 'Cloudtrail', {
 			managementEvents: ReadWriteType.WRITE_ONLY,
 			sendToCloudWatchLogs: true,
 			// cloudWatchLogsRetention:^
@@ -32,7 +32,7 @@ export class Presign extends cdk.Construct {
 			bucket: props.uploadBucket, 
 		}]);
 		
-		const presignLambda = new lambda.Function(this, '-PresignLambda', {
+		const presignLambda = new lambda.Function(this, 'PresignLambda', {
 			runtime: lambda.Runtime.NODEJS_12_X,
 			code: lambda.Code.fromAsset('services/presign'),
 			handler: 'index.handler',
@@ -42,17 +42,17 @@ export class Presign extends cdk.Construct {
 
 		props.uploadBucket.grantPut(presignLambda);
 
-		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, '-HostedZone', {
+		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
 			zoneName: 'wowmate.io',
 			hostedZoneId: 'Z3LVG9ZF2H87DX',
 		});
 
-		const cert = new acm.DnsValidatedCertificate(this, '-Certificate', {
+		const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
 			domainName: 'presign.wowmate.io',
 			hostedZone: hostedZone,
 		});
 
-		this.apiGateway = new apigateway.LambdaRestApi(this, '-PresignApi', {
+		this.apiGateway = new apigateway.LambdaRestApi(this, 'PresignApi', {
 			handler: presignLambda,
 			proxy: false,
 			endpointTypes: [apigateway.EndpointType.REGIONAL],
