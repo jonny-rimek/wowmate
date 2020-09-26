@@ -186,6 +186,10 @@ func handler(e SQSEvent) error {
 			return err
 		}
 
+		if len(s3.Records) == 0 {
+			return fmt.Errorf("failed: s3 event empty")
+		}
+
 		if len(s3.Records) > 1 {
 			return fmt.Errorf("failed: the S3 event contains more than 1 element, not sure how that would happen")
 		}
@@ -301,7 +305,7 @@ func handler(e SQSEvent) error {
 			log.Println(result)
 		}
 	}
-	log.Println("summary successfully involed")
+	log.Println("summary successfully invoked")
 	return nil
 }
 
