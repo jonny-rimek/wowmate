@@ -20,6 +20,9 @@ export class Database extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
+		this.dbSecGrp = new ec2.SecurityGroup(this, 'DBAccess', {
+			vpc: props.vpc,
+		})
 		this.dbSecGrp.addIngressRule(this.dbSecGrp, ec2.Port.tcp(5432), 'allow db connection')
 
 		this.cluster = new rds.DatabaseCluster(this, 'DB', {
@@ -27,7 +30,7 @@ export class Database extends cdk.Construct {
 				version: rds.AuroraPostgresEngineVersion.VER_11_6,
 			}),
 			masterUser: {
-				username: 'admin'
+				username: 'clusteradmin' //admin is reserved and can't be used
 			},
 			instanceProps: {
 				vpc: props.vpc,
@@ -52,7 +55,7 @@ export class Database extends cdk.Construct {
 		this.dbSecret = this.cluster.secret!
 
 		//NOTE: 11.6 works with the proxy, just activate and remove the old this.dbEndpoint
-		//		every lambda should still work
+		//		every lambda will still work
 		// const proxy = this.cluster.addProxy('DBProxy', {
 		// 	secrets: [this.cluster.secret!],
 		// 	vpc: vpc,
