@@ -14,7 +14,6 @@ interface Props extends cdk.StackProps {
 }
 
 export class Presign extends cdk.Construct {
-	public readonly bucket: s3.Bucket
 	public readonly lambda: lambda.Function
 	public readonly apiGateway: apigateway.LambdaRestApi
 

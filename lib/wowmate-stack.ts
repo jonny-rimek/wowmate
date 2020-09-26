@@ -32,7 +32,7 @@ export class Wowmate extends Stack {
 		const convert = new Convert(this, 'Convert-', {
 			vpc: common.vpc,
 			csvBucket: common.csvBucket,
-			uploadBucket: presign.bucket
+			uploadBucket: common.uploadBucket,
 		})
 
 		//NOTE: import is a saved keyword
@@ -61,7 +61,7 @@ export class Wowmate extends Stack {
 			summaryLambda: importz.summaryLambda,
 			summaryDLQ: importz.summaryDLQ,
 			presignLambda: presign.lambda,
-			uploadBucket: presign.bucket,
+			uploadBucket: common.uploadBucket,
 			csvBucket: common.csvBucket,
 			presignApiGateway: presign.apiGateway,
 			cluster: common.cluster,
