@@ -13,35 +13,16 @@ interface Props extends cdk.StackProps {
 	dbSecGrp: ec2.SecurityGroup
 	dbSecret: secretsmanager.ISecret
 	dbEndpoint: string
-	// cluster: rds.DatabaseCluster
 }
 
 export class Api extends cdk.Construct {
-	public readonly lambda: lambda.Function;
+	public readonly topDamageLambda: lambda.Function;
 	public readonly api: HttpApi;
 
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
-		const migrateLambda = new lambda.Function(this, 'MigrateLambda', {
-			code: lambda.Code.fromAsset('services/migrate'),
-			handler: 'main',
-			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 3008,
-			timeout: cdk.Duration.seconds(30),
-			environment: {
-				SECRET_ARN: props.dbSecret.secretArn,
-			},
-			logRetention: RetentionDays.ONE_WEEK,
-			tracing: lambda.Tracing.ACTIVE,
-			vpc: props.vpc,
-			securityGroups: [props.dbSecGrp],
-			//TODO: add DLQ
-		})
-		props.dbSecret.grantRead(migrateLambda)
-
-
-		const topDamageLambda = new lambda.Function(this, 'TopDamageLambda', {
+		this.topDamageLambda = new lambda.Function(this, '-TopDamageLambda', {
 			code: lambda.Code.fromAsset('services/api'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -56,14 +37,13 @@ export class Api extends cdk.Construct {
 			vpc: props.vpc,
 			securityGroups: [props.dbSecGrp],
 		})
-		this.lambda = topDamageLambda
-		props.dbSecret.grantRead(topDamageLambda)
+		props.dbSecret.grantRead(this.topDamageLambda)
 
 		const topDamageIntegration = new LambdaProxyIntegration({
-			handler: topDamageLambda
+			handler: this.topDamageLambda
 		})
 
-		const httpApi = new HttpApi(this, 'Api')
+		const httpApi = new HttpApi(this, '-Api')
 
 		new CfnOutput(this, 'HttpApiEndpoint', {
 			value: httpApi.url!,

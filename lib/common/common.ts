@@ -20,7 +20,8 @@ export class Common extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id)
 
-		this.uploadBucket = new s3.Bucket(this, 'Upload', {
+		//EXTRACT
+		this.uploadBucket = new s3.Bucket(this, '-Upload', {
 			removalPolicy: RemovalPolicy.DESTROY,
 			// blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 			cors: [
@@ -44,7 +45,7 @@ export class Common extends cdk.Construct {
 			}]
 		})
 
-		this.csvBucket = new s3.Bucket(this, 'CSV', {
+		this.csvBucket = new s3.Bucket(this, '-CSV', {
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 			metrics: [{ //enables advanced s3metrics
@@ -52,18 +53,18 @@ export class Common extends cdk.Construct {
 			}]
 		})
 
-		this.vpc = new ec2.Vpc(this, 'WowmateVpc', {
+		this.vpc = new ec2.Vpc(this, '-Vpc', {
 			natGateways: 1,
 		})
 		let vpc = this.vpc
 
-		this.dbSecGrp = new ec2.SecurityGroup(this, 'DBAccess', {
+		this.dbSecGrp = new ec2.SecurityGroup(this, '-DBAccess', {
 			vpc,
 		})
 		this.dbSecGrp.addIngressRule(this.dbSecGrp, ec2.Port.tcp(5432), 'allow db connection')
 
 
-		this.cluster = new rds.DatabaseCluster(this, 'ImportDB', {
+		this.cluster = new rds.DatabaseCluster(this, '-DB', {
 			engine: rds.DatabaseClusterEngine.auroraPostgres({
 				version: rds.AuroraPostgresEngineVersion.VER_11_6,
 			}),
@@ -106,7 +107,7 @@ export class Common extends cdk.Construct {
 			value: this.dbEndpoint
 		}),
 
-		new ec2.BastionHostLinux(this, 'BastionHost', { 
+		new ec2.BastionHostLinux(this, '-BastionHost', { 
 			vpc,
 			securityGroup: this.dbSecGrp,
 		});

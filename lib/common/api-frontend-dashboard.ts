@@ -18,7 +18,7 @@ interface Props extends cdk.StackProps {
 	cloudfront: cloudfront.CloudFrontWebDistribution,
 }
 
-export class FrontendDashboard extends cdk.Construct {
+export class ApiFrontendDashboard extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 

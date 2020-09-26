@@ -33,18 +33,18 @@ export class Frontend extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id);
 
-		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, '-HostedZone', {
 			zoneName: 'wowmate.io',
 			hostedZoneId: 'Z3LVG9ZF2H87DX',
 		});
 
-		const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
+		const cert = new acm.DnsValidatedCertificate(this, '-Certificate', {
 			domainName: 'wowmate.io',
 			hostedZone,
 		});
 
 		//TODO: private bucket
-		const bucket = new s3.Bucket(this, 'Bucket', {
+		const bucket = new s3.Bucket(this, '-Bucket', {
 			websiteIndexDocument: 'index.html',
 			publicReadAccess: true,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -54,7 +54,7 @@ export class Frontend extends cdk.Construct {
 		});
 		this.bucket = bucket
 
-		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
+		const distribution = new cloudfront.CloudFrontWebDistribution(this, '-Distribution', {
 			originConfigs: [
 				{
 					customOriginSource: {
@@ -99,18 +99,18 @@ export class Frontend extends cdk.Construct {
 		});
 		this.cloudfront = distribution
 
-		new s3deploy.BucketDeployment(this, 'DeployWebsite', {
+		new s3deploy.BucketDeployment(this, '-DeployWebsite', {
 			sources: [s3deploy.Source.asset('services/frontend/dist')],
 			destinationBucket: bucket,
 			distribution,
 		});
 
-		new route53.ARecord(this, 'Alias', {
+		new route53.ARecord(this, '-Alias', {
 			zone: hostedZone,
 			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
 		});
 
-		new route53.AaaaRecord(this, 'AliasAAA', {
+		new route53.AaaaRecord(this, '-AliasAAA', {
 			zone: hostedZone,
 			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution))
 		});
