@@ -9,40 +9,19 @@ import { RemovalPolicy } from '@aws-cdk/core';
 import * as cloudtrail from '@aws-cdk/aws-cloudtrail';
 import { ReadWriteType } from '@aws-cdk/aws-cloudtrail';
 
+interface Props extends cdk.StackProps {
+	uploadBucket: s3.Bucket;
+}
+
 export class Presign extends cdk.Construct {
 	public readonly bucket: s3.Bucket
 	public readonly lambda: lambda.Function
 	public readonly apiGateway: apigateway.LambdaRestApi
 
 
-	constructor(scope: cdk.Construct, id: string) {
+	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 		
-		const uploadBucket = new s3.Bucket(this, 'Upload', {
-			removalPolicy: RemovalPolicy.DESTROY,
-			// blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-			cors: [
-				{
-					allowedOrigins: [
-						"*", //if I only do wowmate.io it will not work locally
-					],
-					allowedMethods: [
-						s3.HttpMethods.POST,
-						s3.HttpMethods.GET, //should be removable
-						s3.HttpMethods.PUT,//should be removable
-						s3.HttpMethods.HEAD,
-					],
-					allowedHeaders: [
-						"*", //dunno
-					],
-				}
-			],
-			metrics: [{
-				id: 'metric',
-			}]
-		})
-		this.bucket = uploadBucket
-
 		const trail = new cloudtrail.Trail(this, 'Cloudtrail', {
 			managementEvents: ReadWriteType.WRITE_ONLY,
 
@@ -51,21 +30,19 @@ export class Presign extends cdk.Construct {
 		});
 
 		trail.addS3EventSelector([{
-			bucket: uploadBucket, 
+			bucket: props.uploadBucket, 
 		}]);
 		
-		//TODO: create bucket and pass to lambda
 		const presignLambda = new lambda.Function(this, 'PresignLambda', {
 			runtime: lambda.Runtime.NODEJS_12_X,
-			code: lambda.Code.asset('services/presign'),
+			code: lambda.Code.fromAsset('services/presign'),
 			handler: 'index.handler',
-			environment: {BUCKET_NAME: uploadBucket.bucketName},
+			environment: {BUCKET_NAME: props.uploadBucket.bucketName},
 		});
 		this.lambda = presignLambda
 
-		// uploadBucket.grantWrite(presignLambda);
-		uploadBucket.grantPut(presignLambda);
-		// uploadBucket.grantReadWrite(presignLambda);
+		props.uploadBucket.grantPut(presignLambda);
+
 		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
 			zoneName: 'wowmate.io',
 			hostedZoneId: 'Z3LVG9ZF2H87DX',
@@ -76,7 +53,7 @@ export class Presign extends cdk.Construct {
 			hostedZone: hostedZone,
 		});
 
-		const api = new apigateway.LambdaRestApi(this, 'PresignApi', {
+		this.apiGateway = new apigateway.LambdaRestApi(this, 'PresignApi', {
 			handler: presignLambda,
 			proxy: false,
 			endpointTypes: [apigateway.EndpointType.REGIONAL],
@@ -90,19 +67,17 @@ export class Presign extends cdk.Construct {
 				allowOrigins: apigateway.Cors.ALL_ORIGINS,
 			}
 		});
-		const presign = api.root.addResource('presign');
+		const presign = this.apiGateway.root.addResource('presign');
 		presign.addMethod('POST');
-
-		this.apiGateway = api
 
 		//NOTE: does it make sense to an aaaa record?
 		new route53.ARecord(this, 'CustomDomainAliasRecord', {
 			zone: hostedZone,
-			target: route53.RecordTarget.fromAlias(new targets.ApiGateway(api)),
+			target: route53.RecordTarget.fromAlias(new targets.ApiGateway(this.apiGateway)),
 			recordName: 'presign.wowmate.io',
 		});
 		new cdk.CfnOutput(this, 'HTTP API Url', {
-			value: api.url ?? 'Something went wrong with the deploy'
+			value: this.apiGateway.url ?? 'Something went wrong with the deploy'
 		});
 	}
 }

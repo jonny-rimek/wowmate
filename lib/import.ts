@@ -14,9 +14,9 @@ import * as eventTargets from '@aws-cdk/aws-events-targets';
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc
-	bucket: s3.Bucket
+	csvBucket: s3.Bucket
 	securityGroup: ec2.SecurityGroup
-	secret : secretsmanager.ISecret
+	dbSecret : secretsmanager.ISecret
 	dbEndpoint: string
 }
 
@@ -29,8 +29,6 @@ export class Import extends cdk.Construct {
 
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
-
-		const bucket = props.bucket
 
 		this.summaryDLQ = new sqs.Queue(this, 'SummaryDeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14)
@@ -50,7 +48,7 @@ export class Import extends cdk.Construct {
 			visibilityTimeout: cdk.Duration.minutes(10)
 		});
 
-		bucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue))
+		props.csvBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue))
 
 		this.summaryLambda = new lambda.Function(this, 'SummaryLambda', {
 			code: lambda.Code.fromAsset('services/summary'),
@@ -59,7 +57,7 @@ export class Import extends cdk.Construct {
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(60),
 			environment: {
-				SECRET_ARN: props.secret.secretArn,
+				SECRET_ARN: props.dbSecret.secretArn,
 				DB_ENDPOINT: props.dbEndpoint,
 			},
 			reservedConcurrentExecutions: 10, 
@@ -69,7 +67,7 @@ export class Import extends cdk.Construct {
 			securityGroups: [props.securityGroup],
 			onFailure: new destinations.SqsDestination(this.summaryDLQ)
 		})
-		props.secret?.grantRead(this.summaryLambda)
+		props.dbSecret?.grantRead(this.summaryLambda)
 		
 		this.importLambda = new lambda.Function(this, 'Lambda', {
 			code: lambda.Code.fromAsset('services/import'),
@@ -78,7 +76,7 @@ export class Import extends cdk.Construct {
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(180),
 			environment: {
-				SECRET_ARN: props.secret.secretArn,
+				SECRET_ARN: props.dbSecret.secretArn,
 				DB_ENDPOINT: props.dbEndpoint,
 				SUMMARY_LAMBDA_NAME: this.summaryLambda.functionName,
 			},
@@ -96,7 +94,7 @@ export class Import extends cdk.Construct {
 		this.summaryLambda.grantInvoke(this.importLambda)
 
 		this.importLambda.addEventSource(new SqsEventSource(this.queue))
-		props.secret?.grantRead(this.importLambda)
+		props.dbSecret?.grantRead(this.importLambda)
 		
 		const partitionLambda = new lambda.Function(this, 'PartitionLambda', {
 			code: lambda.Code.fromAsset('services/partition'),
@@ -105,7 +103,7 @@ export class Import extends cdk.Construct {
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(60),
 			environment: {
-				SECRET_ARN: props.secret.secretArn,
+				SECRET_ARN: props.dbSecret.secretArn,
 				DB_ENDPOINT: props.dbEndpoint,
 			},
 			reservedConcurrentExecutions: 10, 
@@ -114,7 +112,7 @@ export class Import extends cdk.Construct {
 			vpc: props.vpc,
 			securityGroups: [props.securityGroup],
 		})
-		props.secret?.grantRead(partitionLambda)
+		props.dbSecret?.grantRead(partitionLambda)
 
 		const partitionTarget = new eventTargets.LambdaFunction(partitionLambda)
 

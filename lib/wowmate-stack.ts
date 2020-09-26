@@ -6,43 +6,52 @@ import { Import } from './import';
 import { Presign } from './presign';
 import { EtlDashboard } from './etl-dashboard';
 import { FrontendDashboard } from './frontend-dashboard';
+import { Common } from './common';
 
 export class Wowmate extends Stack {
 	constructor(scope: Construct, id: string, props?: StackProps) {
 		super(scope, id, props);
 
-		// TODO: add - at the end of each name for better readability
-		const api = new Api(this, 'Api')
+		const common = new Common(this, 'Common-')
 
-		const frontend = new Frontend(this, 'Frontend', {
+		const api = new Api(this, 'Api-', {
+			dbSecret: common.dbSecret,
+			dbEndpoint: common.dbEndpoint,
+			vpc: common.vpc,
+			dbSecGrp: common.dbSecGrp,
+		})
+
+		const frontend = new Frontend(this, 'Frontend-', {
 			api: api.api,
 		})
 
-		const presign = new Presign(this, 'Presign')
+		const presign = new Presign(this, 'Presign-', {
+			uploadBucket: common.uploadBucket,
+		})
 
-		const convert = new Convert(this, 'Convert', {
-			vpc: api.vpc,
-			csvBucket: api.bucket,
+		const convert = new Convert(this, 'Convert-', {
+			vpc: common.vpc,
+			csvBucket: common.csvBucket,
 			uploadBucket: presign.bucket
 		})
 
 		//NOTE: import is a saved keyword
-		const importz = new Import(this, 'Import', {
-			vpc: api.vpc,
-			bucket: api.bucket,
-			securityGroup: api.securityGrp,
-			secret: api.dbCreds,
-			dbEndpoint: api.dbEndpoint,
+		const importz = new Import(this, 'Import-', {
+			vpc: common.vpc,
+			csvBucket: common.csvBucket,
+			securityGroup: common.dbSecGrp,
+			dbSecret: common.dbSecret,
+			dbEndpoint: common.dbEndpoint,
 		})
 
-		new FrontendDashboard(this, 'Namingthingsishard', {
+		new FrontendDashboard(this, 'ApiFrontendDashboard-', {
 			topDamageLambda: api.lambda,
 			api: api.api,
 			s3: frontend.bucket,
 			cloudfront: frontend.cloudfront,
 		})
 
-		new EtlDashboard(this, 'ETL', {
+		new EtlDashboard(this, 'EtlDashboard-', {
 			convertLambda: convert.lambda,
 			convertQueue: convert.queue,
 			convertDLQ: convert.DLQ,
@@ -53,9 +62,9 @@ export class Wowmate extends Stack {
 			summaryDLQ: importz.summaryDLQ,
 			presignLambda: presign.lambda,
 			uploadBucket: presign.bucket,
-			csvBucket: api.bucket,
+			csvBucket: common.csvBucket,
 			presignApiGateway: presign.apiGateway,
-			cluster: api.cluster,
+			cluster: common.cluster,
 		})
 	}
 }
