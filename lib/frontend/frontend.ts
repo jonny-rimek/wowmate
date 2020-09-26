@@ -65,16 +65,16 @@ export class Frontend extends cdk.Construct {
 						// minTtl
 					}]
 				},
-				// {
-				// 	customOriginSource: {
-				// 		domainName: props.presignApi.url!.replace('https://','').replace('/',''),
-				// 	},
-				// 	behaviors: [{
-				// 		pathPattern: '/presign',
-				// 		compress: true,
-				// 		allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
-				// 	}],
-				// },
+				{
+					customOriginSource: {
+						domainName: props.presignApi.url!.replace('https://','').replace('/prod/',''),
+					},
+					behaviors: [{
+						pathPattern: '/presign',
+						compress: true,
+						allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
+					}],
+				},
 				{
 					customOriginSource: {
 						domainName: bucket.bucketWebsiteDomainName,
