@@ -44,7 +44,7 @@ export class Frontend extends cdk.Construct {
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			metrics: [{
 				id: 'metric',
-			}]
+			}],
 		});
 		this.bucket = bucket
 
@@ -53,6 +53,14 @@ export class Frontend extends cdk.Construct {
 				{
 					customOriginSource: {
 						domainName: props.api.url!.replace('https://','').replace('/',''),
+						// allowedOriginSSLVersions
+						// httpPort
+						// httpsPort
+						// originHeaders
+						// originKeepaliveTimeout
+						// originPath
+						// originProtocolPolicy
+						// originReadTimeout
 					},
 					behaviors: [{
 						pathPattern: '/api/*',
@@ -71,7 +79,6 @@ export class Frontend extends cdk.Construct {
 					},
 					behaviors: [{
 						pathPattern: '/presign',
-						// originPath: '/prod/',
 						compress: true,
 						allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
 					}],
@@ -122,6 +129,8 @@ export class Frontend extends cdk.Construct {
 		new route53.ARecord(this, 'Alias', {
 			zone: hostedZone,
 			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(distribution)),
+			// recordName
+			// ttl: cdk.Duration.minutes(30)
 		});
 
 		new route53.AaaaRecord(this, 'AliasAAA', {

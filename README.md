@@ -3,13 +3,8 @@
 ## manual steps:
 
 - creating the public hosted zone in route53
-- add s3 import role
 - enable http api logs
 - enable cloudfront advanced metrics
-
-### update cdk cli
-
-`sudo npm i -g aws-cdk`
 
 #### install psql on the bastion station 
 
