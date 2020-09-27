@@ -25,48 +25,15 @@ export class Presign extends cdk.Construct {
 
 		props.uploadBucket.grantPut(presignLambda);
 
-		// const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
-		// 	zoneName: 'wowmate.io',
-		// 	hostedZoneId: 'Z3LVG9ZF2H87DX',
-		// });
-
-		// const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
-		// 	domainName: 'presign.wowmate.io',
-		// 	hostedZone: hostedZone,
-		// });
-
-		// this.api = new apigateway.LambdaRestApi(this, 'PresignApi', {
-		// 	handler: presignLambda,
-		// 	proxy: false,
-		// 	endpointTypes: [apigateway.EndpointType.REGIONAL],
-		// 	// domainName: {
-		// 	// 	domainName: 'presign.wowmate.io',
-		// 	// 	certificate: cert,
-		// 	// 	securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
-		// 	// },
-		// 	//TODO: test if i need cors after I activated CORS on the bucket
-		// 	defaultCorsPreflightOptions: {
-		// 		allowOrigins: apigateway.Cors.ALL_ORIGINS,
-		// 	}
-		// });
-		// const presign = this.api.root.addResource('presign');
-		// presign.addMethod('POST');
-
-		//NOTE: does it make sense to an aaaa record?
-		// new route53.ARecord(this, 'CustomDomainAliasRecord', {
-		// 	zone: hostedZone,
-		// 	target: route53.RecordTarget.fromAlias(new targets.ApiGateway(this.apiGateway)),
-		// 	recordName: 'presign.wowmate.io',
-		// });
-
 		this.api = new HttpApi(this, 'Api', {
+		//TODO: test if i need cors after I activated CORS on the bucket
 			corsPreflight: {
 				allowOrigins: ["*"],
 			},
 		})
 
 		this.api.addRoutes({
-			path: 'presign',
+			path: '/presign',
 			methods: [HttpMethod.POST],
 			integration: new LambdaProxyIntegration({
 				handler: presignLambda,

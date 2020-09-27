@@ -11,7 +11,7 @@ import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 
 interface Props extends cdk.StackProps {
 	api: HttpApi
-	presignApi: apigateway.LambdaRestApi
+	presignApi: HttpApi
 }
 
 export class Frontend extends cdk.Construct {
@@ -65,7 +65,6 @@ export class Frontend extends cdk.Construct {
 						// minTtl
 					}]
 				},
-				//NOTE: this one is an API Gateway v1, the path has /prod/ at the end
 				{
 					customOriginSource: {
 						domainName: props.presignApi.url!.replace('https://','').replace('/',''),

@@ -9,6 +9,7 @@ import sqs = require('@aws-cdk/aws-sqs');
 import s3 = require('@aws-cdk/aws-s3');
 import apigateway = require('@aws-cdk/aws-apigateway');
 import rds = require('@aws-cdk/aws-rds');
+import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 
 interface Props extends cdk.StackProps {
 	convertLambda: lambda.Function
@@ -22,7 +23,7 @@ interface Props extends cdk.StackProps {
 	presignLambda: lambda.Function
 	uploadBucket: s3.Bucket
 	csvBucket: s3.Bucket
-	presignApiGateway: apigateway.LambdaRestApi
+	presignApi: HttpApi
 	cluster: rds.DatabaseCluster;
 }
 
@@ -329,6 +330,7 @@ These components (AGW, Lambda and s3 bucket) are responsible to allow users to u
 					stacked: true,
 					width: 4
 				}),
+				//TODO: fix metrics for agw v2
 				new GraphWidget({
 					title: 'ApiGateway errors',
 					left: [

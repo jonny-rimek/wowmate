@@ -105,7 +105,7 @@ export class Wowmate extends Stack {
 			presignLambda: presign.lambda,
 			uploadBucket: buckets.uploadBucket,
 			csvBucket: buckets.csvBucket,
-			presignApiGateway: presign.api,
+			presignApi: presign.api,
 			cluster: db.cluster,
 		})
 	}
