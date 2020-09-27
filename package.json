@@ -5,9 +5,9 @@
     "wowmate": "bin/wowmate.js"
   },
   "scripts": {
-    "build-go": "cd ~/dev/wowmate && cd services/migrate && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main .  && cd ../summary && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main .  && cd ../import  && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . && cd ../api && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . && cd ../convert && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . && cd ../partition && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . ",
-    "build": "cd ~/dev/wowmate && npm run build-go && cd services/presign && npm install && cd ../.. && tsc",
-    "buildf": "cd services/frontend && yarn build && cd ../.. && tsc",
+    "build-go": "cd ~/dev/wowmate/services/common/migrate && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main .  && cd ~/dev/wowmate/services/common/partition && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main .  && cd ~/dev/wowmate/services/api/combatlogs/summaries/_combatlog-uuid/damage/get  && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . && cd ~/dev/wowmate/services/upload/convert && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . && cd ~/dev/wowmate/services/upload/import && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . && cd ~/dev/wowmate/services/upload/summary && rm main && go mod tidy && gofmt -w -s . && go build -ldflags='-s -w' -o main . ",
+    "build": "cd ~/dev/wowmate && npm run build-go && cd services/upload/presign && npm install && cd ~/dev/wowmate && tsc",
+    "buildf": "cd ~/dev/wowmate/services/frontend && yarn build && cd ../.. && tsc",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"

@@ -37,7 +37,7 @@ export class Convert extends cdk.Construct {
 		this.queue = q
 
 		const convertLambda = new lambda.Function(this, 'F', {
-			code: lambda.Code.fromAsset('services/convert'),
+			code: lambda.Code.fromAsset('services/upload/convert'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,

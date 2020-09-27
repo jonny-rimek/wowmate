@@ -27,7 +27,7 @@ export class Summary extends cdk.Construct {
 		})
 
 		this.summaryLambda = new lambda.Function(this, 'SummaryLambda', {
-			code: lambda.Code.fromAsset('services/summary'),
+			code: lambda.Code.fromAsset('services/upload/summary'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,

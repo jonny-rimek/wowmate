@@ -1,4 +1,4 @@
-module github.com/jonny-rimek/wowmate/services/api/combatlogs-combatlog-uuid-damage
+module github.com/wowmate/jonny-rimek/wowmate/services/api/combatlogs/summaries/_combatlog-uuid/damage/get
 
 go 1.15
 

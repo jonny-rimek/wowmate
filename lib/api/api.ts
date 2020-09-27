@@ -21,11 +21,11 @@ export class Api extends cdk.Construct {
 		super(scope, id)
 
 		this.topDamageLambda = new lambda.Function(this, 'TopDamageLambda', {
-			code: lambda.Code.fromAsset('services/api'),
+			code: lambda.Code.fromAsset('services/api/combatlogs/summaries/_combatlog-uuid/damage/get'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(30),
+			timeout: cdk.Duration.seconds(5),
 			environment: {
 				DB_ENDPOINT: props.dbEndpoint,
 				SECRET_ARN: props.dbSecret.secretArn,
@@ -52,7 +52,7 @@ export class Api extends cdk.Construct {
 		}),
 
 		httpApi.addRoutes({
-			path: '/api/combatlog/summary/{combatlog_uuid}/damage',
+			path: '/api/combatlogs/summaries/{combatlog_uuid}/damage',
 			methods: [HttpMethod.GET],
 			integration: topDamageIntegration,
 		})

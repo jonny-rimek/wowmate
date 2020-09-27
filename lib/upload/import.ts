@@ -39,7 +39,7 @@ export class Import extends cdk.Construct {
 		});
 
 		this.importLambda = new lambda.Function(this, 'Lambda', {
-			code: lambda.Code.fromAsset('services/import'),
+			code: lambda.Code.fromAsset('services/upload/import'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
