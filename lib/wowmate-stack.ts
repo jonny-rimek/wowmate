@@ -86,14 +86,14 @@ export class Wowmate extends Stack {
 			summaryLambda: summary.summaryLambda,
 		})
 
-		new ApiFrontendDashboard(this, 'ApiFrontendDashboard-', {
+		new ApiFrontendDashboard(this, 'UserFacing-', {
 			topDamageLambda: api.topDamageLambda,
 			api: api.api,
 			s3: frontend.bucket,
 			cloudfront: frontend.cloudfront,
 		})
 
-		new EtlDashboard(this, 'EtlDashboard-', {
+		new EtlDashboard(this, 'Etl-', {
 			convertLambda: convert.lambda,
 			convertQueue: convert.queue,
 			convertDLQ: convert.DLQ,

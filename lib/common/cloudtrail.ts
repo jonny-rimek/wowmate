@@ -12,7 +12,7 @@ export class Cloudtrail extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 		
-		const trail = new cloudtrail.Trail(this, 'Cloudtrail', {
+		const trail = new cloudtrail.Trail(this, 't', {
 			managementEvents: ReadWriteType.WRITE_ONLY,
 			sendToCloudWatchLogs: true,
 			// cloudWatchLogsRetention:^
