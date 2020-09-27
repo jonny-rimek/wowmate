@@ -9,6 +9,12 @@ export class Vpc extends cdk.Construct {
 
 		this.vpc = new ec2.Vpc(this, 'Vpc', {
 			natGateways: 1,
+			gatewayEndpoints: {
+				S3: {
+					service: ec2.GatewayVpcEndpointAwsService.S3,
+				}
+			}
+			
 		})
 	}
 }

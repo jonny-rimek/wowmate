@@ -237,6 +237,8 @@ func main() {
 		return
 	}
 
+	//if I use := Sess is not set as a global var but as a local
+	var err error
 	Sess, err = session.NewSession()
 	if err != nil {
 		log.Println("failed to create new session")
