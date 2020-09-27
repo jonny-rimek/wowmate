@@ -22,11 +22,11 @@ export class Summary extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
-		this.summaryDLQ = new sqs.Queue(this, 'SummaryDeadLetterQueue', {
+		this.summaryDLQ = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14)
 		})
 
-		this.summaryLambda = new lambda.Function(this, 'SummaryLambda', {
+		this.summaryLambda = new lambda.Function(this, 'Lambda', {
 			code: lambda.Code.fromAsset('services/upload/summary'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
