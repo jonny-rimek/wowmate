@@ -20,7 +20,7 @@ export class Partition extends cdk.Construct {
 		super(scope, id)
 
 		const partitionLambda = new lambda.Function(this, 'PartitionLambda', {
-			code: lambda.Code.fromAsset('services/partition'),
+			code: lambda.Code.fromAsset('services/common/partition'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,

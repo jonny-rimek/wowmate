@@ -1,10 +1,11 @@
 import cdk = require('@aws-cdk/core');
 import ec2 = require('@aws-cdk/aws-ec2');
 import s3 = require('@aws-cdk/aws-s3');
+import s3n = require('@aws-cdk/aws-s3-notifications');
 import sqs = require('@aws-cdk/aws-sqs');
 import lambda = require('@aws-cdk/aws-lambda');
 import { RetentionDays } from '@aws-cdk/aws-logs';
-import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
+import { S3EventSource, SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 
 interface VpcProps extends cdk.StackProps {
@@ -37,6 +38,8 @@ export class Import extends cdk.Construct {
 			},
 			visibilityTimeout: cdk.Duration.minutes(10)
 		});
+
+		props.csvBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.importQueue))
 
 		this.importLambda = new lambda.Function(this, 'Lambda', {
 			code: lambda.Code.fromAsset('services/upload/import'),
