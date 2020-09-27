@@ -19,7 +19,7 @@ export class Partition extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
-		const partitionLambda = new lambda.Function(this, 'PartitionLambda', {
+		const partitionLambda = new lambda.Function(this, 'Lambda', {
 			code: lambda.Code.fromAsset('services/common/partition'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -39,7 +39,7 @@ export class Partition extends cdk.Construct {
 
 		const partitionTarget = new eventTargets.LambdaFunction(partitionLambda)
 
-		new events.Rule(this, 'PartitionSchedule', {
+		new events.Rule(this, 'Schedule', {
 			//run every day at 4:30 am
 			schedule: events.Schedule.cron({ 
 				minute: '30',

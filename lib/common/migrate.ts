@@ -17,7 +17,7 @@ export class Migrate extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
-		const migrateLambda = new lambda.Function(this, 'MigrateLambda', {
+		const migrateLambda = new lambda.Function(this, 'Lambda', {
 			code: lambda.Code.fromAsset('services/common/migrate'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,

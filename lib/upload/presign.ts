@@ -15,7 +15,7 @@ export class Presign extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
-		const presignLambda = new lambda.Function(this, 'PresignLambda', {
+		const presignLambda = new lambda.Function(this, 'Lambda', {
 			runtime: lambda.Runtime.NODEJS_12_X,
 			code: lambda.Code.fromAsset('services/upload/presign'),
 			handler: 'index.handler',

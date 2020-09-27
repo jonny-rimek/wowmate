@@ -20,7 +20,7 @@ export class Database extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
-		this.dbSecGrp = new ec2.SecurityGroup(this, 'DBAccess', {
+		this.dbSecGrp = new ec2.SecurityGroup(this, 'Access', {
 			vpc: props.vpc,
 		})
 		this.dbSecGrp.addIngressRule(this.dbSecGrp, ec2.Port.tcp(5432), 'allow db connection')
