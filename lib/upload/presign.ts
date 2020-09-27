@@ -57,8 +57,5 @@ export class Presign extends cdk.Construct {
 		// 	target: route53.RecordTarget.fromAlias(new targets.ApiGateway(this.apiGateway)),
 		// 	recordName: 'presign.wowmate.io',
 		// });
-		new cdk.CfnOutput(this, 'HTTP API Url', {
-			value: this.api.url ?? 'Something went wrong with the deploy'
-		});
 	}
 }

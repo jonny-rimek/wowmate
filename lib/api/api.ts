@@ -41,7 +41,11 @@ export class Api extends cdk.Construct {
 			handler: this.topDamageLambda
 		})
 
-		const httpApi = new HttpApi(this, 'Api')
+		const httpApi = new HttpApi(this, 'Api', {
+			corsPreflight: {
+				allowOrigins: ["*"],
+			}
+		})
 
 		new CfnOutput(this, 'HttpApiEndpoint', {
 			value: httpApi.url!,

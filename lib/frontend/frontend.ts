@@ -57,7 +57,7 @@ export class Frontend extends cdk.Construct {
 					behaviors: [{
 						pathPattern: '/api/*',
 						compress: true,
-						// allowedMethods
+						allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
 						// cachedMethods
 						// defaultTtl
 						// forwardedValues
@@ -65,20 +65,22 @@ export class Frontend extends cdk.Construct {
 						// minTtl
 					}]
 				},
-				{
-					customOriginSource: {
-						domainName: props.presignApi.url!.replace('https://','').replace('/prod/',''),
-					},
-					behaviors: [{
-						pathPattern: '/presign',
-						compress: true,
-						allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
-					}],
-				},
+				//NOTE: this one is an API Gateway v1, the path has /prod/ at the end
+				// {
+				// 	customOriginSource: {
+				// 		domainName: props.presignApi.url!.replace('/prod/','').replace('https://',''),
+				// 	},
+				// 	behaviors: [{
+				// 		pathPattern: '/presign',
+						// originPath: '/prod/',
+				// 		compress: true,
+				// 		allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
+				// 	}],
+				// },
 				{
 					customOriginSource: {
 						domainName: bucket.bucketWebsiteDomainName,
-						originProtocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+						originProtocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY, //doesn't work with https
 					},
 					behaviors : [ {
 						isDefaultBehavior: true,
