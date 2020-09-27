@@ -20,7 +20,7 @@ export class Database extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
-		this.dbSecGrp = new ec2.SecurityGroup(this, 'Access', {
+		this.dbSecGrp = new ec2.SecurityGroup(this, 'Access', { //don't rename
 			vpc: props.vpc,
 		})
 		this.dbSecGrp.addIngressRule(this.dbSecGrp, ec2.Port.tcp(5432), 'allow db connection')
@@ -56,7 +56,7 @@ export class Database extends cdk.Construct {
 
 		//NOTE: 11.6 works with the proxy, just activate and remove the old this.dbEndpoint
 		//		every lambda will still work
-		// const proxy = this.cluster.addProxy('DBProxy', {
+		// const proxy = this.cluster.addProxy('Proxy', {
 		// 	secrets: [this.cluster.secret!],
 		// 	vpc: vpc,
 		// 	securityGroups: [dbGroup],
