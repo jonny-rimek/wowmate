@@ -66,17 +66,17 @@ export class Frontend extends cdk.Construct {
 					}]
 				},
 				//NOTE: this one is an API Gateway v1, the path has /prod/ at the end
-				// {
-				// 	customOriginSource: {
-				// 		domainName: props.presignApi.url!.replace('/prod/','').replace('https://',''),
-				// 	},
-				// 	behaviors: [{
-				// 		pathPattern: '/presign',
+				{
+					customOriginSource: {
+						domainName: props.presignApi.url!.replace('https://','').replace('/',''),
+					},
+					behaviors: [{
+						pathPattern: '/presign',
 						// originPath: '/prod/',
-				// 		compress: true,
-				// 		allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
-				// 	}],
-				// },
+						compress: true,
+						allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
+					}],
+				},
 				{
 					customOriginSource: {
 						domainName: bucket.bucketWebsiteDomainName,
