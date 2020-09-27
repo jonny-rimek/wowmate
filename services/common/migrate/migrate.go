@@ -23,7 +23,7 @@ func handler() error {
 		return err
 	}
 	
-	connStr, err := golib.DBCreds(secretArn, sess)
+	connStr, err := golib.DBCreds(secretArn, "", sess)
 	if err != nil {
 		return err
 	}
