@@ -30,6 +30,8 @@ interface Props extends cdk.StackProps {
 export class EtlDashboard extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
+		
+		const presignApiId = props.presignApi.httpApiId
 
 		const errorTopic = new sns.Topic(this, 'errorTopic');
 		errorTopic.addSubscription(new subscriptions.EmailSubscription('jimbo.db@protonmail.com'));
@@ -335,16 +337,16 @@ These components (AGW, Lambda and s3 bucket) are responsible to allow users to u
 					title: 'ApiGateway errors',
 					left: [
 						new cloudwatch.Metric({
-							metricName: '4XXError',
+							metricName: '4xx',
 							namespace: 'AWS/ApiGateway',
-							dimensions: { ApiName: 'PresignApi' }, //NOTE: ApiName is not exposed on the object
+							dimensions: { ApiId: presignApiId }, //NOTE: ApiName is not exposed on the object
 							statistic: 'Sum',
 							period: cdk.Duration.minutes(1),
 						}),
 						new cloudwatch.Metric({
-							metricName: '5XXError',
+							metricName: '5xx',
 							namespace: 'AWS/ApiGateway',
-							dimensions: { ApiName: 'PresignApi' }, //NOTE: ApiName is not exposed on the object
+							dimensions: { ApiId: presignApiId }, //NOTE: ApiName is not exposed on the object
 							statistic: 'Sum',
 							period: cdk.Duration.minutes(1),
 						}),
