@@ -13,39 +13,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
-//DatabasesCredentials are the data to log into the db
-type DatabasesCredentials struct {
-	DatabaseName string `json:"dbname"`
-	Password     string `json:"password"`
-	UserName     string `json:"username"`
-	Host         string `json:"host"`
-}
+var ConnStr string
 
 func handler() error {
-	secretArn := os.Getenv("SECRET_ARN")
-	if secretArn == "" {
-		return fmt.Errorf("csv bucket env var is empty")
-	}
-
-	proxyEndpoint := os.Getenv("DB_ENDPOINT")
-	if secretArn == "" {
-		return fmt.Errorf("csv bucket env var is empty")
-	}
-
-	sess, err := session.NewSession()
-	if err != nil {
-		fmt.Println(err.Error())
-		log.Println("failed to create new session")
-		return err
-	}
-
-	//TODO: should move get secret outside of handler, because it dosn't need to run on every invocation
-	connStr, err := golib.DBCreds(secretArn, proxyEndpoint, sess)
-	if err != nil {
-		return err
-	}
-
-	db, err := sql.Open("postgres", connStr)
+	//not sure if it makes sense to move it outside the handler too
+	db, err := sql.Open("postgres", ConnStr)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
@@ -110,5 +82,27 @@ func handler() error {
 }
 
 func main() {
+	secretArn := os.Getenv("SECRET_ARN")
+	if secretArn == "" {
+		log.Println("failed csv bucket env var is empty")
+		return
+	}
+
+	proxyEndpoint := os.Getenv("DB_ENDPOINT")
+	if secretArn == "" {
+		log.Println("csv bucket env var is empty")
+		return
+	}
+
+	sess, err := session.NewSession()
+	if err != nil {
+		return
+	}
+
+	ConnStr, err = golib.DBCreds(secretArn, proxyEndpoint, sess)
+	if err != nil {
+		return
+	}
+
 	lambda.Start(handler)
 }

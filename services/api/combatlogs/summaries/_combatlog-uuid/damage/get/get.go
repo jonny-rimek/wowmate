@@ -10,20 +10,12 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/jonny-rimek/wowmate/services/common/golib"
 	_ "github.com/lib/pq"
 )
 
-//DatabasesCredentials are the data to log into the db
-type DatabasesCredentials struct {
-	DatabaseName string `json:"dbname"`
-	Password     string `json:"password"`
-	UserName     string `json:"username"`
-	Host         string `json:"host"`
-}
+var ConnStr string
 
 type DamageResult struct {
 	PlayerName string `json:"player_name"`
@@ -34,86 +26,10 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 	serverError := events.APIGatewayV2HTTPResponse{
 		StatusCode: 500,
 	}
+
 	log.Println(request.PathParameters["combatlog_uuid"])
 
-	secretArn := os.Getenv("SECRET_ARN")
-	if secretArn == "" {
-		return serverError, fmt.Errorf("csv bucket env var is empty")
-	}
-
-	dbEndpoint := os.Getenv("DB_ENDPOINT")
-	if dbEndpoint == "" {
-		return serverError, fmt.Errorf("db endpoint env var is empty")
-	}
-
-	sess, err := session.NewSession()
-	if err != nil {
-		log.Println(err.Error())
-		log.Println("failed to create new session")
-		return serverError, err
-	}
-
-	//TODO: should move get secret outside of handler, because it dosn't need to run on every invocation
-	svc := secretsmanager.New(sess)
-
-	input := &secretsmanager.GetSecretValueInput{
-		SecretId:     aws.String(secretArn),
-		VersionStage: aws.String("AWSCURRENT"),
-	}
-
-	result, err := svc.GetSecretValue(input)
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case secretsmanager.ErrCodeDecryptionFailure:
-				// Secrets Manager can't decrypt the protected secret text using the provided KMS key.
-				log.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
-				return serverError, err
-
-			case secretsmanager.ErrCodeInternalServiceError:
-				// An error occurred on the server side.
-				log.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
-				return serverError, err
-
-			case secretsmanager.ErrCodeInvalidParameterException:
-				// You provided an invalid value for a parameter.
-				log.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
-				return serverError, err
-
-			case secretsmanager.ErrCodeInvalidRequestException:
-				// You provided a parameter value that is not valid for the current state of the resource.
-				log.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
-				return serverError, err
-
-			case secretsmanager.ErrCodeResourceNotFoundException:
-				// We can't find the resource that you asked for.
-				log.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
-				return serverError, err
-			}
-		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			log.Println(err.Error())
-			return serverError, err
-		}
-	}
-
-	var creds = DatabasesCredentials{}
-	err = json.Unmarshal([]byte(*result.SecretString), &creds)
-	if err != nil {
-		log.Println(err.Error())
-		return serverError, err
-	}
-
-	connStr := fmt.Sprintf(
-		"user=%v dbname=%v sslmode=verify-full host=%v password=%v port=5432",
-		creds.UserName,
-		creds.DatabaseName,
-		// creds.Host,
-		dbEndpoint,
-		creds.Password,
-	)
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", ConnStr)
 	if err != nil {
 		log.Println(err.Error())
 		return serverError, err
@@ -160,5 +76,29 @@ func handler(ctx context.Context, request events.APIGatewayV2HTTPRequest) (event
 }
 
 func main() {
+	secretArn := os.Getenv("SECRET_ARN")
+	if secretArn == "" {
+		log.Println("failed csv bucket env var is empty")
+		return 
+	}
+
+	dbEndpoint := os.Getenv("DB_ENDPOINT")
+	if dbEndpoint == "" {
+		log.Println("failed db endpoint env var is empty")
+		return
+	}
+
+	sess, err := session.NewSession()
+	if err != nil {
+		log.Println("failed to create new session")
+		return
+	}
+
+	ConnStr, err = golib.DBCreds(secretArn, "", sess)
+	if err != nil {
+		log.Println("failed to get the db creds")
+		return
+	}
+
 	lambda.Start(handler)
 }

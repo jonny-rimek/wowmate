@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -12,25 +11,13 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 )
+
+var ConnStr string
+
 func handler() error {
-	secretArn := os.Getenv("SECRET_ARN")
-	if secretArn == "" {
-		return fmt.Errorf("secret arn env var is empty")
-	}
-
-	sess, err := session.NewSession()
-	if err != nil {
-		return err
-	}
-	
-	connStr, err := golib.DBCreds(secretArn, "", sess)
-	if err != nil {
-		return err
-	}
-
 	//checks all files in the sql directory and applies all the missing ones
 	//the current state is saved inside the db
-	m, err := migrate.New("file://sql", connStr)
+	m, err := migrate.New("file://sql", ConnStr)
 	if err != nil {
 		return err
 	}
@@ -55,5 +42,21 @@ func handler() error {
 }
 
 func main() {
+	secretArn := os.Getenv("SECRET_ARN")
+	if secretArn == "" {
+		log.Println("failed secret arn env var is empty")
+		return
+	}
+
+	sess, err := session.NewSession()
+	if err != nil {
+		return
+	}
+	
+	ConnStr, err = golib.DBCreds(secretArn, "", sess)
+	if err != nil {
+		return
+	}
+
 	lambda.Start(handler)
 }
