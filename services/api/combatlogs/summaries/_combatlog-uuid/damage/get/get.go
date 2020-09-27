@@ -79,7 +79,7 @@ func main() {
 	secretArn := os.Getenv("SECRET_ARN")
 	if secretArn == "" {
 		log.Println("failed csv bucket env var is empty")
-		return 
+		return
 	}
 
 	dbEndpoint := os.Getenv("DB_ENDPOINT")

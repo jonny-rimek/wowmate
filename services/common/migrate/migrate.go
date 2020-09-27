@@ -52,7 +52,7 @@ func main() {
 	if err != nil {
 		return
 	}
-	
+
 	ConnStr, err = golib.DBCreds(secretArn, "", sess)
 	if err != nil {
 		return

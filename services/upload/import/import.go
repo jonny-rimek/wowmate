@@ -14,17 +14,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	lambdaservice "github.com/aws/aws-sdk-go/service/lambda"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/jonny-rimek/wowmate/services/common/golib"
 	_ "github.com/lib/pq"
 )
 
-//DatabasesCredentials are the data to log into the db
-type DatabasesCredentials struct {
-	DatabaseName string `json:"dbname"`
-	Password     string `json:"password"`
-	UserName     string `json:"username"`
-	Host         string `json:"host"`
-}
+var ConnStr string
+
+var Sess *session.Session
 
 //S3Event is the data that come from s3 and contains all the information about the event
 type S3Event struct {
@@ -86,91 +82,12 @@ type SQSEvent struct {
 }
 
 func handler(e SQSEvent) error {
-	secretArn := os.Getenv("SECRET_ARN")
-	if secretArn == "" {
-		return fmt.Errorf("secret arn env var is empty")
-	}
-
-	dbEndpoint := os.Getenv("DB_ENDPOINT")
-	if dbEndpoint == "" {
-		return fmt.Errorf("db endpoint env var is empty")
-	}
-
 	summaryLambdaName := os.Getenv("SUMMARY_LAMBDA_NAME")
 	if summaryLambdaName == "" {
 		return fmt.Errorf("summary lambda name env var is empty")
 	}
 
-	sess, err := session.NewSession()
-	if err != nil {
-		log.Println(err.Error())
-		log.Println("failed to create new session")
-		return err
-	}
-
-	//TODO: should move get secret outside of handler, because it dosn't need to run on every invocation
-	svc := secretsmanager.New(sess)
-
-	input := &secretsmanager.GetSecretValueInput{
-		SecretId:     aws.String(secretArn),
-		VersionStage: aws.String("AWSCURRENT"),
-	}
-
-	result, err := svc.GetSecretValue(input)
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case secretsmanager.ErrCodeDecryptionFailure:
-				// Secrets Manager can't decrypt the protected secret text using the provided KMS key.
-				log.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
-				return err
-
-			case secretsmanager.ErrCodeInternalServiceError:
-				// An error occurred on the server side.
-				log.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
-				return err
-
-			case secretsmanager.ErrCodeInvalidParameterException:
-				// You provided an invalid value for a parameter.
-				log.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
-				return err
-
-			case secretsmanager.ErrCodeInvalidRequestException:
-				// You provided a parameter value that is not valid for the current state of the resource.
-				log.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
-				return err
-
-			case secretsmanager.ErrCodeResourceNotFoundException:
-				// We can't find the resource that you asked for.
-				log.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
-				return err
-			}
-		} else {
-			// Print the error, cast err to awserr.Error to get the Code and
-			// Message from an error.
-			log.Println(err.Error())
-			return err
-		}
-	}
-
-	var creds = DatabasesCredentials{}
-	err = json.Unmarshal([]byte(*result.SecretString), &creds)
-	if err != nil {
-		return err
-	}
-
-	connStr := fmt.Sprintf(
-		"user=%v dbname=%v sslmode=verify-full host=%v password=%v port=5432",
-		creds.UserName,
-		creds.DatabaseName,
-		// creds.Host,
-		//NOTE:
-		//we aren't using the host from the secret, because we are passing it in
-		//through the env var, because it could be a proxy or a read only endpoint
-		dbEndpoint,
-		creds.Password,
-	)
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", ConnStr)
 	if err != nil {
 		return err
 	}
@@ -212,9 +129,6 @@ func handler(e SQSEvent) error {
 				log.Printf("duplicate key for %v, error msg: %v ", s3.Records[0].S3.Object.Key, err.Error())
 				return nil
 			}
-			//IMPROVE: check if error is:
-			//pq: duplicate key value violates unique constraint "combatlogs_pkey": Error
-			//if yes don't fail just continue
 			return err
 		}
 
@@ -230,7 +144,8 @@ func handler(e SQSEvent) error {
 			}
 			log.Printf("import query successfull: %v", s)
 
-			svc := lambdaservice.New(sess)
+			//switch to send message to eventbridge
+			svc := lambdaservice.New(Sess)
 			input := &lambdaservice.InvokeInput{
 				FunctionName:   aws.String(summaryLambdaName),
 				InvocationType: aws.String("Event"),
@@ -310,5 +225,28 @@ func handler(e SQSEvent) error {
 }
 
 func main() {
+	secretArn := os.Getenv("SECRET_ARN")
+	if secretArn == "" {
+		log.Println("secret arn env var is empty")
+		return
+	}
+
+	dbEndpoint := os.Getenv("DB_ENDPOINT")
+	if dbEndpoint == "" {
+		log.Println("db endpoint env var is empty")
+		return
+	}
+
+	Sess, err := session.NewSession()
+	if err != nil {
+		log.Println("failed to create new session")
+		return 
+	}
+
+	ConnStr, err = golib.DBCreds(secretArn, "", Sess)
+	if err != nil {
+		return
+	}
+
 	lambda.Start(handler)
 }
