@@ -237,10 +237,10 @@ func main() {
 		return
 	}
 
-	Sess, err := session.NewSession()
+	Sess, err = session.NewSession()
 	if err != nil {
 		log.Println("failed to create new session")
-		return 
+		return
 	}
 
 	ConnStr, err = golib.DBCreds(secretArn, "", Sess)
