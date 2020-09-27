@@ -1,4 +1,4 @@
-module github.com/jonny-rimek/wowmate/services/summary
+module github.com/jonny-rimek/wowmate/services/upload/summary
 
 go 1.15
 

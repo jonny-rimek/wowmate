@@ -11,3 +11,7 @@
 `sudo amazon-linux-extras install postgresql11`
 
 the bastion will be replaced when a new AMI version is released
+
+#### go mod
+
+e.g. `go mod init github.com/jonny-rimek/wowmate/services/api/combatlogs-combatlog-uuid-damage`

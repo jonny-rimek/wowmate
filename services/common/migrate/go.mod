@@ -1,4 +1,4 @@
-module github.com/jonny-rimek/wowmate/services/migrate
+module github.com/jonny-rimek/wowmate/services/common/migrate
 
 go 1.15
 

@@ -1,4 +1,4 @@
-module github.com/jonny-rimek/wowmate/services/convert
+module github.com/jonny-rimek/wowmate/services/upload/convert
 
 go 1.15
 

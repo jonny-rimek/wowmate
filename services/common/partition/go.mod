@@ -1,4 +1,4 @@
-module github.com/jonny-rimek/wowmate/services/partition
+module github.com/jonny-rimek/wowmate/services/common/partition
 
 go 1.15
 

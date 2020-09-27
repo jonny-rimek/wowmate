@@ -1,4 +1,4 @@
-module github.com/jonny-rimek/wowmate/services/import
+module github.com/jonny-rimek/wowmate/services/upload/import
 
 go 1.15
 
