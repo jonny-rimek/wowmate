@@ -11,9 +11,8 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
-	lambdaservice "github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 	_ "github.com/lib/pq"
 )
@@ -82,9 +81,9 @@ type SQSEvent struct {
 }
 
 func handler(e SQSEvent) error {
-	summaryLambdaName := os.Getenv("SUMMARY_LAMBDA_NAME")
-	if summaryLambdaName == "" {
-		return fmt.Errorf("summary lambda name env var is empty")
+	topicArn := os.Getenv("SUMMARY_TOPIC_NAME")
+	if topicArn == "" {
+		return fmt.Errorf("summary topic name env var is empty")
 	}
 
 	db, err := sql.Open("postgres", ConnStr)
@@ -144,80 +143,16 @@ func handler(e SQSEvent) error {
 			}
 			log.Printf("import query successfull: %v", s)
 
-			//switch to send message to eventbridge
-			svc := lambdaservice.New(Sess)
-			input := &lambdaservice.InvokeInput{
-				FunctionName:   aws.String(summaryLambdaName),
-				InvocationType: aws.String("Event"),
-				Payload:        []byte(fmt.Sprintf("{\"filename\":\"%v\"}", s3.Records[0].S3.Object.Key)),
-			}
-
-			result, err := svc.Invoke(input)
+			svc := sns.New(Sess)
+			result, err := svc.Publish(&sns.PublishInput{
+				Message:  aws.String((fmt.Sprintf("{\"filename\":\"%v\"}", s3.Records[0].S3.Object.Key))),
+				TopicArn: aws.String(topicArn),
+			})
 			if err != nil {
-				if aerr, ok := err.(awserr.Error); ok {
-					switch aerr.Code() {
-					case lambdaservice.ErrCodeServiceException:
-						log.Println(lambdaservice.ErrCodeServiceException, aerr.Error())
-					case lambdaservice.ErrCodeResourceNotFoundException:
-						log.Println(lambdaservice.ErrCodeResourceNotFoundException, aerr.Error())
-					case lambdaservice.ErrCodeInvalidRequestContentException:
-						log.Println(lambdaservice.ErrCodeInvalidRequestContentException, aerr.Error())
-					case lambdaservice.ErrCodeRequestTooLargeException:
-						log.Println(lambdaservice.ErrCodeRequestTooLargeException, aerr.Error())
-					case lambdaservice.ErrCodeUnsupportedMediaTypeException:
-						log.Println(lambdaservice.ErrCodeUnsupportedMediaTypeException, aerr.Error())
-					case lambdaservice.ErrCodeTooManyRequestsException:
-						log.Println(lambdaservice.ErrCodeTooManyRequestsException, aerr.Error())
-					case lambdaservice.ErrCodeInvalidParameterValueException:
-						log.Println(lambdaservice.ErrCodeInvalidParameterValueException, aerr.Error())
-					case lambdaservice.ErrCodeEC2UnexpectedException:
-						log.Println(lambdaservice.ErrCodeEC2UnexpectedException, aerr.Error())
-					case lambdaservice.ErrCodeSubnetIPAddressLimitReachedException:
-						log.Println(lambdaservice.ErrCodeSubnetIPAddressLimitReachedException, aerr.Error())
-					case lambdaservice.ErrCodeENILimitReachedException:
-						log.Println(lambdaservice.ErrCodeENILimitReachedException, aerr.Error())
-					case lambdaservice.ErrCodeEFSMountConnectivityException:
-						log.Println(lambdaservice.ErrCodeEFSMountConnectivityException, aerr.Error())
-					case lambdaservice.ErrCodeEFSMountFailureException:
-						log.Println(lambdaservice.ErrCodeEFSMountFailureException, aerr.Error())
-					case lambdaservice.ErrCodeEFSMountTimeoutException:
-						log.Println(lambdaservice.ErrCodeEFSMountTimeoutException, aerr.Error())
-					case lambdaservice.ErrCodeEFSIOException:
-						log.Println(lambdaservice.ErrCodeEFSIOException, aerr.Error())
-					case lambdaservice.ErrCodeEC2ThrottledException:
-						log.Println(lambdaservice.ErrCodeEC2ThrottledException, aerr.Error())
-					case lambdaservice.ErrCodeEC2AccessDeniedException:
-						log.Println(lambdaservice.ErrCodeEC2AccessDeniedException, aerr.Error())
-					case lambdaservice.ErrCodeInvalidSubnetIDException:
-						log.Println(lambdaservice.ErrCodeInvalidSubnetIDException, aerr.Error())
-					case lambdaservice.ErrCodeInvalidSecurityGroupIDException:
-						log.Println(lambdaservice.ErrCodeInvalidSecurityGroupIDException, aerr.Error())
-					case lambdaservice.ErrCodeInvalidZipFileException:
-						log.Println(lambdaservice.ErrCodeInvalidZipFileException, aerr.Error())
-					case lambdaservice.ErrCodeKMSDisabledException:
-						log.Println(lambdaservice.ErrCodeKMSDisabledException, aerr.Error())
-					case lambdaservice.ErrCodeKMSInvalidStateException:
-						log.Println(lambdaservice.ErrCodeKMSInvalidStateException, aerr.Error())
-					case lambdaservice.ErrCodeKMSAccessDeniedException:
-						log.Println(lambdaservice.ErrCodeKMSAccessDeniedException, aerr.Error())
-					case lambdaservice.ErrCodeKMSNotFoundException:
-						log.Println(lambdaservice.ErrCodeKMSNotFoundException, aerr.Error())
-					case lambdaservice.ErrCodeInvalidRuntimeException:
-						log.Println(lambdaservice.ErrCodeInvalidRuntimeException, aerr.Error())
-					case lambdaservice.ErrCodeResourceConflictException:
-						log.Println(lambdaservice.ErrCodeResourceConflictException, aerr.Error())
-					case lambdaservice.ErrCodeResourceNotReadyException:
-						log.Println(lambdaservice.ErrCodeResourceNotReadyException, aerr.Error())
-					default:
-						log.Println(aerr.Error())
-					}
-				} else {
-					log.Println(err.Error())
-				}
 				return err
 			}
-
-			log.Println(result)
+			log.Printf("message posted to topic")
+			fmt.Println(*result.MessageId)
 		}
 	}
 	log.Println("summary successfully invoked")

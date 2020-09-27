@@ -83,7 +83,7 @@ export class Wowmate extends Stack {
 			dbSecGrp: db.dbSecGrp,
 			dbSecret: db.dbSecret,
 			dbEndpoint: db.dbEndpoint,
-			summaryLambda: summary.summaryLambda,
+			summaryTopic: summary.summaryTopic,
 		})
 
 		new ApiFrontendDashboard(this, 'UserFacing-', {

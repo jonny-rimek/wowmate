@@ -6,6 +6,8 @@ import lambda = require('@aws-cdk/aws-lambda');
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import * as destinations from '@aws-cdk/aws-lambda-destinations';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
+import * as sns from '@aws-cdk/aws-sns';
+import * as subs from '@aws-cdk/aws-sns-subscriptions';
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc
@@ -18,6 +20,7 @@ interface VpcProps extends cdk.StackProps {
 export class Summary extends cdk.Construct {
 	public readonly summaryLambda: lambda.Function;
 	public readonly summaryDLQ: sqs.Queue;
+	public readonly summaryTopic: sns.Topic
 
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
@@ -25,6 +28,8 @@ export class Summary extends cdk.Construct {
 		this.summaryDLQ = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14)
 		})
+
+		this.summaryTopic = new sns.Topic(this, 'Topic');
 
 		this.summaryLambda = new lambda.Function(this, 'Lambda', {
 			code: lambda.Code.fromAsset('services/upload/summary'),
@@ -44,5 +49,7 @@ export class Summary extends cdk.Construct {
 			onFailure: new destinations.SqsDestination(this.summaryDLQ)
 		})
 		props.dbSecret?.grantRead(this.summaryLambda)
+
+		this.summaryTopic.addSubscription(new subs.LambdaSubscription(this.summaryLambda))
 	}
 }

@@ -5,8 +5,9 @@ import s3n = require('@aws-cdk/aws-s3-notifications');
 import sqs = require('@aws-cdk/aws-sqs');
 import lambda = require('@aws-cdk/aws-lambda');
 import { RetentionDays } from '@aws-cdk/aws-logs';
-import { S3EventSource, SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
+import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
+import * as sns from '@aws-cdk/aws-sns';
 
 interface VpcProps extends cdk.StackProps {
 	vpc: ec2.IVpc
@@ -14,7 +15,7 @@ interface VpcProps extends cdk.StackProps {
 	dbSecGrp: ec2.SecurityGroup
 	dbSecret : secretsmanager.ISecret
 	dbEndpoint: string
-	summaryLambda: lambda.Function
+	summaryTopic: sns.Topic
 }
 
 export class Import extends cdk.Construct {
@@ -50,7 +51,7 @@ export class Import extends cdk.Construct {
 			environment: {
 				SECRET_ARN: props.dbSecret.secretArn,
 				DB_ENDPOINT: props.dbEndpoint,
-				SUMMARY_LAMBDA_NAME: props.summaryLambda.functionName,
+				SUMMARY_TOPIC_NAME: props.summaryTopic.topicName,
 			},
 			reservedConcurrentExecutions: 1, 
 			logRetention: RetentionDays.ONE_WEEK,
@@ -59,13 +60,14 @@ export class Import extends cdk.Construct {
 			securityGroups: [props.dbSecGrp],
 			// onSuccess: new destinations.LambdaDestination(this.summaryLambda),
 			//NOTE: SQS invokes lambda synchronously and thus lambda Destinations
-			//		don't work. I have to call the summary lambda in the code
+			//		don't work. I have to post the message to the topic in the code
 			//		https://docs.aws.amazon.com/sdk-for-go/api/service/lambda/#Lambda.Invoke
 			//		second example
 		})
-		props.summaryLambda.grantInvoke(this.importLambda)
-
 		this.importLambda.addEventSource(new SqsEventSource(this.importQueue))
+
 		props.dbSecret?.grantRead(this.importLambda)
+
+		props.summaryTopic.grantPublish(this.importLambda)
 	}
 }
