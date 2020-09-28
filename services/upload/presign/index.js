@@ -25,7 +25,7 @@ exports.handler = (event, context, callback) => {
 			key: key,
 		},
 		Conditions: [
-			["content-length-range", 	0, 300000000], // content length restrictions: 0-300 MB
+			["content-length-range", 	0, 314572800], // content length restrictions: 0-300 MB
 			//["starts-with", "$Content-Type", "image/"], // content type restriction
 			{'success_action_status': '201'},
 			['starts-with', '$Content-Type', ''],
