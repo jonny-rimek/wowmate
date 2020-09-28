@@ -18,28 +18,24 @@ exports.handler = (event, context, callback) => {
         'Content-Type': '',
     };
 
+	//TODO: path to bucket name year/month/day/uuid.FILEENDING
 	const res = s3.createPresignedPost({
 		Bucket: bucket,
 		Fields: {
 			key: key,
 		},
 		Conditions: [
-			// ["content-length-range", 	0, 1000000000], // content length restrictions: 0-1MB
+			["content-length-range", 	0, 300000000], // content length restrictions: 0-300 MB
 			//["starts-with", "$Content-Type", "image/"], // content type restriction
-		//	["eq", "$x-amz-meta-userid", userid], // tag with userid <= the user can see this!
-		//TODO: uploaded files are publicly readable
-            // {'acl': 'private'},
-            {'success_action_status': '201'},
-            ['starts-with', '$Content-Type', ''],
-            ['starts-with', '$key', ''],
+			{'success_action_status': '201'},
+			['starts-with', '$Content-Type', ''],
+			['starts-with', '$key', ''],
 		]
 	});
 
     let body = {
-		//TODO: uploaded files are publicly readable
         signature: {
             'Content-Type': '',
-            // 'acl': 'private',
             'success_action_status': '201',
             key,
             ...res.fields,
