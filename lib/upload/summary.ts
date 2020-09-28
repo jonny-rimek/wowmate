@@ -50,6 +50,13 @@ export class Summary extends cdk.Construct {
 		})
 		props.dbSecret?.grantRead(this.summaryLambda)
 
-		this.summaryTopic.addSubscription(new subs.LambdaSubscription(this.summaryLambda))
+		const dlQueue = new sqs.Queue(this, 'TopicDeadletterQueue', {
+			retentionPeriod: cdk.Duration.days(14),
+		});
+
+		this.summaryTopic.addSubscription(new subs.LambdaSubscription(this.summaryLambda, {
+			deadLetterQueue: dlQueue,
+			// filterPolicy: all messages delivered
+		}))
 	}
 }
