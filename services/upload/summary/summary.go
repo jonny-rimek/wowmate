@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
@@ -15,12 +16,8 @@ import (
 
 var ConnStr string
 
-type Event struct {
-	Filename string `json:"filename"`
-}
-
-func handler(e Event) error {
-	log.Println("hello world: " + e.Filename)
+func handler(e events.SNSEvent) error {
+	log.Println("hello world: " + e.Records[0].SNS.Message)
 
 	db, err := sql.Open("postgres", ConnStr)
 	if err != nil {
@@ -30,7 +27,6 @@ func handler(e Event) error {
 	defer db.Close()
 	log.Println("openend connection")
 
-	//TODO: check result if 0 rows imported throw an error
 	q := fmt.Sprintf(`
 		INSERT INTO summary(caster_name, damage, mythicplus_uuid)
 		(SELECT
@@ -44,10 +40,10 @@ func handler(e Event) error {
 		GROUP BY
 			caster_name, mythicplus_uuid
 		);
-		`, strings.TrimSuffix(e.Filename, ".csv"), "Player-%")
+		`, strings.TrimSuffix(e.Records[0].SNS.Message, ".csv"), "Player-%") 
+		//can't write -% inside the statement because Sprintf gets confused
 
-	// log.Println(q)
-
+	//TODO: check result if 0 rows imported throw an error
 	rows, err := db.Query(q)
 	if err != nil {
 		log.Println("query" + err.Error())

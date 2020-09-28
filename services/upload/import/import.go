@@ -58,7 +58,7 @@ type S3Event struct {
 		} `json:"s3"`
 	} `json:"Records"`
 }
-
+//TODO: use events.SQSEvent see summary lambda
 //SQSEvent is all the data that gets passed into the lambda from the q
 type SQSEvent struct {
 	Records []struct {
@@ -145,7 +145,7 @@ func handler(e SQSEvent) error {
 
 			svc := sns.New(Sess)
 			result, err := svc.Publish(&sns.PublishInput{
-				Message:  aws.String((fmt.Sprintf("{\"filename\":\"%v\"}", s3.Records[0].S3.Object.Key))),
+				Message:  aws.String(s3.Records[0].S3.Object.Key),
 				TopicArn: aws.String(topicArn),
 			})
 			if err != nil {
