@@ -11,8 +11,7 @@ export class Buckets extends cdk.Construct {
 
 		this.uploadBucket = new s3.Bucket(this, 'Upload', {
 			removalPolicy: RemovalPolicy.DESTROY,
-			//I think presigning a link didn't work with block all
-			// blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 			cors: [
 				{
 					allowedOrigins: [
