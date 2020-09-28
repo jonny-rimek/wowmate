@@ -58,6 +58,7 @@ type S3Event struct {
 		} `json:"s3"`
 	} `json:"Records"`
 }
+
 //TODO: use events.SQSEvent see summary lambda
 //SQSEvent is all the data that gets passed into the lambda from the q
 type SQSEvent struct {
@@ -134,7 +135,7 @@ func handler(e SQSEvent) error {
 		defer rows.Close()
 
 		for rows.Next() {
-			var s string
+			var s string //trigger
 
 			err = rows.Scan(&s)
 			if err != nil {

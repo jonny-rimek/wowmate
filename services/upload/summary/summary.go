@@ -40,8 +40,8 @@ func handler(e events.SNSEvent) error {
 		GROUP BY
 			caster_name, mythicplus_uuid
 		);
-		`, strings.TrimSuffix(e.Records[0].SNS.Message, ".csv"), "Player-%") 
-		//can't write -% inside the statement because Sprintf gets confused
+		`, strings.TrimSuffix(e.Records[0].SNS.Message, ".csv"), "Player-%")
+	//can't write -% inside the statement because Sprintf gets confused
 
 	//TODO: check result if 0 rows imported throw an error
 	rows, err := db.Query(q)
