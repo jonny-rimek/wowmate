@@ -28,7 +28,7 @@ exports.handler = (event, context, callback) => {
 			//["starts-with", "$Content-Type", "image/"], // content type restriction
 		//	["eq", "$x-amz-meta-userid", userid], // tag with userid <= the user can see this!
 		//TODO: uploaded files are publicly readable
-            {'acl': 'private'},
+            // {'acl': 'private'},
             {'success_action_status': '201'},
             ['starts-with', '$Content-Type', ''],
             ['starts-with', '$key', ''],
@@ -39,7 +39,7 @@ exports.handler = (event, context, callback) => {
 		//TODO: uploaded files are publicly readable
         signature: {
             'Content-Type': '',
-            'acl': 'private',
+            // 'acl': 'private',
             'success_action_status': '201',
             key,
             ...res.fields,
