@@ -176,9 +176,9 @@ func handler(e SQSEvent) error {
 		} else if strings.HasSuffix(objectKey, ".txt.gz") {
 			maxSize = 30
 			gz = true
-			} else if strings.HasSuffix(objectKey, ".zip") {
-				maxSize = 30
-				z = true
+		} else if strings.HasSuffix(objectKey, ".zip") {
+			maxSize = 30
+			z = true
 		} else {
 			return fmt.Errorf("file suffix is not supported")
 		}
@@ -250,12 +250,12 @@ func handler(e SQSEvent) error {
 }
 
 func readZipFile(zf *zip.File) ([]byte, error) {
-    f, err := zf.Open()
-    if err != nil {
-        return nil, err
-    }
-    defer f.Close()
-    return ioutil.ReadAll(f)
+	f, err := zf.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return ioutil.ReadAll(f)
 }
 
 func downloadS3(sess *session.Session, bucketName string, objectKey string, fileContent io.WriterAt) error {
