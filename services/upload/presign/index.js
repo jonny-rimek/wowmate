@@ -11,7 +11,7 @@ exports.handler = (event, context, callback) => {
     }
 	console.log(bucket);
 
-	console.log(event);
+	console.log(event.requestContext.http.path);
 	
     const key = uuidv4() + '.txt';
     const params = {
