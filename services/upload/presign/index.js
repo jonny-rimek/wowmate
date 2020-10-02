@@ -9,8 +9,10 @@ exports.handler = (event, context, callback) => {
     if (!bucket) {
         callback(new Error(`S3 bucket not set`));
     }
-    console.log(bucket);
+	console.log(bucket);
 
+	console.log(event);
+	
     const key = uuidv4() + '.txt';
     const params = {
         'Bucket': bucket,
@@ -25,7 +27,7 @@ exports.handler = (event, context, callback) => {
 			key: key,
 		},
 		Conditions: [
-			["content-length-range", 	0, 31457280/*0*/], // content length restrictions: 0-300 MB
+			["content-length-range", 	0, 314572800], // content length restrictions: 0-300 MB
 			//["starts-with", "$Content-Type", "image/"], // content type restriction
 			{'success_action_status': '201'},
 			['starts-with', '$Content-Type', ''],

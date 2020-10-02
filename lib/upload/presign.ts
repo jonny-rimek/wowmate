@@ -33,7 +33,7 @@ export class Presign extends cdk.Construct {
 		})
 
 		this.api.addRoutes({
-			path: '/presign',
+			path: '/presign/{filename}',
 			methods: [HttpMethod.POST],
 			integration: new LambdaProxyIntegration({
 				handler: presignLambda,
