@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -163,13 +165,29 @@ func handler(e SQSEvent) error {
 		bucketName := req.Records[0].S3.Bucket.Name
 		objectKey := req.Records[0].S3.Object.Key
 
+		var maxSize int
+		var gz bool
+		// var z bool
+
+		if strings.HasSuffix(objectKey, ".txt") {
+			maxSize = 300
+		} else if strings.HasSuffix(objectKey, ".txt.gz") {
+			maxSize = 30
+			gz = true
+		// } else if strings.HasSuffix(objectKey, ".zip") {
+		// 	maxSize = 30
+		// 	z = true
+		} else {
+			return fmt.Errorf("file suffix is not supported")
+		}
+
 		objectSize, err := sizeOfS3Object(sess, bucketName, objectKey)
 		if err != nil {
 			return err
 		}
 		log.Printf("Object is %v MB", objectSize)
 
-		if objectSize > 300 {
+		if objectSize > maxSize {
 			return fmt.Errorf("wow that's way too big. um phrasing?")
 		}
 
@@ -180,7 +198,41 @@ func handler(e SQSEvent) error {
 			return err
 		}
 
-		s := bufio.NewScanner(bytes.NewReader(fileContent.Bytes()))
+		var data []byte
+
+		if gz == true {
+			buf := bytes.NewBuffer(fileContent.Bytes())
+			r, err := gzip.NewReader(buf)
+			if err != nil {
+				return err
+			}
+
+			var resB bytes.Buffer
+			_, err = resB.ReadFrom(r)
+			if err != nil {
+				return err
+			}
+
+			data = resB.Bytes()
+		// } else if z == true {
+/* 			buf := bytes.NewBuffer(fileContent.Bytes())
+			r, err := zip.NewReader(buf)
+			if err != nil {
+				return err
+			}
+
+			var resB bytes.Buffer
+			_, err = resB.ReadFrom(r)
+			if err != nil {
+				return err
+			}
+
+			data = resB.Bytes() */
+		} else {
+			data = fileContent.Bytes()
+		}
+
+		s := bufio.NewScanner(bytes.NewReader(data))
 		uploadUUID := uuid.Must(uuid.NewV4()).String()
 
 		err = Normalize(s, uploadUUID, sess, csvBucket)

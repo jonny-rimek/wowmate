@@ -43,7 +43,7 @@ export default {
 			},
 			awss3: {
 				signingURL: f => {
-					return 'https://wowmate.io/presign/filename.txt'
+					return 'https://wowmate.io/presign/filename.txt.gz'
 				},
 				headers: {
 					//   'Content-Type': 'multipart/form-data'

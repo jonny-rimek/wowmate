@@ -32,9 +32,9 @@ exports.handler = (event, context, callback) => {
 	} else {
 		callback(null, {
 			statusCode: 500,
-			headers: {
-			"Access-Control-Allow-Origin": "*"
-			},
+			// headers: {
+			// "Access-Control-Allow-Origin": "*"
+			// },
 			body: 'invalid filename',
 		});
 	}
