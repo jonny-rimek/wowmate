@@ -66,7 +66,7 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 				new GraphWidget({
 					title: 'Network recieve througput',
 					left: [
-						props.cluster.metricNetworkReceiveThroughput({period: cdk.Duration.minutes(1)}),
+						props.cluster.metricNetworkReceiveThroughput({statistic: "sum",  period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
