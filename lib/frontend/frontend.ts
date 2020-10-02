@@ -78,7 +78,7 @@ export class Frontend extends cdk.Construct {
 						domainName: props.presignApi.url!.replace('https://','').replace('/',''),
 					},
 					behaviors: [{
-						pathPattern: '/presign',
+						pathPattern: '/presign/*',
 						compress: true,
 						allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
 					}],
