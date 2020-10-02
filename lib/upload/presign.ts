@@ -1,6 +1,5 @@
 import cdk = require('@aws-cdk/core');
 import * as lambda from '@aws-cdk/aws-lambda';
-import apigateway = require('@aws-cdk/aws-apigateway');
 import s3 = require('@aws-cdk/aws-s3');
 import { HttpApi, LambdaProxyIntegration, HttpMethod } from '@aws-cdk/aws-apigatewayv2';
 
@@ -26,10 +25,9 @@ export class Presign extends cdk.Construct {
 		props.uploadBucket.grantPut(presignLambda);
 
 		this.api = new HttpApi(this, 'Api', {
-		//TODO: test if i need cors after I activated CORS on the bucket
-			corsPreflight: {
-				allowOrigins: ["*"],
-			},
+			// corsPreflight: {
+			// 	allowOrigins: ["*"],
+			// },
 		})
 
 		this.api.addRoutes({
