@@ -18,8 +18,11 @@ exports.handler = (event, context, callback) => {
 	if (path.match(/\.txt.gz/) == '.txt.gz') {
 		fileending = '.txt.gz';
 		filesize = 31457280; 
-		//ziped files are smaller, but we still can't process larger files in the lambda
+		//gziped files are smaller, but we still can't process larger files in the lambda
 		//once it's uncompressed
+		//a 300mb file is around 30mb gziped, but it still has to be unpacked and proccessed,
+		//gziping just speeds up the upload and download into the lambda.
+		//the size of the file we can handle is limited by the RAM availabe inside the lambda
 	} else if (path.match(/\.txt/) == '.txt') {
 		fileending = '.txt';
 		filesize = 314572800;
@@ -36,11 +39,10 @@ exports.handler = (event, context, callback) => {
 		});
 	}
 
-	console.log(fileending);
+	var currentTime = new Date()
 
-	const key = uuidv4() + fileending;
+	const key = `${currentTime.getFullYear()}/${currentTime.getMonth() + 1}/${currentTime.getDate()}/${uuidv4()} + ${fileending}`;
 
-	//TODO: path to bucket name year/month/day/uuid.FILEENDING
 	const res = s3.createPresignedPost({
 		Bucket: bucket,
 		Fields: {
@@ -55,15 +57,15 @@ exports.handler = (event, context, callback) => {
 		]
 	});
 
-    let body = {
-        signature: {
-            'Content-Type': '',
-            'success_action_status': '201',
-            key,
-            ...res.fields,
-        },
-        postEndpoint: res.url,
-    }
+	let body = {
+		signature: {
+			'Content-Type': '',
+			'success_action_status': '201',
+			key,
+			...res.fields,
+		},
+		postEndpoint: res.url,
+	}
 
 	callback(null, {
 		statusCode: 200,
