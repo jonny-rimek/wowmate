@@ -1,6 +1,7 @@
 package main
 
 import (
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"compress/gzip"
@@ -8,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -167,16 +169,16 @@ func handler(e SQSEvent) error {
 
 		var maxSize int
 		var gz bool
-		// var z bool
+		var z bool
 
 		if strings.HasSuffix(objectKey, ".txt") {
 			maxSize = 300
 		} else if strings.HasSuffix(objectKey, ".txt.gz") {
 			maxSize = 30
 			gz = true
-		// } else if strings.HasSuffix(objectKey, ".zip") {
-		// 	maxSize = 30
-		// 	z = true
+			} else if strings.HasSuffix(objectKey, ".zip") {
+				maxSize = 30
+				z = true
 		} else {
 			return fmt.Errorf("file suffix is not supported")
 		}
@@ -214,20 +216,24 @@ func handler(e SQSEvent) error {
 			}
 
 			data = resB.Bytes()
-		// } else if z == true {
-/* 			buf := bytes.NewBuffer(fileContent.Bytes())
-			r, err := zip.NewReader(buf)
+			log.Println("successfully ungziped")
+		} else if z == true {
+			zipReader, err := zip.NewReader(bytes.NewReader(fileContent.Bytes()), int64(len(fileContent.Bytes())))
 			if err != nil {
 				return err
 			}
 
-			var resB bytes.Buffer
-			_, err = resB.ReadFrom(r)
-			if err != nil {
-				return err
-			}
+			for i, zipFile := range zipReader.File {
+				log.Printf("zip loop i = %v", i)
+				fmt.Println("Reading file:", zipFile.Name)
+				unzippedFileBytes, err := readZipFile(zipFile)
+				if err != nil {
+					return err
+				}
 
-			data = resB.Bytes() */
+				data = append(data, unzippedFileBytes...)
+			}
+			log.Println("successfully unziped")
 		} else {
 			data = fileContent.Bytes()
 		}
@@ -239,9 +245,17 @@ func handler(e SQSEvent) error {
 		if err != nil {
 			return err
 		}
-
 	}
 	return nil
+}
+
+func readZipFile(zf *zip.File) ([]byte, error) {
+    f, err := zf.Open()
+    if err != nil {
+        return nil, err
+    }
+    defer f.Close()
+    return ioutil.ReadAll(f)
 }
 
 func downloadS3(sess *session.Session, bucketName string, objectKey string, fileContent io.WriterAt) error {
