@@ -112,11 +112,26 @@ func (e *Event) normalizeEncounterStart(params []string) (err error) {
 		return fmt.Errorf("combatlog version should have 8 columns, it has %v: %v", len(params), params)
 	}
 
-	err = e.normalizeBaseEncounter(params)
+	e.EncounterID, err = Atoi32(params[1])
 	if err != nil {
 		log.Println("failed to convert encounter start event")
 		return err
 	}
+
+	e.EncounterName = trimQuotes(params[2])
+
+	e.EncounterUnknown1, err = Atoi32(params[3])
+	if err != nil {
+		log.Println("failed to convert encounter start event")
+		return err
+	}
+
+	e.EncounterUnknown2, err = Atoi32(params[4])
+	if err != nil {
+		log.Println("failed to convert encounter start event")
+		return err
+	}
+
 	e.DungeonID, err = Atoi32(params[5])
 	if err != nil {
 		log.Println("failed to convert encounter start event")
@@ -134,40 +149,29 @@ func (e *Event) normalizeEncounterEnd(params []string) (err error) {
 		return fmt.Errorf("combatlog version should have 8 columns, it has %v: %v", len(params), params)
 	}
 
-	err = e.normalizeBaseEncounter(params)
+	e.EncounterID, err = Atoi32(params[1])
 	if err != nil {
 		log.Println("failed to convert encounter end event")
 		return err
 	}
+
+	e.EncounterName = trimQuotes(params[2])
+
+	e.EncounterUnknown1, err = Atoi32(params[3])
+	if err != nil {
+		log.Println("failed to convert encounter end event")
+		return err
+	}
+
+	e.EncounterUnknown2, err = Atoi32(params[4])
+	if err != nil {
+		log.Println("failed to convert encounter end event")
+		return err
+	}
+
 	e.Killed, err = Atoi32(params[5])
 	if err != nil {
 		log.Println("failed to convert encounter end event")
-		return err
-	}
-	return nil
-}
-
-//11/3 09:00:22.354  ENCOUNTER_START,2086,"Rezan",8,5,--1763
-//11/3 09:01:58.364  ENCOUNTER_END,2086,"Rezan",8,5, --1
-
-//v16
-//10/3 05:59:07.379  ENCOUNTER_START,2401,"Halkias, the Sin-Stained Goliath",8,5,2287
-//10/3 06:00:02.433  ENCOUNTER_END,2401,"Halkias, the Sin-Stained Goliath",8,5,1
-func (e *Event) normalizeBaseEncounter(params []string) (err error) {
-	e.EncounterID, err = Atoi32(params[1])
-	if err != nil {
-		log.Println("failed to convert encounter start/end event")
-		return err
-	}
-	e.EncounterName = trimQuotes(params[2])
-	e.EncounterUnknown1, err = Atoi32(params[3])
-	if err != nil {
-		log.Println("failed to convert encounter start/end event")
-		return err
-	}
-	e.EncounterUnknown2, err = Atoi32(params[4])
-	if err != nil {
-		log.Println("failed to convert encounter start/end event")
 		return err
 	}
 	return nil
