@@ -42,7 +42,15 @@ func convertToTimestampMilli(input string) (int64, error) {
 }
 
 //11/3 09:00:00.760  CHALLENGE_MODE_START,"Atal'Dazar",1763,244,10,[10,11,14,16]
+
+//v16
+//10/3 05:51:00.975  CHALLENGE_MODE_START,"Halls of Atonement",2287,378,2,[10]
+//NOTE: the array is definitely the affixes
 func (e *Event) normalizeChallengeModeStart(params []string) (err error) {
+	if len(params) != 6 {
+		return fmt.Errorf("combatlog version should have 8 columns, it has %v: %v", len(params), params)
+	}
+
 	e.DungeonName = trimQuotes(params[1])
 	e.DungeonID, err = Atoi32(params[2])
 	if err != nil {
@@ -64,7 +72,14 @@ func (e *Event) normalizeChallengeModeStart(params []string) (err error) {
 }
 
 //11/3 09:34:07.310  CHALLENGE_MODE_END,1763,1,10,2123441
+
+//v16
+//10/3 05:51:00.879  CHALLENGE_MODE_END,2287,0,0,0
 func (e *Event) normalizeChallengeModeEnd(params []string) (err error) {
+	if len(params) != 5 {
+		return fmt.Errorf("combatlog version should have 8 columns, it has %v: %v", len(params), params)
+	}
+
 	e.DungeonID, err = Atoi32(params[1])
 	if err != nil {
 		log.Println("failed to convert challange mode end event")
@@ -93,6 +108,10 @@ func (e *Event) normalizeChallengeModeEnd(params []string) (err error) {
 //16
 //10/3 05:59:07.379  ENCOUNTER_START,2401,"Halkias, the Sin-Stained Goliath",8,5,2287
 func (e *Event) normalizeEncounterStart(params []string) (err error) {
+	if len(params) != 6 {
+		return fmt.Errorf("combatlog version should have 8 columns, it has %v: %v", len(params), params)
+	}
+
 	err = e.normalizeBaseEncounter(params)
 	if err != nil {
 		log.Println("failed to convert encounter start event")
@@ -111,6 +130,10 @@ func (e *Event) normalizeEncounterStart(params []string) (err error) {
 //v16
 //10/3 06:00:02.433  ENCOUNTER_END,2401,"Halkias, the Sin-Stained Goliath",8,5,1
 func (e *Event) normalizeEncounterEnd(params []string) (err error) {
+	if len(params) != 6 {
+		return fmt.Errorf("combatlog version should have 8 columns, it has %v: %v", len(params), params)
+	}
+
 	err = e.normalizeBaseEncounter(params)
 	if err != nil {
 		log.Println("failed to convert encounter end event")
@@ -181,6 +204,10 @@ func (e *Event) normalizeCombatlogVersion(params []string) (err error) {
 // v16
 // 10/3 05:51:15.415  SPELL_DAMAGE,Player-4184-00130F03,"Unstaebl-Torghast",0x512,0x0,Creature-0-2085-2287-15092-165515-0005F81144,"Depraved Darkblade",0xa48,0x0,127802,"Touch of the Grave",0x20,Creature-0-2085-2287-15092-165515-0005F81144,0000000000000000,92482,96120,0,0,1071,0,3,100,100,0,-2206.68,5071.68,1663,2.1133,60,456,456,-1,32,0,0,0,nil,nil,nil
 func (e *Event) normalizeDamage(params []string) (err error) {
+	if len(params) != 39 {
+		return fmt.Errorf("combatlog version should have 8 columns, it has %v: %v", len(params), params)
+	}
+
 	e.CasterID = params[1]               //Player-1302-09C8C064 ✔
 	e.CasterName = trimQuotes(params[2]) //"Hyrriuk-Archimonde" ✔
 	e.CasterType = params[3]             //0x512
@@ -239,57 +266,57 @@ func (e *Event) normalizeDamage(params []string) (err error) {
 }
 
 //TODO:
-func (e *Event) normalizeHeal(params []string) (err error) {
-	e.CasterID = params[1]               //Player-970-00307C5B
-	e.CasterName = trimQuotes(params[2]) //"Brimidreki-Sylvanas"
-	e.CasterType = params[3]             //0x512
-	e.SourceFlag = params[4]             //0x0
-	e.TargetID = params[5]               //Player-970-00307C5B
-	e.TargetName = trimQuotes(params[6]) //"Brimidreki-Sylvanas"
-	e.TargetType = params[7]             //0x512
-	e.DestFlag = params[8]               //0x0
-	e.SpellID, err = Atoi32(params[9])   //122281
-	if err != nil {
-		log.Println("failed to convert heal event")
-		return err
-	}
-	e.SpellName = trimQuotes(params[10])           //"Healing Elixir"
-	e.SpellType = params[11]                       //0x8
-	e.AnotherPlayerID = params[12]                 //Player-970-00307C5B
-	e.D0 = params[13]                              //0000000000000000
-	e.D1, _ = strconv.ParseInt(params[14], 10, 64) //132358
-	e.D2, _ = strconv.ParseInt(params[15], 10, 64) //135424
-	e.D3, _ = strconv.ParseInt(params[16], 10, 64) //4706
-	e.D4, _ = strconv.ParseInt(params[17], 10, 64) //1467
-	e.D5, _ = strconv.ParseInt(params[18], 10, 64) //1455
-	e.D6, _ = strconv.ParseInt(params[19], 10, 64) //3
-	e.D7, _ = strconv.ParseInt(params[20], 10, 64) //79
-	e.D8, _ = strconv.ParseInt(params[21], 10, 64) //100
-	e.D9 = params[22]                              // 0
-	e.D10 = params[23]                             // -934.51
-	e.D11 = params[24]                             //2149.50
-	e.D12 = params[25]                             //3.4243
-	e.D13 = params[26]                             //307
-	e.DamageUnkown14 = params[27]                  //.
-	e.ActualAmount, err = Atoi64(params[28])       //20314
-	if err != nil {
-		log.Println("failed to convert heal event")
-		return err
-	}
-	e.Overhealing, err = Atoi64(params[29]) //0
-	if err != nil {
-		log.Println("failed to convert heal event")
-		return err
-	}
-	e.Absorbed, err = Atoi64(params[30]) //0
-	if err != nil {
-		log.Println("failed to convert heal event")
-		return err
-	}
-	e.Critical = params[31] //nil
+// func (e *Event) normalizeHeal(params []string) (err error) {
+// 	e.CasterID = params[1]               //Player-970-00307C5B
+// 	e.CasterName = trimQuotes(params[2]) //"Brimidreki-Sylvanas"
+// 	e.CasterType = params[3]             //0x512
+// 	e.SourceFlag = params[4]             //0x0
+// 	e.TargetID = params[5]               //Player-970-00307C5B
+// 	e.TargetName = trimQuotes(params[6]) //"Brimidreki-Sylvanas"
+// 	e.TargetType = params[7]             //0x512
+// 	e.DestFlag = params[8]               //0x0
+// 	e.SpellID, err = Atoi32(params[9])   //122281
+// 	if err != nil {
+// 		log.Println("failed to convert heal event")
+// 		return err
+// 	}
+// 	e.SpellName = trimQuotes(params[10])           //"Healing Elixir"
+// 	e.SpellType = params[11]                       //0x8
+// 	e.AnotherPlayerID = params[12]                 //Player-970-00307C5B
+// 	e.D0 = params[13]                              //0000000000000000
+// 	e.D1, _ = strconv.ParseInt(params[14], 10, 64) //132358
+// 	e.D2, _ = strconv.ParseInt(params[15], 10, 64) //135424
+// 	e.D3, _ = strconv.ParseInt(params[16], 10, 64) //4706
+// 	e.D4, _ = strconv.ParseInt(params[17], 10, 64) //1467
+// 	e.D5, _ = strconv.ParseInt(params[18], 10, 64) //1455
+// 	e.D6, _ = strconv.ParseInt(params[19], 10, 64) //3
+// 	e.D7, _ = strconv.ParseInt(params[20], 10, 64) //79
+// 	e.D8, _ = strconv.ParseInt(params[21], 10, 64) //100
+// 	e.D9 = params[22]                              // 0
+// 	e.D10 = params[23]                             // -934.51
+// 	e.D11 = params[24]                             //2149.50
+// 	e.D12 = params[25]                             //3.4243
+// 	e.D13 = params[26]                             //307
+// 	e.DamageUnkown14 = params[27]                  //.
+// 	e.ActualAmount, err = Atoi64(params[28])       //20314
+// 	if err != nil {
+// 		log.Println("failed to convert heal event")
+// 		return err
+// 	}
+// 	e.Overhealing, err = Atoi64(params[29]) //0
+// 	if err != nil {
+// 		log.Println("failed to convert heal event")
+// 		return err
+// 	}
+// 	e.Absorbed, err = Atoi64(params[30]) //0
+// 	if err != nil {
+// 		log.Println("failed to convert heal event")
+// 		return err
+// 	}
+// 	e.Critical = params[31] //nil
 
-	return nil
-}
+// 	return nil
+// }
 
 //copying code from stackoverflow like a pro
 //https://stackoverflow.com/questions/59297737/go-split-string-by-comma-but-ignore-comma-within-double-quotes
