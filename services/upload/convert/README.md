@@ -11,8 +11,9 @@ things like overall damage is calculated.
 - [ ] check combatlog version
 - [ ] check advanced combatlog enabled
 - [ ] count columns per event and check against expected value
-- [x] fix encounter start/end
+- [x] fix encounter start/end, ignore commons on split if it is inside ""
 - [ ] split up encounter start & end
+- [ ] check expected content of each cell with regex
 
 events: 
 - [ ] COMBAT_LOG_VERSION

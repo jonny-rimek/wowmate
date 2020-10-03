@@ -140,12 +140,12 @@ func (e *Event) importBaseEncounter(params []string) (err error) {
 		log.Println("failed to convert encounter start/end event")
 		return err
 	}
-	e.EncounterUnknown1, err = Atoi32(params[2])
+	e.EncounterName = trimQuotes(params[2])
+	e.EncounterUnknown1, err = Atoi32(params[3])
 	if err != nil {
 		log.Println("failed to convert encounter start/end event")
 		return err
 	}
-	e.EncounterName = trimQuotes(params[3])
 	e.EncounterUnknown2, err = Atoi32(params[4])
 	if err != nil {
 		log.Println("failed to convert encounter start/end event")
@@ -281,6 +281,28 @@ func (e *Event) importHeal(params []string) (err error) {
 	e.Critical = params[31] //nil
 
 	return nil
+}
+
+//copying code from stackoverflow like a pro
+//https://stackoverflow.com/questions/59297737/go-split-string-by-comma-but-ignore-comma-within-double-quotes
+func splitAtCommas(s string) []string {
+	res := []string{}
+	var beg int
+	var inString bool
+
+	for i := 0; i < len(s); i++ {
+		if s[i] == ',' && !inString {
+			res = append(res, s[beg:i])
+			beg = i + 1
+		} else if s[i] == '"' {
+			if !inString {
+				inString = true
+			} else if i > 0 && s[i-1] != '\\' {
+				inString = false
+			}
+		}
+	}
+	return append(res, s[beg:])
 }
 
 func EventsAsStringSlices(events *[]Event) ([][]string, error) {
