@@ -130,18 +130,22 @@ func (e *Event) importEncounterEnd(params []string) (err error) {
 
 //11/3 09:00:22.354  ENCOUNTER_START,2086,"Rezan",8,5,--1763
 //11/3 09:01:58.364  ENCOUNTER_END,2086,"Rezan",8,5, --1
+
+//v16
+//10/3 05:59:07.379  ENCOUNTER_START,2401,"Halkias, the Sin-Stained Goliath",8,5,2287
+//10/3 06:00:02.433  ENCOUNTER_END,2401,"Halkias, the Sin-Stained Goliath",8,5,1
 func (e *Event) importBaseEncounter(params []string) (err error) {
 	e.EncounterID, err = Atoi32(params[1])
 	if err != nil {
 		log.Println("failed to convert encounter start/end event")
 		return err
 	}
-	e.EncounterName = trimQuotes(params[2])
-	e.EncounterUnknown1, err = Atoi32(params[3])
+	e.EncounterUnknown1, err = Atoi32(params[2])
 	if err != nil {
 		log.Println("failed to convert encounter start/end event")
 		return err
 	}
+	e.EncounterName = trimQuotes(params[3])
 	e.EncounterUnknown2, err = Atoi32(params[4])
 	if err != nil {
 		log.Println("failed to convert encounter start/end event")
@@ -165,6 +169,9 @@ func (e *Event) importCombatlogVersion(params []string) (err error) {
 }
 
 //11/3 09:00:29.792  SPELL_DAMAGE,Player-1302-09C8C064,"Hyrriuk-Archimonde",0x512,0x0,Vehicle-0-3892-1763-30316-122963-00005D638F,"Rezan",0x10a48,0x0,283810,"Reckless Flurry",0x1,Vehicle-0-3892-1763-30316-122963-00005D638F,0000000000000000,3600186,3811638,0,0,2700,1,0,0,0,-790.59,2265.96,935,0.8059,122,1287,1599,-1,1,0,0,0,nil,nil,nil
+
+// v16
+// 10/3 05:51:15.415  SPELL_DAMAGE,Player-4184-00130F03,"Unstaebl-Torghast",0x512,0x0,Creature-0-2085-2287-15092-165515-0005F81144,"Depraved Darkblade",0xa48,0x0,127802,"Touch of the Grave",0x20,Creature-0-2085-2287-15092-165515-0005F81144,0000000000000000,92482,96120,0,0,1071,0,3,100,100,0,-2206.68,5071.68,1663,2.1133,60,456,456,-1,32,0,0,0,nil,nil,nil
 func (e *Event) importDamage(params []string) (err error) {
 	e.CasterID = params[1]               //Player-1302-09C8C064 ✔
 	e.CasterName = trimQuotes(params[2]) //"Hyrriuk-Archimonde" ✔
@@ -207,10 +214,10 @@ func (e *Event) importDamage(params []string) (err error) {
 		log.Println("failed to convert damage event")
 		return err
 	}
-	e.Overkill = params[30]              // ✔ -1 no overkill, otherwise the dmg number it was overkilled with. TODO convert to int64
+	e.Overkill = params[30]              // ✔ -1 no overkill, otherwise the dmg number it was overkilled with. TODO: convert to int64
 	e.School = params[31]                //1 ✔
-	e.Crushing = params[32]              //0 always 0 with ad10-disci TODO double check with more data NOT CONFIRMED AS crushing
-	e.Blocked = params[33]               //0 TODO always a number and should be converted to int64, pretty sure it is not blocked bc it is not reflected  by actual_amount vs base_amount like absorbed
+	e.Crushing = params[32]              //0 always 0 with ad10-disci TODO: double check with more data NOT CONFIRMED AS crushing
+	e.Blocked = params[33]               //0 TODO: always a number and should be converted to int64, pretty sure it is not blocked bc it is not reflected by actual_amount vs base_amount like absorbed
 	e.Absorbed, err = Atoi64(params[34]) //0 ✔
 	if err != nil {
 		log.Println("failed to convert damage event")

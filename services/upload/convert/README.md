@@ -10,6 +10,9 @@ things like overall damage is calculated.
 
 - [ ] check combatlog version
 - [ ] check advanced combatlog enabled
+- [ ] count columns per event and check against expected value
+- [x] fix encounter start/end
+- [ ] split up encounter start & end
 
 events: 
 - [ ] COMBAT_LOG_VERSION
