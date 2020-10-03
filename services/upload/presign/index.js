@@ -17,7 +17,7 @@ exports.handler = (event, context, callback) => {
 
 	if (path.match(/\.txt.gz/) == '.txt.gz') {
 		fileending = '.txt.gz';
-		filesize = 31457280; 
+		filesize = 31457280; //30Mibibyte
 		//gziped files are smaller, but we still can't process larger files in the lambda
 		//once it's uncompressed
 		//a 300mb file is around 30mb gziped, but it still has to be unpacked and proccessed,
@@ -25,10 +25,10 @@ exports.handler = (event, context, callback) => {
 		//the size of the file we can handle is limited by the RAM availabe inside the lambda
 	} else if (path.match(/\.txt/) == '.txt') {
 		fileending = '.txt';
-		filesize = 314572800;
+		filesize = 314572800; //300Mibibyte
 	} else if (path.match(/\.zip/) == '.zip') {
 		fileending = '.zip';
-		filesize = 31457280;
+		filesize = 31457280; //30Mibibyte
 	} else {
 		callback(null, {
 			statusCode: 500,
@@ -50,7 +50,6 @@ exports.handler = (event, context, callback) => {
 		},
 		Conditions: [
 			["content-length-range", 	0, filesize], // content length restrictions: 0-300 MB
-			//["starts-with", "$Content-Type", "image/"], // can't really use it because content might be ziped or text
 			{'success_action_status': '201'},
 			['starts-with', '$Content-Type', ''],
 			['starts-with', '$key', ''],
