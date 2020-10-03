@@ -243,6 +243,10 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			//3. generate report uuid
 			CombatlogUUID = uuid.Must(uuid.NewV4()).String()
 			e.CombatlogUUID = CombatlogUUID
+			err = e.normalizeCombatlogVersion(params)
+			if err != nil {
+				return err
+			}
 
 			//NOTE:
 			//break is implicit in go, that means after the first match it exits
@@ -251,7 +255,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		case "ENCOUNTER_START":
 			BossFightUUID = uuid.Must(uuid.NewV4()).String()
 			e.BossFightUUID = BossFightUUID
-			err = e.importEncounterStart(params)
+			err = e.normalizeEncounterStart(params)
 			if err != nil {
 				return err
 			}
@@ -259,7 +263,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		case "ENCOUNTER_END":
 			//I want to entry with encounter_end to have the id, just the records after should be nil again
 			BossFightUUID = ""
-			err = e.importEncounterEnd(params)
+			err = e.normalizeEncounterEnd(params)
 			if err != nil {
 				return err
 			}
@@ -267,13 +271,13 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		case "CHALLENGE_MODE_START":
 			MythicplusUUID = uuid.Must(uuid.NewV4()).String()
 			e.MythicplusUUID = MythicplusUUID
-			err = e.importChallengeModeStart(params)
+			err = e.normalizeChallengeModeStart(params)
 			if err != nil {
 				return err
 			}
 
 		case "CHALLENGE_MODE_END":
-			err = e.importChallengeModeEnd(params)
+			err = e.normalizeChallengeModeEnd(params)
 			if err != nil {
 				return err
 			}
@@ -294,7 +298,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
 		// 	err = e.importHeal(params)
 		case "SPELL_DAMAGE":
-			err = e.importDamage(params)
+			err = e.normalizeDamage(params)
 			if err != nil {
 				return err
 			}

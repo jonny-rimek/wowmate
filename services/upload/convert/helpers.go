@@ -42,7 +42,7 @@ func convertToTimestampMilli(input string) (int64, error) {
 }
 
 //11/3 09:00:00.760  CHALLENGE_MODE_START,"Atal'Dazar",1763,244,10,[10,11,14,16]
-func (e *Event) importChallengeModeStart(params []string) (err error) {
+func (e *Event) normalizeChallengeModeStart(params []string) (err error) {
 	e.DungeonName = trimQuotes(params[1])
 	e.DungeonID, err = Atoi32(params[2])
 	if err != nil {
@@ -64,7 +64,7 @@ func (e *Event) importChallengeModeStart(params []string) (err error) {
 }
 
 //11/3 09:34:07.310  CHALLENGE_MODE_END,1763,1,10,2123441
-func (e *Event) importChallengeModeEnd(params []string) (err error) {
+func (e *Event) normalizeChallengeModeEnd(params []string) (err error) {
 	e.DungeonID, err = Atoi32(params[1])
 	if err != nil {
 		log.Println("failed to convert challange mode end event")
@@ -88,19 +88,12 @@ func (e *Event) importChallengeModeEnd(params []string) (err error) {
 	return nil
 }
 
-/*
-//the idea was to put columns that are the same in multiple events in the same function, should work for a big part in dmg and heal
-func (e *Event) importBaseChallengeMode(params []string) (err error) {
-	e.DungeonName = params[1]
-	e.DungeonID, err = Atoi32(params[2])
-	e.KeyUnkown1, err = Atoi32(params[3])
-	return
-}
-*/
-
 //11/3 09:00:22.354  ENCOUNTER_START,2086,"Rezan",8,5,1763
-func (e *Event) importEncounterStart(params []string) (err error) {
-	err = e.importBaseEncounter(params)
+
+//16
+//10/3 05:59:07.379  ENCOUNTER_START,2401,"Halkias, the Sin-Stained Goliath",8,5,2287
+func (e *Event) normalizeEncounterStart(params []string) (err error) {
+	err = e.normalizeBaseEncounter(params)
 	if err != nil {
 		log.Println("failed to convert encounter start event")
 		return err
@@ -114,8 +107,11 @@ func (e *Event) importEncounterStart(params []string) (err error) {
 }
 
 //11/3 09:01:58.364  ENCOUNTER_END,2086,"Rezan",8,5,1
-func (e *Event) importEncounterEnd(params []string) (err error) {
-	err = e.importBaseEncounter(params)
+
+//v16
+//10/3 06:00:02.433  ENCOUNTER_END,2401,"Halkias, the Sin-Stained Goliath",8,5,1
+func (e *Event) normalizeEncounterEnd(params []string) (err error) {
+	err = e.normalizeBaseEncounter(params)
 	if err != nil {
 		log.Println("failed to convert encounter end event")
 		return err
@@ -134,7 +130,7 @@ func (e *Event) importEncounterEnd(params []string) (err error) {
 //v16
 //10/3 05:59:07.379  ENCOUNTER_START,2401,"Halkias, the Sin-Stained Goliath",8,5,2287
 //10/3 06:00:02.433  ENCOUNTER_END,2401,"Halkias, the Sin-Stained Goliath",8,5,1
-func (e *Event) importBaseEncounter(params []string) (err error) {
+func (e *Event) normalizeBaseEncounter(params []string) (err error) {
 	e.EncounterID, err = Atoi32(params[1])
 	if err != nil {
 		log.Println("failed to convert encounter start/end event")
@@ -154,16 +150,24 @@ func (e *Event) importBaseEncounter(params []string) (err error) {
 	return nil
 }
 
-func (e *Event) importCombatlogVersion(params []string) (err error) {
+//v16
+//10/3 05:44:30.076  COMBAT_LOG_VERSION,16,ADVANCED_LOG_ENABLED,1,BUILD_VERSION,9.0.2,PROJECT_ID,1
+func (e *Event) normalizeCombatlogVersion(params []string) (err error) {
 	e.Version, err = Atoi32(params[1])
 	if err != nil {
 		log.Println("failed to convert combatlog version event")
 		return err
 	}
+	if e.Version != 16 {
+		return fmt.Errorf("unsupported combatlog version: %v, only version 16 is supported", e.Version)
+	}
 	e.AdvancedLogEnabled, err = Atoi32(params[3])
 	if err != nil {
 		log.Println("failed to convert combatlog version event")
 		return err
+	}
+	if e.AdvancedLogEnabled != 1 {
+		return fmt.Errorf("advanced combatlogging must be enabled")
 	}
 	return nil
 }
@@ -172,7 +176,7 @@ func (e *Event) importCombatlogVersion(params []string) (err error) {
 
 // v16
 // 10/3 05:51:15.415  SPELL_DAMAGE,Player-4184-00130F03,"Unstaebl-Torghast",0x512,0x0,Creature-0-2085-2287-15092-165515-0005F81144,"Depraved Darkblade",0xa48,0x0,127802,"Touch of the Grave",0x20,Creature-0-2085-2287-15092-165515-0005F81144,0000000000000000,92482,96120,0,0,1071,0,3,100,100,0,-2206.68,5071.68,1663,2.1133,60,456,456,-1,32,0,0,0,nil,nil,nil
-func (e *Event) importDamage(params []string) (err error) {
+func (e *Event) normalizeDamage(params []string) (err error) {
 	e.CasterID = params[1]               //Player-1302-09C8C064 ✔
 	e.CasterName = trimQuotes(params[2]) //"Hyrriuk-Archimonde" ✔
 	e.CasterType = params[3]             //0x512
@@ -230,8 +234,8 @@ func (e *Event) importDamage(params []string) (err error) {
 	return nil
 }
 
-//completely wrong atm double check with version 9 event
-func (e *Event) importHeal(params []string) (err error) {
+//TODO:
+func (e *Event) normalizeHeal(params []string) (err error) {
 	e.CasterID = params[1]               //Player-970-00307C5B
 	e.CasterName = trimQuotes(params[2]) //"Brimidreki-Sylvanas"
 	e.CasterType = params[3]             //0x512
