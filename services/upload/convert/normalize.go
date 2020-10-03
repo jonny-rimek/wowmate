@@ -193,7 +193,7 @@ type Event struct {
 //example:
 //6/30 21:54:37.112  SPELL_INTERRUPT,Player-970-00307C5B,"Brimidreki-Sylvanas",0x512,0x0,Creature-0-4160-1763-15940-128434-0000B7FA28,"Feasting Skyscreamer",0x10a48,0x0,116705,"Spear Hand Strike",0x1,255041,"Terrifying Screech",32
 
-//Import converts the combatlog to a slice of Event structs
+//Normalize converts the combatlog to a slice of Event structs
 func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session, csvBucket string) error {
 	var combatEvents []Event
 	//UploadUUID //for the whole file
