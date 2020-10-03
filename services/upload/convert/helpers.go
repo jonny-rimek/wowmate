@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -45,14 +46,17 @@ func (e *Event) importChallengeModeStart(params []string) (err error) {
 	e.DungeonName = trimQuotes(params[1])
 	e.DungeonID, err = Atoi32(params[2])
 	if err != nil {
+		log.Println("failed to convert challange mode start event")
 		return err
 	}
 	e.KeyUnkown1, err = Atoi32(params[3])
 	if err != nil {
+		log.Println("failed to convert challange mode start event")
 		return err
 	}
 	e.KeyLevel, err = Atoi32(params[4])
 	if err != nil {
+		log.Println("failed to convert challange mode start event")
 		return err
 	}
 	e.KeyArray = params[5]
@@ -63,18 +67,22 @@ func (e *Event) importChallengeModeStart(params []string) (err error) {
 func (e *Event) importChallengeModeEnd(params []string) (err error) {
 	e.DungeonID, err = Atoi32(params[1])
 	if err != nil {
+		log.Println("failed to convert challange mode end event")
 		return err
 	}
 	e.KeyUnkown1, err = Atoi32(params[2])
 	if err != nil {
+		log.Println("failed to convert challange mode end event")
 		return err
 	}
 	e.KeyLevel, err = Atoi32(params[3])
 	if err != nil {
+		log.Println("failed to convert challange mode end event")
 		return err
 	}
 	e.KeyDuration, err = Atoi64(params[3])
 	if err != nil {
+		log.Println("failed to convert challange mode end event")
 		return err
 	}
 	return nil
@@ -94,10 +102,12 @@ func (e *Event) importBaseChallengeMode(params []string) (err error) {
 func (e *Event) importEncounterStart(params []string) (err error) {
 	err = e.importBaseEncounter(params)
 	if err != nil {
+		log.Println("failed to convert encounter start event")
 		return err
 	}
 	e.DungeonID, err = Atoi32(params[5])
 	if err != nil {
+		log.Println("failed to convert encounter start event")
 		return err
 	}
 	return nil
@@ -107,10 +117,12 @@ func (e *Event) importEncounterStart(params []string) (err error) {
 func (e *Event) importEncounterEnd(params []string) (err error) {
 	err = e.importBaseEncounter(params)
 	if err != nil {
+		log.Println("failed to convert encounter end event")
 		return err
 	}
 	e.Killed, err = Atoi32(params[5])
 	if err != nil {
+		log.Println("failed to convert encounter end event")
 		return err
 	}
 	return nil
@@ -121,15 +133,18 @@ func (e *Event) importEncounterEnd(params []string) (err error) {
 func (e *Event) importBaseEncounter(params []string) (err error) {
 	e.EncounterID, err = Atoi32(params[1])
 	if err != nil {
+		log.Println("failed to convert encounter start/end event")
 		return err
 	}
 	e.EncounterName = trimQuotes(params[2])
 	e.EncounterUnknown1, err = Atoi32(params[3])
 	if err != nil {
+		log.Println("failed to convert encounter start/end event")
 		return err
 	}
 	e.EncounterUnknown2, err = Atoi32(params[4])
 	if err != nil {
+		log.Println("failed to convert encounter start/end event")
 		return err
 	}
 	return nil
@@ -138,10 +153,12 @@ func (e *Event) importBaseEncounter(params []string) (err error) {
 func (e *Event) importCombatlogVersion(params []string) (err error) {
 	e.Version, err = Atoi32(params[1])
 	if err != nil {
+		log.Println("failed to convert combatlog version event")
 		return err
 	}
 	e.AdvancedLogEnabled, err = Atoi32(params[3])
 	if err != nil {
+		log.Println("failed to convert combatlog version event")
 		return err
 	}
 	return nil
@@ -159,6 +176,7 @@ func (e *Event) importDamage(params []string) (err error) {
 	e.DestFlag = params[8]               //0x0
 	e.SpellID, err = Atoi32(params[9])   //283810
 	if err != nil {
+		log.Println("failed to convert damage event")
 		return err
 	}
 	e.SpellName = trimQuotes(params[10])           //"Reckless Flurry" ✔
@@ -181,10 +199,12 @@ func (e *Event) importDamage(params []string) (err error) {
 	e.DamageUnkown14 = params[27]                  //122
 	e.ActualAmount, err = Atoi64(params[28])       //1287
 	if err != nil {
+		log.Println("failed to convert damage event")
 		return err
 	}
 	e.BaseAmount, err = Atoi64(params[29]) //1599
 	if err != nil {
+		log.Println("failed to convert damage event")
 		return err
 	}
 	e.Overkill = params[30]              // ✔ -1 no overkill, otherwise the dmg number it was overkilled with. TODO convert to int64
@@ -193,6 +213,7 @@ func (e *Event) importDamage(params []string) (err error) {
 	e.Blocked = params[33]               //0 TODO always a number and should be converted to int64, pretty sure it is not blocked bc it is not reflected  by actual_amount vs base_amount like absorbed
 	e.Absorbed, err = Atoi64(params[34]) //0 ✔
 	if err != nil {
+		log.Println("failed to convert damage event")
 		return err
 	}
 	e.Critical = params[35]  //nil ✔ fairly certain this one is crit it plays into base and actual amount, nil or 1
@@ -214,6 +235,7 @@ func (e *Event) importHeal(params []string) (err error) {
 	e.DestFlag = params[8]               //0x0
 	e.SpellID, err = Atoi32(params[9])   //122281
 	if err != nil {
+		log.Println("failed to convert heal event")
 		return err
 	}
 	e.SpellName = trimQuotes(params[10])           //"Healing Elixir"
@@ -236,14 +258,17 @@ func (e *Event) importHeal(params []string) (err error) {
 	e.DamageUnkown14 = params[27]                  //.
 	e.ActualAmount, err = Atoi64(params[28])       //20314
 	if err != nil {
+		log.Println("failed to convert heal event")
 		return err
 	}
 	e.Overhealing, err = Atoi64(params[29]) //0
 	if err != nil {
+		log.Println("failed to convert heal event")
 		return err
 	}
 	e.Absorbed, err = Atoi64(params[30]) //0
 	if err != nil {
+		log.Println("failed to convert heal event")
 		return err
 	}
 	e.Critical = params[31] //nil

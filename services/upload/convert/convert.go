@@ -111,6 +111,7 @@ type Request struct {
 }
 
 //SQSEvent is all the data that gets passed into the lambda from the q
+//IMPROVE: use events.SQSEvent
 type SQSEvent struct {
 	Records []struct {
 		MessageID     string `json:"messageId"`
