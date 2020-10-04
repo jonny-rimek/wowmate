@@ -12,7 +12,10 @@ things like overall damage is calculated.
 - [x] check advanced combatlog enabled
 - [x] fix encounter start/end, ignore commons on split if it is inside ""
 - [x] count columns per event and check against expected value
-- [ ] split up encounter start & end
+- [x] split up encounter start & end
+- [ ] add column in damage event
+- [ ] 
+- [ ] 
 
 - [ ] check expected content of each cell with regex
 
