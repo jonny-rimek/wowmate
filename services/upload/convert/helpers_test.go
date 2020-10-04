@@ -49,3 +49,70 @@ func TestTrimQuotes(t *testing.T) {
 		}
 	})
 }
+
+func TestAtoi32(t *testing.T) {
+	t.Run("convert number as string to int32", func(t *testing.T) {
+		got, err := Atoi32("32")
+		want := int32(32)
+
+		if err != nil {
+			t.Fatal("shouldn't fail")
+		}
+
+		if got != want {
+			t.Errorf("got %v want %v", got, want)
+		}
+	})
+
+	t.Run("fail if text is passed", func(t *testing.T) {
+		got, err := Atoi32("hello, world")
+		want := int32(0)
+
+		if err == nil {
+			t.Fatal("must fail")
+		}
+
+		if got != want {
+			t.Errorf("got %v want %v", got, want)
+		}
+	})
+
+	t.Run("fail if the number is too big", func(t *testing.T) {
+		got, err := Atoi32("2147483648")
+		want := int32(0)
+
+		if err == nil {
+			t.Fatal("must fail")
+		}
+
+		if got != want {
+			t.Errorf("got %v want %v", got, want)
+		}
+	})
+
+	t.Run("convert max int32 number", func(t *testing.T) {
+		got, err := Atoi32("2147483647")
+		want := int32(2147483647)
+
+		if err != nil {
+			t.Fatal("mustn't fail")
+		}
+
+		if got != want {
+			t.Errorf("got %v want %v", got, want)
+		}
+	})
+
+	t.Run("convert max negative int32 number", func(t *testing.T) {
+		got, err := Atoi32("-2147483647")
+		want := int32(-2147483647)
+
+		if err != nil {
+			t.Fatal("mustn't fail")
+		}
+
+		if got != want {
+			t.Errorf("got %v want %v", got, want)
+		}
+	})
+}

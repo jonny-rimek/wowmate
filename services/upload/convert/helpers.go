@@ -30,7 +30,7 @@ func Atoi64(input string) (int64, error) {
 	return num, nil
 }
 
-//NOTE: propably should check that it is surounded by quotes and fail otherwise
+//TODO: check that it is surounded by quotes and fail otherwise
 //		to make it fail early.
 //		Because the columns must be surrounded by qoutes otherwise it is a wrong column
 func trimQuotes(input string) string {
@@ -39,9 +39,10 @@ func trimQuotes(input string) string {
 	return output
 }
 
+//TODO: test and fix the year problem
+// this will break during new year, because go assumes UTC,
+// but the combatlog has the time of the player afaik
 func convertToTimestampMilli(input string) (int64, error) {
-	//TODO: this will break during new year, because go assumes UTC,
-	//		but the combatlog has the time of the player afaik
 	input = fmt.Sprintf("%v/%s", time.Now().Year(), input)
 	stupidBlizzTimeformat := "2006/1/2 15:04:05.000"
 	t, err := time.Parse(stupidBlizzTimeformat, input)
@@ -54,6 +55,7 @@ func convertToTimestampMilli(input string) (int64, error) {
 
 //copying code from stackoverflow like a pro
 //https://stackoverflow.com/questions/59297737/go-split-string-by-comma-but-ignore-comma-within-double-quotes
+//atleast I added tests^^ and switched to string pointers to reduce memory
 func splitAtCommas(s *string) []string {
 	var res []string
 	var beg int
@@ -74,6 +76,7 @@ func splitAtCommas(s *string) []string {
 	return append(res, (*s)[beg:])
 }
 
+//TODO: test once the db table definition is stable
 func EventsAsStringSlices(events *[]Event) ([][]string, error) {
 	var ss [][]string
 
@@ -149,6 +152,7 @@ func EventsAsStringSlices(events *[]Event) ([][]string, error) {
 	return ss, nil
 }
 
+//IMPROVE: add all fields once table design is stable
 func (s *Event) String() string {
 	return fmt.Sprintf(`[
   UUID            -> %s
