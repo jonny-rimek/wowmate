@@ -149,13 +149,11 @@ func handler(e SQSEvent) error {
 			return nil
 		}
 
-		log.Printf("index j: %v", j+1)
+		log.Printf("%v. message in SQS event", j+1)
 
-		//get sqs message body which contains the s3 event
-		body := msg.Body
-
+		//get s3 event from sqs event body
 		req := Request{}
-		err = json.Unmarshal([]byte(body), &req)
+		err = json.Unmarshal([]byte(msg.Body), &req)
 		if err != nil {
 			return err
 		}
@@ -203,7 +201,7 @@ func handler(e SQSEvent) error {
 
 		var data []byte
 
-		if gz == true {
+		if gz/* == true*/ {
 			buf := bytes.NewBuffer(fileContent.Bytes())
 			r, err := gzip.NewReader(buf)
 			if err != nil {
@@ -218,7 +216,7 @@ func handler(e SQSEvent) error {
 
 			data = resB.Bytes()
 			log.Println("successfully ungziped")
-		} else if z == true {
+		} else if z/* == true*/ {
 			zipReader, err := zip.NewReader(bytes.NewReader(fileContent.Bytes()), int64(len(fileContent.Bytes())))
 			if err != nil {
 				return err
@@ -295,7 +293,7 @@ func convertToCSV(events *[]Event) (io.Reader, error) {
 	return io.Reader(&buf), nil
 }
 
-//checks the file size without actually downloading it
+//checks the file size without actually downloading it in MB
 func sizeOfS3Object(sess *session.Session, bucketName string, objectKey string) (int, error) {
 	svc := s3.New(sess)
 
@@ -311,7 +309,6 @@ func sizeOfS3Object(sess *session.Session, bucketName string, objectKey string) 
 	return int(*output.ContentLength / 1024 / 1024), nil
 }
 
-//TODO: try to pass io.Reader as a reference
 func uploadS3(r *io.Reader, sess *session.Session, mythicplugUUID string, csvBucket string) error {
 	if mythicplugUUID == "" {
 		//sometimes there are more CHALLANGE_MODE_END events than there are start events
