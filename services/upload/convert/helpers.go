@@ -32,6 +32,8 @@ func trimQuotes(input string) (output string) {
 }
 
 func convertToTimestampMilli(input string) (int64, error) {
+	//TODO: this will during new year, because go assumes UTC, 
+	//		but the combatlog has the time of the player afaik
 	input = fmt.Sprintf("%v/%s", time.Now().Year(), input)
 	stupidBlizzTimeformat := "2006/1/2 15:04:05.000"
 	t, err := time.Parse(stupidBlizzTimeformat, input)
@@ -40,13 +42,12 @@ func convertToTimestampMilli(input string) (int64, error) {
 	}
 
 	return t.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)), nil
-
 }
 
 //copying code from stackoverflow like a pro
 //https://stackoverflow.com/questions/59297737/go-split-string-by-comma-but-ignore-comma-within-double-quotes
 func splitAtCommas(s string) []string {
-	res := []string{}
+	var res []string
 	var beg int
 	var inString bool
 

@@ -201,7 +201,7 @@ func handler(e SQSEvent) error {
 
 		var data []byte
 
-		if gz/* == true*/ {
+		if gz /* == true*/ {
 			buf := bytes.NewBuffer(fileContent.Bytes())
 			r, err := gzip.NewReader(buf)
 			if err != nil {
@@ -216,7 +216,7 @@ func handler(e SQSEvent) error {
 
 			data = resB.Bytes()
 			log.Println("successfully ungziped")
-		} else if z/* == true*/ {
+		} else if z /* == true*/ {
 			zipReader, err := zip.NewReader(bytes.NewReader(fileContent.Bytes()), int64(len(fileContent.Bytes())))
 			if err != nil {
 				return err
