@@ -9,20 +9,20 @@ func TestSplitAtCommas(t *testing.T) {
 
 	t.Run("split by comma without qoutes", func(t *testing.T) {
 		row := "hello,world"
-		got := splitAtCommas(row)
+		got := splitAtCommas(&row)
 		want := []string{"hello", "world"}
 
-		if!reflect.DeepEqual(got, want) {
+		if !reflect.DeepEqual(got, want) {
 			t.Errorf("got %q want %q", got, want)
 		}
 	})
 
 	t.Run("split by comma with qoutes", func(t *testing.T) {
 		row := "\"hello, world\",yo"
-		got := splitAtCommas(row)
+		got := splitAtCommas(&row)
 		want := []string{"\"hello, world\"", "yo"}
 
-		if!reflect.DeepEqual(got, want) {
+		if !reflect.DeepEqual(got, want) {
 			t.Errorf("got %q want %q", got, want)
 		}
 	})
@@ -38,7 +38,6 @@ func TestTrimQuotes(t *testing.T) {
 			t.Errorf("got %q want %q", got, want)
 		}
 	})
-
 
 	t.Run("don't trim nonexisting quotes", func(t *testing.T) {
 		row := "hello, world"

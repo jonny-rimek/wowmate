@@ -197,6 +197,7 @@ func (e *Event) normalizeDamage(params []string) (err error) {
 	e.AnotherPlayerID = params[12]                 //Vehicle-0-3892-1763-30316-122963-00005D638F
 	e.D0 = params[13]                              //0000000000000000
 	e.D1, _ = strconv.ParseInt(params[14], 10, 64) //3600186
+	//TODO: check errors
 	e.D2, _ = strconv.ParseInt(params[15], 10, 64) //3811638
 	e.D3, _ = strconv.ParseInt(params[16], 10, 64) //0
 	e.D4, _ = strconv.ParseInt(params[17], 10, 64) //0

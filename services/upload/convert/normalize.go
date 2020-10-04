@@ -217,7 +217,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			return err
 		}
 
-		params := splitAtCommas(row[1])
+		params := splitAtCommas(&row[1])
 
 		e := Event{
 			UploadUUID:     uploadUUID,
