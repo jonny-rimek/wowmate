@@ -28,10 +28,10 @@ func (e *Event) spellDamage(params []string) (err error) {
 		log.Printf("failed to convert damage event, field spell id. got: %v", params[9])
 		return err
 	}
-	e.SpellName = trimQuotes(params[10])           //"Reckless Flurry" ✔
-	e.SpellType = params[11]                       //0x1
-	e.AnotherPlayerID = params[12]                 //Vehicle-0-3892-1763-30316-122963-00005D638F
-	e.D0 = params[13]                              //0000000000000000
+	e.SpellName = trimQuotes(params[10])             //"Reckless Flurry" ✔
+	e.SpellType = params[11]                         //0x1
+	e.AnotherPlayerID = params[12]                   //Vehicle-0-3892-1763-30316-122963-00005D638F
+	e.D0 = params[13]                                //0000000000000000
 	e.D1, err = strconv.ParseInt(params[14], 10, 64) //3600186
 	if err != nil {
 		log.Printf("failed to convert damage event, field d1. got: %v", params[14])
@@ -72,13 +72,13 @@ func (e *Event) spellDamage(params []string) (err error) {
 		log.Printf("failed to convert damage event, field d8. got: %v", params[21])
 		return err
 	}
-	e.D9 = params[22]                              //0
-	e.D10 = params[23]                             //-790.59
-	e.D11 = params[24]                             //2265.96
-	e.D12 = params[25]                             //935 -- mb something like a map id?
-	e.D13 = params[26]                             //0.8059
-	e.DamageUnkown14 = params[27]                  //122
-	e.ActualAmount, err = Atoi64(params[28])       //1287
+	e.D9 = params[22]                        //0
+	e.D10 = params[23]                       //-790.59
+	e.D11 = params[24]                       //2265.96
+	e.D12 = params[25]                       //935 -- mb something like a map id?
+	e.D13 = params[26]                       //0.8059
+	e.DamageUnkown14 = params[27]            //122
+	e.ActualAmount, err = Atoi64(params[28]) //1287
 	if err != nil {
 		log.Printf("failed to convert damage event, field actual amount. got: %v", params[27])
 		return err

@@ -14,13 +14,13 @@ things like overall damage is calculated.
 - [x] count columns per event and check against expected value
 - [x] split up encounter start & end
 - [ ] add column in damage event
-- [ ] 
+- [ ] add tests
 - [ ] 
 
 - [ ] check expected content of each cell with regex
 
 events: 
-- [ ] COMBAT_LOG_VERSION
+- [x] COMBAT_LOG_VERSION
 - [ ] ZONE_CHANGE
 - [ ] SPELL_CAST_SUCCESS
 - [ ] SPELL_CAST_START

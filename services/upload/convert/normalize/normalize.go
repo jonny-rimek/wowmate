@@ -6,7 +6,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	uuid "github.com/gofrs/uuid"
-	_ "github.com/xitongsys/parquet-go/parquet" //is needed to define the parquet type in the combat struct
 )
 
 //Normalize converts the combatlog to a slice of Event structs
