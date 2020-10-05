@@ -116,3 +116,71 @@ func TestAtoi32(t *testing.T) {
 		}
 	})
 }
+
+	func TestAtoi64(t *testing.T) {
+	t.Run("convert number as string to int64", func(t *testing.T) {
+		got, err := Atoi64("32")
+		want := int64(32)
+
+		if err != nil {
+			t.Fatal("shouldn't fail")
+		}
+
+		if got != want {
+			t.Errorf("got %v want %v", got, want)
+		}
+	})
+
+	t.Run("fail if text is passed", func(t *testing.T) {
+		got, err := Atoi64("hello, world")
+		want := int64(0)
+
+		if err == nil {
+			t.Fatal("must fail")
+		}
+
+		if got != want {
+			t.Errorf("got %v want %v", got, want)
+		}
+	})
+
+	t.Run("fail if the number is too big", func(t *testing.T) {
+		got, err := Atoi64("9223372036854775808")
+		want := int64(0)
+
+		if err == nil {
+			t.Fatal("must fail")
+		}
+
+		if got != want {
+			t.Errorf("got %v want %v", got, want)
+		}
+	})
+
+	t.Run("convert max int64 number", func(t *testing.T) {
+		got, err := Atoi64("9223372036854775807")
+		want := int64(9223372036854775807)
+
+		if err != nil {
+			t.Fatal("mustn't fail")
+		}
+
+		if got != want {
+			t.Errorf("got %v want %v", got, want)
+		}
+	})
+
+	t.Run("convert max negative int64 number", func(t *testing.T) {
+		got, err := Atoi64("-9223372036854775807")
+		want := int64(-9223372036854775807)
+
+		if err != nil {
+			t.Fatal("mustn't fail")
+		}
+
+		if got != want {
+			t.Errorf("got %v want %v", got, want)
+		}
+	})
+
+}
