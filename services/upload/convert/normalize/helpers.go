@@ -102,6 +102,7 @@ func convertToCSV(events *[]Event) (io.Reader, error) {
 
 	return io.Reader(&buf), nil
 }
+
 //TODO: test once the db table definition is stable
 func EventsAsStringSlices(events *[]Event) ([][]string, error) {
 	var ss [][]string
