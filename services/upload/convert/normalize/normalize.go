@@ -47,12 +47,13 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			EventType:      params[0],
 		}
 
-		if MythicplusUUID == "" && params[0] != "CHALLENGE_MODE_START"  {
+		//TODO: never add anything if CombatlogUUID is empty, same logic as m+uuid
+
+		if MythicplusUUID == "" && params[0] != "CHALLENGE_MODE_START" {
 			//I don't want to add events if they are outside of a combatlog
 			continue
 		}
 
-		//if strings.Contains(params[0], "SPELLHEAL") {
 		switch params[0] {
 		case "COMBAT_LOG_VERSION":
 			//TODO:
@@ -72,8 +73,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			//the switch statement
 
 		case "ENCOUNTER_START":
-			BossFightUUID = uuid.Must(uuid.NewV4()).String()
-			e.BossFightUUID = BossFightUUID
+			e.BossFightUUID = uuid.Must(uuid.NewV4()).String()
 			err = e.encounterStart(params)
 			if err != nil {
 				return err

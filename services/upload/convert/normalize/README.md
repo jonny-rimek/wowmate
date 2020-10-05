@@ -19,6 +19,14 @@ general:
 - [ ] 
 - [ ] 
 - [ ] add remaining unsupported events
+- [ ] write tests for normalize
+	- [ ] test that no code is added outside of a m+
+	- [ ] test that boss fight uuid is empty after the bossfight
+	- [ ] test that boss fight uuid is generated after a bossfight starts
+	- [ ] combatlog uuid can't be empty
+	- [ ] 
+	- [ ] 
+	- [ ] 
 
 table changes:
 - [ ] rename KeyUnkown1 to KeyChests
