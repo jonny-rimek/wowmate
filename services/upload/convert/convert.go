@@ -171,12 +171,12 @@ func handler(e SQSEvent) error {
 		var z bool
 
 		if strings.HasSuffix(objectKey, ".txt") {
-			maxSize = 300
+			maxSize = 3000
 		} else if strings.HasSuffix(objectKey, ".txt.gz") {
-			maxSize = 30
+			maxSize = 300
 			gz = true
 		} else if strings.HasSuffix(objectKey, ".zip") {
-			maxSize = 30
+			maxSize = 300
 			z = true
 		} else {
 			return fmt.Errorf("file suffix is not supported")
