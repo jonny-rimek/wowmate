@@ -39,7 +39,8 @@ export default {
 			images: {},
 			dropzoneOptions: {
 				method: 'POST',
-				thumbnailWidth: 150
+				thumbnailWidth: 150,
+				maxFileSize: 1000
 			},
 			awss3: {
 				signingURL: f => {

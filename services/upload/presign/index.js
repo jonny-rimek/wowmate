@@ -17,7 +17,8 @@ exports.handler = (event, context, callback) => {
 
 	if (path.match(/\.txt.gz/) == '.txt.gz') {
 		fileending = '.txt.gz';
-		filesize = 31457280; //30Mibibyte
+		//TODO: decrease after figuring out the new limit
+		filesize = 314572800; //300Mibibyte
 		//gziped files are smaller, but we still can't process larger files in the lambda
 		//once it's uncompressed
 		//a 300mb file is around 30mb gziped, but it still has to be unpacked and proccessed,
@@ -25,10 +26,10 @@ exports.handler = (event, context, callback) => {
 		//the size of the file we can handle is limited by the RAM availabe inside the lambda
 	} else if (path.match(/\.txt/) == '.txt') {
 		fileending = '.txt';
-		filesize = 314572800; //300Mibibyte
+		filesize = 3145728000; //3000Mibibyte
 	} else if (path.match(/\.zip/) == '.zip') {
 		fileending = '.zip';
-		filesize = 31457280; //30Mibibyte
+		filesize = 314572800; //300Mibibyte
 	} else {
 		callback(null, {
 			statusCode: 500,
