@@ -22,7 +22,7 @@ export class Migrate extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(90),
+			timeout: cdk.Duration.seconds(30),
 			environment: {
 				SECRET_ARN: props.dbSecret.secretArn,
 				//not using dbEndpoint because we get the endpoint from the secret
