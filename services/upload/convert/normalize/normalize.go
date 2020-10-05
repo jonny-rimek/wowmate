@@ -47,7 +47,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			EventType:      params[0],
 		}
 
-		if params[0] != "CHALLENGE_MODE_START" && MythicplusUUID == "" {
+		if MythicplusUUID == "" && params[0] != "CHALLENGE_MODE_START"  {
 			//I don't want to add events if they are outside of a combatlog
 			continue
 		}
@@ -56,9 +56,11 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		switch params[0] {
 		case "COMBAT_LOG_VERSION":
 			//TODO:
-			//1. check version
-			//2. check advanced logging
-			//3. generate report uuid
+			//- [x] check version
+			//- [x] check advanced logging
+			//- [ ] generate report uuid
+			//		- not sure what this is about
+
 			CombatlogUUID = uuid.Must(uuid.NewV4()).String()
 			e.CombatlogUUID = CombatlogUUID
 			err = e.combatLogVersion(params)
@@ -78,7 +80,8 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			}
 
 		case "ENCOUNTER_END":
-			//I want to entry with encounter_end to have the id, just the records after should be nil again
+			//I want the entry with encounter_end to have the id, just the records after should be nil again
+			//it's been already set for this record (e) so it's okay to clear it befor calling encounterEnd
 			BossFightUUID = ""
 			err = e.encounterEnd(params)
 			if err != nil {

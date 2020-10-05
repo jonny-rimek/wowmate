@@ -17,6 +17,7 @@ things like overall damage is calculated.
 - [ ] add tests
 - [ ] reimplement strings.Split that accepts strings as a pointer
 - [ ] rename KeyUnkown1 to KeyChests
+- [ ] drop advanced combat logging field and column, it has to be 1
 - [ ] 
 - [ ] 
 

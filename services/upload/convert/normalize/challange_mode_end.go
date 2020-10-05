@@ -17,24 +17,28 @@ func (e *Event) challengeModeEnd(params []string) (err error) {
 
 	e.DungeonID, err = Atoi32(params[1])
 	if err != nil {
-		log.Println("failed to convert challange mode end event")
+		log.Printf("failed to convert challenge_mode_end field dungeon id: %v", params[1])
 		return err
 	}
+
 	//NOTE: this is if you timed the key and with how many chests.
 	e.KeyUnkown1, err = Atoi32(params[2])
 	if err != nil {
-		log.Println("failed to convert challange mode end event")
+		log.Printf("failed to convert challenge_mode_end field key chests: %v", params[2])
 		return err
 	}
+
 	e.KeyLevel, err = Atoi32(params[3])
 	if err != nil {
-		log.Println("failed to convert challange mode end event")
+		log.Printf("failed to convert challenge_mode_end field key level: %v", params[3])
 		return err
 	}
-	e.KeyDuration, err = Atoi64(params[3])
+
+	e.KeyDuration, err = Atoi64(params[4])
 	if err != nil {
-		log.Println("failed to convert challange mode end event")
+		log.Printf("failed to convert challenge_mode_end field key duration: %v", params[4])
 		return err
 	}
+
 	return nil
 }
