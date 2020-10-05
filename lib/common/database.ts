@@ -29,7 +29,7 @@ export class Database extends cdk.Construct {
 			engine: rds.DatabaseClusterEngine.auroraPostgres({
 				version: rds.AuroraPostgresEngineVersion.VER_11_6,
 			}),
-			masterUser: {
+			credentials: {
 				username: 'clusteradmin' //admin is reserved and can't be used
 			},
 			instanceProps: {

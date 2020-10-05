@@ -56,6 +56,7 @@ export class Convert extends cdk.Construct {
 			//but for now limiting it to one element per invocation makes it easier to reason about
 			//the expected duration etc.
 			//I'll optimize this later, potentially to save invocation costs
+			//also I'm not sure how the memory is garbage collected between different elements in the batch
 		}))
 
 		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
