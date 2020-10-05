@@ -50,7 +50,7 @@ func trimQuotes(input string) string {
 //TODO: test and fix the year problem
 // this will break during new year, because go assumes UTC,
 // but the combatlog has the time of the player afaik
-func convertToTimestampMilli(input string) (int64, error) {
+func timestampMilli(input string) (int64, error) {
 	input = fmt.Sprintf("%v/%s", time.Now().Year(), input)
 	stupidBlizzTimeformat := "2006/1/2 15:04:05.000"
 	t, err := time.Parse(stupidBlizzTimeformat, input)
@@ -88,7 +88,7 @@ func convertToCSV(events *[]Event) (io.Reader, error) {
 	var buf bytes.Buffer
 	w := csv.NewWriter(&buf)
 
-	ss, err := EventsAsStringSlices(events)
+	ss, err := eventsAsStringSlices(events)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func convertToCSV(events *[]Event) (io.Reader, error) {
 }
 
 //TODO: test once the db table definition is stable
-func EventsAsStringSlices(events *[]Event) ([][]string, error) {
+func eventsAsStringSlices(events *[]Event) ([][]string, error) {
 	var ss [][]string
 
 	for _, e := range *events {

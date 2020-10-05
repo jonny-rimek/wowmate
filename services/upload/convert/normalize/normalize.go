@@ -30,7 +30,8 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		//		just look at the implementation of the strings.Split function
 		row := strings.Split(scanner.Text(), "  ")
 
-		timestamp, err := convertToTimestampMilli(row[0])
+		//NOTE: not written to DB atm https://github.com/jonny-rimek/wowmate/issues/129
+		timestamp, err := timestampMilli(row[0])
 		if err != nil {
 			return err
 		}

@@ -16,9 +16,13 @@ general:
 - [x] split up encounter start & end
 - [ ] add tests
 - [ ] reimplement strings.Split that accepts strings as a pointer
+- [ ] fix time conversion https://github.com/jonny-rimek/wowmate/issues/133 and new year edge case
 - [ ] 
 - [ ] 
-- [ ] add remaining unsupported events
+- [ ] 
+- [ ] upload uuid should be file name without the date stuff
+- [ ] add remaining unsupported events to readme
+
 - [ ] write tests for normalize
 	- [ ] test that no code is added outside of a m+
 	- [ ] test that boss fight uuid is empty after the bossfight
