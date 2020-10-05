@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"bytes"
 	"compress/gzip"
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,6 +21,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	uuid "github.com/gofrs/uuid"
+	"github.com/wowmate/jonny-rimek/wowmate/services/upload/convert/normalize"
 )
 
 /*
@@ -240,7 +240,7 @@ func handler(e SQSEvent) error {
 		s := bufio.NewScanner(bytes.NewReader(data))
 		uploadUUID := uuid.Must(uuid.NewV4()).String()
 
-		err = Normalize(s, uploadUUID, sess, csvBucket)
+		err = normalize.Normalize(s, uploadUUID, sess, csvBucket)
 		if err != nil {
 			return err
 		}
@@ -274,25 +274,6 @@ func downloadS3(sess *session.Session, bucketName string, objectKey string, file
 	return nil
 }
 
-func convertToCSV(events *[]Event) (io.Reader, error) {
-	var buf bytes.Buffer
-	w := csv.NewWriter(&buf)
-
-	ss, err := EventsAsStringSlices(events)
-	if err != nil {
-		return nil, err
-	}
-	log.Println("converted to struct to string slice")
-
-	//flushes the string slice as csv to buffer
-	if err := w.WriteAll(ss); err != nil {
-		return nil, err
-	}
-	log.Println("converted to csv")
-
-	return io.Reader(&buf), nil
-}
-
 //checks the file size without actually downloading it in MB
 func sizeOfS3Object(sess *session.Session, bucketName string, objectKey string) (int, error) {
 	svc := s3.New(sess)
@@ -307,28 +288,6 @@ func sizeOfS3Object(sess *session.Session, bucketName string, objectKey string) 
 	}
 
 	return int(*output.ContentLength / 1024 / 1024), nil
-}
-
-func uploadS3(r *io.Reader, sess *session.Session, mythicplugUUID string, csvBucket string) error {
-	if mythicplugUUID == "" {
-		//sometimes there are more CHALLANGE_MODE_END events than there are start events
-		//it shouldn't come to this, because we aren't adding anything unless we have a started event
-		return nil
-	}
-	uploader := s3manager.NewUploader(sess)
-
-	result, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(csvBucket),
-		Key:    aws.String(fmt.Sprintf("%v.csv", mythicplugUUID)),
-		Body:   *r,
-	})
-	if err != nil {
-		log.Println("Failed to upload to S3")
-		return err
-	}
-	log.Println("Upload finished! location: " + result.Location)
-
-	return nil
 }
 
 func timeMessageInQueue(e SQSEvent, i int) error {

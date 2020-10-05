@@ -1,4 +1,4 @@
-package main
+package normalize
 
 import (
 	"reflect"
@@ -117,7 +117,7 @@ func TestAtoi32(t *testing.T) {
 	})
 }
 
-	func TestAtoi64(t *testing.T) {
+func TestAtoi64(t *testing.T) {
 	t.Run("convert number as string to int64", func(t *testing.T) {
 		got, err := Atoi64("32")
 		want := int64(32)

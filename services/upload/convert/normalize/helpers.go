@@ -1,10 +1,18 @@
-package main
+package normalize
 
 import (
+	"bytes"
+	"encoding/csv"
 	"fmt"
+	"io"
+	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 //Atoi32 converts a string directly to a int32, baseline golang parses string always into int64 and have to be converted
@@ -76,6 +84,24 @@ func splitAtCommas(s *string) []string {
 	return append(res, (*s)[beg:])
 }
 
+func convertToCSV(events *[]Event) (io.Reader, error) {
+	var buf bytes.Buffer
+	w := csv.NewWriter(&buf)
+
+	ss, err := EventsAsStringSlices(events)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("converted to struct to string slice")
+
+	//flushes the string slice as csv to buffer
+	if err := w.WriteAll(ss); err != nil {
+		return nil, err
+	}
+	log.Println("converted to csv")
+
+	return io.Reader(&buf), nil
+}
 //TODO: test once the db table definition is stable
 func EventsAsStringSlices(events *[]Event) ([][]string, error) {
 	var ss [][]string
@@ -150,6 +176,32 @@ func EventsAsStringSlices(events *[]Event) ([][]string, error) {
 		ss = append(ss, s)
 	}
 	return ss, nil
+}
+
+//IMPROVE:
+//there shouldn't be any aws logic inside this package, but I want to upload directly after every
+//m+, the idea was to free the memory of the uploaded combatlog, but I don't think this is working
+//anyway
+func uploadS3(r *io.Reader, sess *session.Session, mythicplugUUID string, csvBucket string) error {
+	if mythicplugUUID == "" {
+		//sometimes there are more CHALLANGE_MODE_END events than there are start events
+		//it shouldn't come to this, because we aren't adding anything unless we have a started event
+		return nil
+	}
+	uploader := s3manager.NewUploader(sess)
+
+	result, err := uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String(csvBucket),
+		Key:    aws.String(fmt.Sprintf("%v.csv", mythicplugUUID)),
+		Body:   *r,
+	})
+	if err != nil {
+		log.Println("Failed to upload to S3")
+		return err
+	}
+	log.Println("Upload finished! location: " + result.Location)
+
+	return nil
 }
 
 //IMPROVE: add all fields once table design is stable
