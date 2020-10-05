@@ -12,7 +12,7 @@ import (
 //NOTE: the array is definitely the affixes
 func (e *Event) challengeModeStart(params []string) (err error) {
 	if len(params) != 6 {
-		return fmt.Errorf("combatlog version should have 8 columns, it has %v: %v", len(params), params)
+		return fmt.Errorf("combatlog version should have 6 columns, it has %v: %v", len(params), params)
 	}
 
 	e.DungeonName = trimQuotes(params[1])

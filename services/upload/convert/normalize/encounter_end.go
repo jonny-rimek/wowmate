@@ -11,7 +11,7 @@ import (
 //10/3 06:00:02.433  ENCOUNTER_END,2401,"Halkias, the Sin-Stained Goliath",8,5,1
 func (e *Event) encounterEnd(params []string) (err error) {
 	if len(params) != 6 {
-		return fmt.Errorf("combatlog version should have 8 columns, it has %v: %v", len(params), params)
+		return fmt.Errorf("combatlog version should have 6 columns, it has %v: %v", len(params), params)
 	}
 
 	e.EncounterID, err = Atoi32(params[1])

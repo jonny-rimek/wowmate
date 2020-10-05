@@ -15,12 +15,18 @@ things like overall damage is calculated.
 - [x] split up encounter start & end
 - [ ] add column in damage event
 - [ ] add tests
+- [ ] reimplement strings.Split that accepts strings as a pointer
+- [ ] rename KeyUnkown1 to KeyChests
 - [ ] 
-
-- [ ] check expected content of each cell with regex
+- [ ] 
 
 events: 
 - [x] COMBAT_LOG_VERSION
+- [x] SPELL_DAMAGE
+- [x] CHALLENGE_MODE_END
+- [x] CHALLENGE_MODE_START
+- [x] ENCOUNTER_END
+- [x] ENCOUNTER_START
 - [ ] ZONE_CHANGE
 - [ ] SPELL_CAST_SUCCESS
 - [ ] SPELL_CAST_START
@@ -39,7 +45,6 @@ events:
 - [ ] COMBATANT_INFO
 - [ ] SPELL_ENERGIZE
 - [ ] SWING_DAMAGE
-- [ ] SPELL_DAMAGE
 - [ ] SWING_DAMAGE_LANDED
 - [ ] 
 - [ ] 

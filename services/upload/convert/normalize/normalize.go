@@ -11,6 +11,7 @@ import (
 //Normalize converts the combatlog to a slice of Event structs
 func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session, csvBucket string) error {
 	var combatEvents []Event
+	//IMPROVE: the UploadUUID logic should be part of the normalize package
 	//UploadUUID //for the whole file
 	CombatlogUUID := "" //after every COMBAT_LOG_VERSION
 	BossFightUUID := ""
@@ -24,7 +25,9 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		//4/24 10:42:30.561  COMBAT_LOG_VERSION
 		//every line starts with the date followed by the rest seperated with 2 spaces.
 		//the rest is seperated with commas
-
+		//TODO: write version of .Split that accepts a pointer to the string
+		//		this saved a lot of memory with splitAtComma
+		//		just look at the implementation of the strings.Split function
 		row := strings.Split(scanner.Text(), "  ")
 
 		timestamp, err := convertToTimestampMilli(row[0])
@@ -62,7 +65,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			if err != nil {
 				return err
 			}
-
 			//NOTE:
 			//break is implicit in go, that means after the first match it exits
 			//the switch statement
