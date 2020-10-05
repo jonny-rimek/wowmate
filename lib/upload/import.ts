@@ -37,7 +37,7 @@ export class Import extends cdk.Construct {
 				queue: this.ImportDLQ,
 				maxReceiveCount: 10,
 			},
-			visibilityTimeout: cdk.Duration.minutes(10),
+			visibilityTimeout: cdk.Duration.minutes(3),
 		});
 
 		props.csvBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.importQueue))
@@ -47,7 +47,7 @@ export class Import extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(180),
+			timeout: cdk.Duration.seconds(30),
 			environment: {
 				SECRET_ARN: props.dbSecret.secretArn,
 				DB_ENDPOINT: props.dbEndpoint,
@@ -66,6 +66,10 @@ export class Import extends cdk.Construct {
 		})
 		this.importLambda.addEventSource(new SqsEventSource(this.importQueue, {
 			batchSize: 1,
+			//the should be able to handle multiple events at once.
+			//but for now limiting it to one element per invocation makes it easier to reason about
+			//the expected duration etc.
+			//I'll optimize this later, potentially to save invocation costs
 		}))
 
 		props.dbSecret?.grantRead(this.importLambda)

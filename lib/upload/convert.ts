@@ -50,7 +50,13 @@ export class Convert extends cdk.Construct {
 			tracing: lambda.Tracing.ACTIVE,
 		})
 		this.lambda = convertLambda
-		convertLambda.addEventSource(new SqsEventSource(q))
+		convertLambda.addEventSource(new SqsEventSource(q, {
+			batchSize: 1,
+			//the should be able to handle multiple events at once.
+			//but for now limiting it to one element per invocation makes it easier to reason about
+			//the expected duration etc.
+			//I'll optimize this later, potentially to save invocation costs
+		}))
 
 		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
 		props.uploadBucket.grantRead(convertLambda)
