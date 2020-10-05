@@ -37,7 +37,7 @@ export class Import extends cdk.Construct {
 				queue: this.ImportDLQ,
 				maxReceiveCount: 10,
 			},
-			visibilityTimeout: cdk.Duration.minutes(10)
+			visibilityTimeout: cdk.Duration.minutes(10),
 		});
 
 		props.csvBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.importQueue))
@@ -64,7 +64,9 @@ export class Import extends cdk.Construct {
 			//		https://docs.aws.amazon.com/sdk-for-go/api/service/lambda/#Lambda.Invoke
 			//		second example
 		})
-		this.importLambda.addEventSource(new SqsEventSource(this.importQueue))
+		this.importLambda.addEventSource(new SqsEventSource(this.importQueue, {
+			batchSize: 1,
+		}))
 
 		props.dbSecret?.grantRead(this.importLambda)
 
