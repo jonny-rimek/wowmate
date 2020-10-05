@@ -185,15 +185,6 @@ messages in convert DLQ *should* be 0, the import and summary DLQ *must* be 0
 					width: 4
 				}),
 				new GraphWidget({
-					title: 'Age of oldest message',
-					left: [
-						props.convertQueue.metricApproximateAgeOfOldestMessage({period: cdk.Duration.minutes(1)}),
-						props.importQueue.metricApproximateAgeOfOldestMessage({period: cdk.Duration.minutes(1)}),
-					],
-					stacked: false,
-					width: 4
-				}),
-				new GraphWidget({
 					title: 'Messages not visible',
 					left: [
 						props.convertQueue.metricApproximateNumberOfMessagesNotVisible({period: cdk.Duration.minutes(1)}),
@@ -207,6 +198,15 @@ messages in convert DLQ *should* be 0, the import and summary DLQ *must* be 0
 					left: [
 						props.convertQueue.metricNumberOfMessagesReceived({period: cdk.Duration.minutes(1)}),
 						props.importQueue.metricNumberOfMessagesReceived({period: cdk.Duration.minutes(1)}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
+					title: 'Age of oldest message',
+					left: [
+						props.convertQueue.metricApproximateAgeOfOldestMessage({period: cdk.Duration.minutes(1)}),
+						props.importQueue.metricApproximateAgeOfOldestMessage({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
 					width: 4
