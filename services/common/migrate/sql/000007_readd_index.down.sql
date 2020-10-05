@@ -1,0 +1,1 @@
+DROP INDEX combatlogs_index_event_type_mythicplus_uuid;
