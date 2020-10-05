@@ -32,7 +32,7 @@ export class Convert extends cdk.Construct {
 				queue: this.DLQ,
 				maxReceiveCount: 1, //NOTE: I want failed messages to directly land in dlq during dev
 			},
-			visibilityTimeout: cdk.Duration.minutes(15)
+			visibilityTimeout: cdk.Duration.minutes(10)
 		});
 		this.queue = q
 
@@ -41,7 +41,7 @@ export class Convert extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.minutes(3),
+			timeout: cdk.Duration.minutes(2),
 			environment: {
 				CSV_BUCKET_NAME: props.csvBucket.bucketName,
 			},
