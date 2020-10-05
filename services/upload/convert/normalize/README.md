@@ -8,16 +8,22 @@ things like overall damage is calculated.
 
 ### TODO:
 
+general:
 - [x] check combatlog version
 - [x] check advanced combatlog enabled
 - [x] fix encounter start/end, ignore commons on split if it is inside ""
 - [x] count columns per event and check against expected value
 - [x] split up encounter start & end
-- [ ] add column in damage event
 - [ ] add tests
 - [ ] reimplement strings.Split that accepts strings as a pointer
+- [ ] 
+- [ ] 
+- [ ] add remaining unsupported events
+
+table changes:
 - [ ] rename KeyUnkown1 to KeyChests
 - [ ] drop advanced combat logging field and column, it has to be 1
+- [ ] add column in damage event
 - [ ] 
 - [ ] 
 
@@ -47,39 +53,6 @@ events:
 - [ ] SPELL_ENERGIZE
 - [ ] SWING_DAMAGE
 - [ ] SWING_DAMAGE_LANDED
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
-- [ ] 
 - [ ] 
 - [ ] 
 - [ ] 

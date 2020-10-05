@@ -20,6 +20,7 @@ func (e *Event) combatLogVersion(params []string) (err error) {
 	if e.Version != 16 {
 		return fmt.Errorf("unsupported combatlog version: %v, only version 16 is supported", e.Version)
 	}
+	//IMPROVE: drop advanced combat logging field and column, it has to be 1
 	e.AdvancedLogEnabled, err = Atoi32(params[3])
 	if err != nil {
 		log.Println("failed to convert combatlog version event")
