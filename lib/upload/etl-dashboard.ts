@@ -59,8 +59,6 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 					title: 'Write IOPS',
 					left: [
 						props.cluster.metricVolumeWriteIOPs({period: cdk.Duration.minutes(1)}),
-					],
-					right: [
 						props.cluster.metricVolumeReadIOPs({period: cdk.Duration.minutes(1)}),
 					],
 					stacked: false,
