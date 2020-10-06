@@ -184,12 +184,12 @@ func TestAtoi64(t *testing.T) {
 	})
 }
 
-func Test_splitStringPointer(t *testing.T) {
+func Test_splitString(t *testing.T) {
 	input := "4/24 10:42:30.561  COMBAT_LOG_VERSION"
 	want := []string{"4/24 10:42:30.561", "COMBAT_LOG_VERSION"}
 
-	got := splitStringPointer(input, "  ", 0, -1)
-	
+	got := splitString(input, "  ")
+
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %q want %q", got, want)
 	}

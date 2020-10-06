@@ -14,7 +14,6 @@ general:
 - [x] fix encounter start/end, ignore commons on split if it is inside ""
 - [x] count columns per event and check against expected value
 - [x] split up encounter start & end
-- [ ] reimplement strings.Split that accepts strings as a pointer
 - [ ] add tests
 - [ ] fix time conversion https://github.com/jonny-rimek/wowmate/issues/133 and new year edge case
 - [ ] 

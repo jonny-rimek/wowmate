@@ -24,11 +24,15 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		//4/24 10:42:30.561  COMBAT_LOG_VERSION
 		//every line starts with the date followed by the rest seperated with 2 spaces.
 		//the rest is seperated with commas
-		//TODO: write version of .Split that accepts a pointer to the string
-		//		this saved a lot of memory with splitAtComma
-		//		just look at the implementation of the strings.Split function
-		// row := strings.Split(scanner.Text(), "  ")
-		row := splitStringPointer(scanner.Text(), "  ", 0, -1)
+
+		//IMPROVE: 
+		//write version of .Split that accepts a pointer to the string
+		//this saved a lot of memory with splitAtComma
+		//just look at the implementation of the strings.Split function
+		//maybe there is a package that implements string functionality more efficient
+		//the main problem is that the strings.Split calls a bunch of other functions
+		//that all create a new version of the string and thus bloating the memory
+		row := splitString(scanner.Text(), "  ")
 
 		//NOTE: not written to DB atm https://github.com/jonny-rimek/wowmate/issues/129
 		timestamp, err := timestampMilli(row[0])
