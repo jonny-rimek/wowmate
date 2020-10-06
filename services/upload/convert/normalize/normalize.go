@@ -2,7 +2,6 @@ package normalize
 
 import (
 	"bufio"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	uuid "github.com/gofrs/uuid"
@@ -28,7 +27,8 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		//TODO: write version of .Split that accepts a pointer to the string
 		//		this saved a lot of memory with splitAtComma
 		//		just look at the implementation of the strings.Split function
-		row := strings.Split(scanner.Text(), "  ")
+		// row := strings.Split(scanner.Text(), "  ")
+		row := splitStringPointer(scanner.Text(), "  ", 0, -1)
 
 		//NOTE: not written to DB atm https://github.com/jonny-rimek/wowmate/issues/129
 		timestamp, err := timestampMilli(row[0])

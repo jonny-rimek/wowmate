@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -82,6 +83,57 @@ func splitAtCommas(s *string) []string {
 		}
 	}
 	return append(res, (*s)[beg:])
+}
+
+func splitStringPointer(s, sep string, sepSave, n int) []string {
+	if n == 0 {
+		return nil
+	}
+	if sep == "" {
+		return explode(s, n)
+	}
+	if n < 0 {
+		n = strings.Count(s, sep) + 1
+	}
+
+	a := make([]string, n)
+	n--
+	i := 0
+	for i < n {
+		m := strings.Index(s, sep)
+		if m < 0 {
+			break
+		}
+		a[i] = s[:m+sepSave]
+		s = s[m+len(sep):]
+		i++
+	}
+	a[i] = s
+	return a[:i+1]
+}
+
+// explode splits s into a slice of UTF-8 strings,
+// one string per Unicode character up to a maximum of n (n < 0 means no limit).
+// Invalid UTF-8 sequences become correct encodings of U+FFFD.
+// NOTE: just copied this from the standard libary in order to create my own split functin that takes a pointer of a string
+func explode(s string, n int) []string {
+	l := utf8.RuneCountInString(s)
+	if n < 0 || n > l {
+		n = l
+	}
+	a := make([]string, n)
+	for i := 0; i < n-1; i++ {
+		ch, size := utf8.DecodeRuneInString(s)
+		a[i] = s[:size]
+		s = s[size:]
+		if ch == utf8.RuneError {
+			a[i] = string(utf8.RuneError)
+		}
+	}
+	if n > 0 {
+		a[n-1] = s
+	}
+	return a
 }
 
 func convertToCSV(events *[]Event) (io.Reader, error) {
