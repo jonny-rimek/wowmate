@@ -56,10 +56,22 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 					height: 6,
 				}),
 				new GraphWidget({
-					title: 'Write IOPS',
+					title: 'IOPS',
 					left: [
-						props.cluster.metricVolumeWriteIOPs({period: cdk.Duration.minutes(1)}),
-						props.cluster.metricVolumeReadIOPs({period: cdk.Duration.minutes(1)}),
+						new cloudwatch.Metric({
+							metricName: 'ReadIOPS',
+							namespace: 'AWS/RDS',
+							dimensions: { DBClusterIdentifier: props.cluster.clusterIdentifier },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
+						new cloudwatch.Metric({
+							metricName: 'WriteIOPS',
+							namespace: 'AWS/RDS',
+							dimensions: { DBClusterIdentifier: props.cluster.clusterIdentifier },
+							statistic: 'Sum',
+							period: cdk.Duration.minutes(1),
+						}),
 					],
 					stacked: false,
 					width: 4,
