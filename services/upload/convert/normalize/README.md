@@ -20,7 +20,7 @@ general:
 - [ ] 
 - [ ] 
 - [ ] upload uuid should be file name without the date stuff
-- [ ] add remaining unsupported events to readme
+- [x] add remaining unsupported events to readme
 
 - [ ] write tests for normalize
 	- [ ] test that no code is added outside of a m+
@@ -45,7 +45,10 @@ events:
 - [x] CHALLENGE_MODE_START
 - [x] ENCOUNTER_END
 - [x] ENCOUNTER_START
-- [ ] ZONE_CHANGE
+- [ ] COMBATANT_INFO
+- [ ] DAMAGE_SPLIT
+- [ ] EMOTE
+- [ ] ENVIRONMENTAL_DAMAGE
 - [ ] SPELL_CAST_SUCCESS
 - [ ] SPELL_CAST_START
 - [ ] SPELL_CAST_FAILED
@@ -58,12 +61,20 @@ events:
 - [ ] SPELL_AURA_APPLIED_DOSE
 - [ ] SPELL_CREATE
 - [ ] SPELL_AURA_REMOVED_DOSE
-- [ ] CHALLENGE_MODE_END
-- [ ] CHALLENGE_MODE_START
-- [ ] COMBATANT_INFO
+- [ ] SPELL_ABSORBED
+- [ ] SPELL_DISPEL
+- [ ] SPELL_HEAL_ABSORBED
+- [ ] SPELL_INSTAKILL
+- [ ] SPELL_INTERRUPT
+- [ ] SPELL_MISSED
+- [ ] SPELL_PERIODIC_DAMAGE
+- [ ] SPELL_PERIODIC_ENERGIZE
+- [ ] SPELL_PERIODIC_MISSED
+- [ ] SPELL_RESURRECT
 - [ ] SPELL_ENERGIZE
 - [ ] SWING_DAMAGE
 - [ ] SWING_DAMAGE_LANDED
-- [ ] 
-- [ ] 
-- [ ] 
+- [ ] SWING_MISSED
+- [ ] PARTY_KILL
+- [ ] UNIT_DIED
+- [ ] ZONE_CHANGE
