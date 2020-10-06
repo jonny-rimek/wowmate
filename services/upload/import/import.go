@@ -86,7 +86,12 @@ func handler(e SQSEvent) error {
 	if topicArn == "" {
 		return fmt.Errorf("summary topic name env var is empty")
 	}
-
+	if ConnStr == "" {
+		log.Println("ConnStr was empty")
+		secretArn := os.Getenv("SECRET_ARN")
+		dbEndpoint := os.Getenv("DB_ENDPOINT")
+		ConnStr, _ = golib.DBCreds(secretArn, dbEndpoint, Sess)
+	}
 	db, err := sql.Open("postgres", ConnStr)
 	if err != nil {
 		return err
@@ -181,7 +186,7 @@ func main() {
 		return
 	}
 
-	ConnStr, err = golib.DBCreds(secretArn, "", Sess)
+	ConnStr, err = golib.DBCreds(secretArn, dbEndpoint, Sess)
 	if err != nil {
 		return
 	}
