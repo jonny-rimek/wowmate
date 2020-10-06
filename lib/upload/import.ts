@@ -35,7 +35,7 @@ export class Import extends cdk.Construct {
 		this.importQueue= new sqs.Queue(this, 'ProcessingQueue', {
 			deadLetterQueue: {
 				queue: this.ImportDLQ,
-				maxReceiveCount: 10,
+				maxReceiveCount: 1,
 			},
 			visibilityTimeout: cdk.Duration.minutes(3),
 		});
