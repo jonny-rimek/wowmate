@@ -15,11 +15,9 @@ general:
 - [x] count columns per event and check against expected value
 - [x] split up encounter start & end
 - [ ] add tests
-- [ ] fix time conversion https://github.com/jonny-rimek/wowmate/issues/133 and new year edge case
-- [ ] 
-- [ ] 
-- [ ] 
 - [ ] upload uuid should be file name without the date stuff
+- [ ] 
+- [ ] 
 - [x] add remaining unsupported events to readme
 
 - [ ] write tests for normalize
