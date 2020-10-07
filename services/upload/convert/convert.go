@@ -20,7 +20,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	uuid "github.com/gofrs/uuid"
 	"github.com/wowmate/jonny-rimek/wowmate/services/upload/convert/normalize"
 )
 
@@ -238,7 +237,7 @@ func handler(e SQSEvent) error {
 		}
 
 		s := bufio.NewScanner(bytes.NewReader(data))
-		uploadUUID := uuid.Must(uuid.NewV4()).String()
+		uploadUUID := uploadUUID(objectKey)
 
 		err = normalize.Normalize(s, uploadUUID, sess, csvBucket)
 		if err != nil {
@@ -307,6 +306,14 @@ func timeMessageInQueue(e SQSEvent, i int) error {
 	log.Printf("seconds the message was unprocessed in the queue: %v", tm1.Sub(tm2).Seconds())
 
 	return nil
+}
+
+func uploadUUID(s string) string {
+	s = strings.TrimSuffix(s, ".txt")
+	s = strings.TrimSuffix(s, ".txt.gz")
+	s = strings.TrimSuffix(s, ".zip")
+
+	return strings.Split(s, "/")[3]
 }
 
 func main() {

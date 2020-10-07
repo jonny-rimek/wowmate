@@ -14,8 +14,8 @@ general:
 - [x] fix encounter start/end, ignore commons on split if it is inside ""
 - [x] count columns per event and check against expected value
 - [x] split up encounter start & end
-- [ ] add tests
 - [ ] upload uuid should be file name without the date stuff
+- [ ] add tests
 - [ ] 
 - [ ] 
 - [x] add remaining unsupported events to readme
