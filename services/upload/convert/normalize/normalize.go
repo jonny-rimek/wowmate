@@ -32,7 +32,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		//maybe there is a package that implements string functionality more efficient
 		//the main problem is that the strings.Split calls a bunch of other functions
 		//that all create a new version of the string and thus bloating the memory
-		//UPDATE: it's a lot of work to rewrite everything touse []byte I'll resist the 
+		//UPDATE: it's a lot of work to rewrite everything touse []byte I'll resist the
 		//premature optimization for now
 		row := splitString(scanner.Text(), "  ")
 

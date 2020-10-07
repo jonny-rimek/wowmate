@@ -65,6 +65,8 @@ Crucial is the write IOPS, because we are ingesting a ton of data
 							statistic: 'Sum',
 							period: cdk.Duration.minutes(1),
 						}),
+					],
+					right: [
 						new cloudwatch.Metric({
 							metricName: 'WriteIOPS',
 							namespace: 'AWS/RDS',
