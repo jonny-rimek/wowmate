@@ -2,7 +2,6 @@ package normalize
 
 import (
 	"bufio"
-	"bytes"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	uuid "github.com/gofrs/uuid"
@@ -33,7 +32,9 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		//maybe there is a package that implements string functionality more efficient
 		//the main problem is that the strings.Split calls a bunch of other functions
 		//that all create a new version of the string and thus bloating the memory
-		row := bytes.Split(scanner.Bytes(), []byte("  "))
+		//UPDATE: it's a lot of work to rewrite everything touse []byte I'll resist the 
+		//premature optimization for now
+		row := splitString(scanner.Text(), "  ")
 
 		//NOTE: not written to DB atm https://github.com/jonny-rimek/wowmate/issues/129
 		timestamp, err := timestampMilli(row[0])
