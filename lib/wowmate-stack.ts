@@ -20,94 +20,94 @@ export class Wowmate extends Stack {
 
 		const buckets = new Buckets(this, 'Buckets-')
 
-		const vpc = new Vpc(this, 'Vpc-')
+		// const vpc = new Vpc(this, 'Vpc-')
 
 		new Cloudtrail(this, 'Cloudtrail-', {
 			uploadBucket: buckets.uploadBucket,
 		})
 
-		const db = new Database(this, 'Database-',{
-			vpc: vpc.vpc,
-			csvBucket: buckets.csvBucket,
-		})
+		// const db = new Database(this, 'Database-',{
+		// 	vpc: vpc.vpc,
+		// 	csvBucket: buckets.csvBucket,
+		// })
 
 		//lambda is exported, metrics could be displayed somewhere
-		new Migrate(this, 'Migrate-',{
-			dbSecret: db.dbSecret,
-			vpc: vpc.vpc,
-			dbSecGrp: db.dbSecGrp,
-		})
+		// new Migrate(this, 'Migrate-',{
+		// 	dbSecret: db.dbSecret,
+		// 	vpc: vpc.vpc,
+		// 	dbSecGrp: db.dbSecGrp,
+		// })
 
 		//lambda is exported, metrics could be displayed somewhere
-		new Partition(this, 'Partition-',{
-			dbSecret: db.dbSecret,
-			vpc: vpc.vpc,
-			dbSecGrp: db.dbSecGrp,
-			dbEndpoint: db.dbEndpoint,
-		})
+		// new Partition(this, 'Partition-',{
+		// 	dbSecret: db.dbSecret,
+		// 	vpc: vpc.vpc,
+		// 	dbSecGrp: db.dbSecGrp,
+		// 	dbEndpoint: db.dbEndpoint,
+		// })
 
-		const api = new Api(this, 'Api-', {
-			dbSecret: db.dbSecret,
-			dbEndpoint: db.dbEndpoint,
-			vpc: vpc.vpc,
-			dbSecGrp: db.dbSecGrp,
-		})
+		// const api = new Api(this, 'Api-', {
+		// 	dbSecret: db.dbSecret,
+		// 	dbEndpoint: db.dbEndpoint,
+		// 	vpc: vpc.vpc,
+		// 	dbSecGrp: db.dbSecGrp,
+		// })
 
 		const presign = new Presign(this, 'Presign-', {
 			uploadBucket: buckets.uploadBucket,
 		})
 
 		const frontend = new Frontend(this, 'Frontend-', {
-			api: api.api,
+			// api: api.api,
 			presignApi: presign.api,
 		})
 
-		const convert = new Convert(this, 'Convert-', {
-			vpc: vpc.vpc,
-			csvBucket: buckets.csvBucket,
-			uploadBucket: buckets.uploadBucket,
-		})
+		// const convert = new Convert(this, 'Convert-', {
+		// 	vpc: vpc.vpc,
+		// 	csvBucket: buckets.csvBucket,
+		// 	uploadBucket: buckets.uploadBucket,
+		// })
 
-		const summary = new Summary(this, 'Summary-', {
-			vpc: vpc.vpc,
-			csvBucket: buckets.csvBucket,
-			dbSecGrp: db.dbSecGrp,
-			dbSecret: db.dbSecret,
-			dbEndpoint: db.dbEndpoint,
-		})
+		// const summary = new Summary(this, 'Summary-', {
+		// 	vpc: vpc.vpc,
+		// 	csvBucket: buckets.csvBucket,
+		// 	dbSecGrp: db.dbSecGrp,
+		// 	dbSecret: db.dbSecret,
+		// 	dbEndpoint: db.dbEndpoint,
+		// })
 
 
 		//NOTE: import is a saved keyword
-		const importz = new Import(this, 'Import-', {
-			vpc: vpc.vpc,
-			csvBucket: buckets.csvBucket,
-			dbSecGrp: db.dbSecGrp,
-			dbSecret: db.dbSecret,
-			dbEndpoint: db.dbEndpoint,
-			summaryTopic: summary.summaryTopic,
-		})
+		// const importz = new Import(this, 'Import-', {
+		// 	vpc: vpc.vpc,
+		// 	csvBucket: buckets.csvBucket,
+		// 	dbSecGrp: db.dbSecGrp,
+		// 	dbSecret: db.dbSecret,
+		// 	dbEndpoint: db.dbEndpoint,
+		// 	summaryTopic: summary.summaryTopic,
+		// })
 
-		new ApiFrontendDashboard(this, 'UserFacing-', {
-			topDamageLambda: api.topDamageLambda,
-			api: api.api,
-			s3: frontend.bucket,
-			cloudfront: frontend.cloudfront,
-		})
+		// new ApiFrontendDashboard(this, 'UserFacing-', {
+		// 	topDamageLambda: api.topDamageLambda,
+		// 	api: api.api,
+		// 	s3: frontend.bucket,
+		// 	cloudfront: frontend.cloudfront,
+		// })
 
-		new EtlDashboard(this, 'Etl-', {
-			convertLambda: convert.lambda,
-			convertQueue: convert.queue,
-			convertDLQ: convert.DLQ,
-			importLambda: importz.importLambda,
-			importQueue: importz.importQueue,
-			importDLQ: importz.ImportDLQ,
-			summaryLambda: summary.summaryLambda,
-			summaryDLQ: summary.summaryDLQ,
-			presignLambda: presign.lambda,
-			uploadBucket: buckets.uploadBucket,
-			csvBucket: buckets.csvBucket,
-			presignApi: presign.api,
-			cluster: db.cluster,
-		})
+		// new EtlDashboard(this, 'Etl-', {
+		// 	convertLambda: convert.lambda,
+		// 	convertQueue: convert.queue,
+		// 	convertDLQ: convert.DLQ,
+		// 	importLambda: importz.importLambda,
+		// 	importQueue: importz.importQueue,
+		// 	importDLQ: importz.ImportDLQ,
+		// 	summaryLambda: summary.summaryLambda,
+		// 	summaryDLQ: summary.summaryDLQ,
+		// 	presignLambda: presign.lambda,
+		// 	uploadBucket: buckets.uploadBucket,
+		// 	csvBucket: buckets.csvBucket,
+		// 	presignApi: presign.api,
+		// 	cluster: db.cluster,
+		// })
 	}
 }

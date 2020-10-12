@@ -10,7 +10,7 @@ import { SSLMethod, SecurityPolicyProtocol } from '@aws-cdk/aws-cloudfront';
 import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 
 interface Props extends cdk.StackProps {
-	api: HttpApi
+	// api: HttpApi
 	presignApi: HttpApi
 }
 
@@ -50,9 +50,9 @@ export class Frontend extends cdk.Construct {
 
 		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
 			originConfigs: [
-				{
-					customOriginSource: {
-						domainName: props.api.url!.replace('https://','').replace('/',''),
+				// {
+					// customOriginSource: {
+					// 	domainName: props.api.url!.replace('https://','').replace('/',''),
 						// allowedOriginSSLVersions
 						// httpPort
 						// httpsPort
@@ -61,18 +61,18 @@ export class Frontend extends cdk.Construct {
 						// originPath
 						// originProtocolPolicy
 						// originReadTimeout
-					},
-					behaviors: [{
-						pathPattern: '/api/*',
-						compress: true,
-						allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
-						// cachedMethods
-						// defaultTtl
-						// forwardedValues
-						// maxTtl
-						// minTtl
-					}]
-				},
+				// 	},
+				// 	behaviors: [{
+				// 		pathPattern: '/api/*',
+				// 		compress: true,
+				// 		allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
+				// 		// cachedMethods
+				// 		// defaultTtl
+				// 		// forwardedValues
+				// 		// maxTtl
+				// 		// minTtl
+				// 	}]
+				// },
 				{
 					customOriginSource: {
 						domainName: props.presignApi.url!.replace('https://','').replace('/',''),

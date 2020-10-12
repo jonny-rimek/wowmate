@@ -3,7 +3,7 @@ import s3 = require('@aws-cdk/aws-s3');
 import { RemovalPolicy } from '@aws-cdk/core';
 
 export class Buckets extends cdk.Construct {
-	public readonly csvBucket: s3.Bucket;
+	// public readonly csvBucket: s3.Bucket;
 	public readonly uploadBucket: s3.Bucket;
 
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -33,12 +33,12 @@ export class Buckets extends cdk.Construct {
 			}]
 		})
 
-		this.csvBucket = new s3.Bucket(this, 'CSV', {
-			removalPolicy: cdk.RemovalPolicy.DESTROY,
-			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-			metrics: [{ //enables advanced s3metrics
-				id: 'metric',
-			}]
-		})
+		// this.csvBucket = new s3.Bucket(this, 'CSV', {
+		// 	removalPolicy: cdk.RemovalPolicy.DESTROY,
+		// 	blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+		// 	metrics: [{ //enables advanced s3metrics
+		// 		id: 'metric',
+		// 	}]
+		// })
 	}
 }
