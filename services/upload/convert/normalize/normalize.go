@@ -4,7 +4,6 @@ import (
 	"bufio"
 
 	"github.com/aws/aws-sdk-go/aws/session"
-	uuid "github.com/gofrs/uuid"
 )
 
 //Normalize converts the combatlog to a slice of Event structs
@@ -12,8 +11,8 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 	var combatEvents []Event
 	//IMPROVE: the UploadUUID logic should be part of the normalize package
 	//UploadUUID //for the whole file
-	CombatlogUUID := "" //after every COMBAT_LOG_VERSION
-	BossFightUUID := ""
+	// CombatlogUUID := "" //after every COMBAT_LOG_VERSION
+	// BossFightUUID := ""
 	MythicplusUUID := ""
 
 	//combatEvents = make([]Event, 0, 100000) //100.000 is an arbitrary value
@@ -45,13 +44,13 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 		params := splitAtCommas(&row[1])
 
 		e := Event{
-			UploadUUID:     uploadUUID,
-			CombatlogUUID:  CombatlogUUID,
-			BossFightUUID:  BossFightUUID,
+			// UploadUUID:     uploadUUID,
+			// CombatlogUUID:  CombatlogUUID,
+			// BossFightUUID:  BossFightUUID,
 			MythicplusUUID: MythicplusUUID,
-			ColumnUUID:     uuid.Must(uuid.NewV4()).String(),
+			// ColumnUUID:     uuid.Must(uuid.NewV4()).String(),
 			Timestamp:      timestamp,
-			EventType:      params[0],
+			// EventType:      params[0],
 		}
 
 		//TODO: never add anything if CombatlogUUID is empty, same logic as m+uuid
@@ -69,45 +68,45 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			//- [ ] generate report uuid
 			//		- not sure what this is about
 
-			CombatlogUUID = uuid.Must(uuid.NewV4()).String()
-			e.CombatlogUUID = CombatlogUUID
-			err = e.combatLogVersion(params)
-			if err != nil {
-				return err
-			}
+			// CombatlogUUID = uuid.Must(uuid.NewV4()).String()
+			// e.CombatlogUUID = CombatlogUUID
+			// err = e.combatLogVersion(params)
+			// if err != nil {
+			// 	return err
+			// }
 			//NOTE:
 			//break is implicit in go, that means after the first match it exits
 			//the switch statement
 
 		case "ENCOUNTER_START":
-			e.BossFightUUID = uuid.Must(uuid.NewV4()).String()
-			err = e.encounterStart(params)
-			if err != nil {
-				return err
-			}
+			// e.BossFightUUID = uuid.Must(uuid.NewV4()).String()
+			// err = e.encounterStart(params)
+			// if err != nil {
+			// 	return err
+			// }
 
 		case "ENCOUNTER_END":
 			//I want the entry with encounter_end to have the id, just the records after should be nil again
 			//it's been already set for this record (e) so it's okay to clear it befor calling encounterEnd
-			BossFightUUID = ""
-			err = e.encounterEnd(params)
-			if err != nil {
-				return err
-			}
+			// BossFightUUID = ""
+			// err = e.encounterEnd(params)
+			// if err != nil {
+			// 	return err
+			// }
 
 		case "CHALLENGE_MODE_START":
-			MythicplusUUID = uuid.Must(uuid.NewV4()).String()
-			e.MythicplusUUID = MythicplusUUID
-			err = e.challengeModeStart(params)
-			if err != nil {
-				return err
-			}
+			// MythicplusUUID = uuid.Must(uuid.NewV4()).String()
+			// e.MythicplusUUID = MythicplusUUID
+			// err = e.challengeModeStart(params)
+			// if err != nil {
+			// 	return err
+			// }
 
 		case "CHALLENGE_MODE_END":
-			err = e.challengeModeEnd(params)
-			if err != nil {
-				return err
-			}
+			// err = e.challengeModeEnd(params)
+			// if err != nil {
+			// 	return err
+			// }
 			combatEvents = append(combatEvents, e)
 
 			r, err := convertToCSV(&combatEvents)
@@ -131,7 +130,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			}
 
 		default:
-			e.Unsupported = true
+			// e.Unsupported = true
 		}
 
 		if params[0] == "CHALLENGE_MODE_END" {

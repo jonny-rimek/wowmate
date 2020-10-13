@@ -62,11 +62,11 @@ export class Wowmate extends Stack {
 			presignApi: presign.api,
 		})
 
-		// const convert = new Convert(this, 'Convert-', {
-		// 	vpc: vpc.vpc,
-		// 	csvBucket: buckets.csvBucket,
-		// 	uploadBucket: buckets.uploadBucket,
-		// })
+		const convert = new Convert(this, 'Convert-', {
+			// vpc: vpc.vpc,
+			// csvBucket: buckets.csvBucket,
+			uploadBucket: buckets.uploadBucket,
+		})
 
 		// const summary = new Summary(this, 'Summary-', {
 		// 	vpc: vpc.vpc,

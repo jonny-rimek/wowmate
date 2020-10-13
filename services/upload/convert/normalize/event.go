@@ -7,41 +7,41 @@ package normalize
 //6/30 21:46:57.014  SPELL_HEAL,Player-970-000BF9AC,"Eluxbeta-Sylvanas",0x511,0x0,Player-970-000BF9AC,"Eluxbeta-Sylvanas",0x511,0x0,194509,"Power Word:         Radiance",0x2,Player-970-000BF9AC,0000000000000000,92811,110009,368,4868,801,0,100000,100000,0,-922.47,2149.70,3.0913,326,5101,5101,0,0,nil
 type Event struct {
 	//START_BASE_PARAMS
-	UploadUUID     string
-	Unsupported    bool //DEBUGGING PARAM
-	CombatlogUUID  string
-	BossFightUUID  string
+	// UploadUUID     string
+	// Unsupported    bool //DEBUGGING PARAM
+	// CombatlogUUID  string
+	// BossFightUUID  string
 	MythicplusUUID string
-	ColumnUUID     string
+	// ColumnUUID     string
 	Timestamp      int64  //6/30 21:46:57.014
-	EventType      string //SPELL_HEAL
+	// EventType      string //SPELL_HEAL
 
 	//START COMBAT_LOG_VERSION
-	Version int32 //8
+	// Version int32 //8
 	//Type string [...]                                //ADVANCED_LOG_ENABLED, COLUMN dropped as the value is always the same
-	AdvancedLogEnabled int32 //1 or 0 for on or off
+	// AdvancedLogEnabled int32 //1 or 0 for on or off
 	//END COMBAT_LOG_VERSION
 
 	//START CHALLANGE_MODE_START
 	//11/3 09:00:00.760  CHALLENGE_MODE_START,"Atal'Dazar",1763,244,10,[10,11,14,16]
 	//11/3 09:34:07.310  CHALLENGE_MODE_END,1763,1,10,2123441
-	DungeonName string //"Atal'dazar"
-	DungeonID   int32  //1763 it's only a guess tho
-	KeyUnkown1  int32  //244, dunno what this is
-	KeyLevel    int32  //10
-	KeyArray    string //[10,11,14,16] no idea....
-	KeyDuration int64  //2123441 my guess it. that this is amount of milliseconds the key took, would be about 35min
+	// DungeonName string //"Atal'dazar"
+	// DungeonID   int32  //1763 it's only a guess tho
+	// KeyUnkown1  int32  //244, dunno what this is
+	// KeyLevel    int32  //10
+	// KeyArray    string //[10,11,14,16] no idea....
+	// KeyDuration int64  //2123441 my guess it. that this is amount of milliseconds the key took, would be about 35min
 	//END CHALLANGE_MODE_START
 
 	//START ENCOUNTER_START
 	//11/3 09:00:22.354  ENCOUNTER_START,2086,"Rezan",8,5,1763
 	//11/3 09:01:58.364  ENCOUNTER_END,2086,"Rezan",8,5,1
-	EncounterID       int32  //2086
-	EncounterName     string //"Rezan"
-	EncounterUnknown1 int32  //8
-	EncounterUnknown2 int32  //5
+	// EncounterID       int32  //2086
+	// EncounterName     string //"Rezan"
+	// EncounterUnknown1 int32  //8
+	// EncounterUnknown2 int32  //5
 	//DungeonID    int32  `parquet:"name=key_level, type=INT32"`    //1763 column already exists is only in encounter start event
-	Killed int32 //1 true 0 false
+	// Killed int32 //1 true 0 false
 	//END ENCOUNTER_END
 
 	CasterID   string //Player-970-000BF9AC
@@ -61,50 +61,50 @@ type Event struct {
 	//END_BASE_SPELL_PARAMS
 
 	//START_DISPEL_PARAMS
-	ExtraSpellID   int32
-	ExtraSpellName string
-	ExtraSchool    string
+	// ExtraSpellID   int32
+	// ExtraSpellName string
+	// ExtraSchool    string
 	//START_SPELL_AURAS_PARAMS
-	AuraType string //BUFF
+	// AuraType string //BUFF
 	//END_DISPELL_PARAMS
 	//END_SPELL_AURAS_PARAMS
 
 	//START_ADVANCED_COMBAT_LOGGING_PARAMS
-	AnotherPlayerID string //Player-970-000BF9AC in case of pets this is always the target player_id not the summoner
-	D0              string //0000000000000000
-	D1              int64  //89449
-	D2              int64  //93932
-	D3              int64  //5637
-	D4              int64  //998
-	D5              int64  //2599
-	D6              int64  //1
-	D7              int64  //596
-	D8              int64  //1000
-	D9              string //0
-	D10             string //-967.46 coordinates?
-	D11             string //2171.14 ^
-	D12             string //0.4005  ^
-	D13             string //313
-	DamageUnkown14  string //Added with combatlog version 9?
+	// AnotherPlayerID string //Player-970-000BF9AC in case of pets this is always the target player_id not the summoner
+	// D0              string //0000000000000000
+	// D1              int64  //89449
+	// D2              int64  //93932
+	// D3              int64  //5637
+	// D4              int64  //998
+	// D5              int64  //2599
+	// D6              int64  //1
+	// D7              int64  //596
+	// D8              int64  //1000
+	// D9              string //0
+	// D10             string //-967.46 coordinates?
+	// D11             string //2171.14 ^
+	// D12             string //0.4005  ^
+	// D13             string //313
+	// DamageUnkown14  string //Added with combatlog version 9?
 	//END_ADVANCED_COMBAT_LOGGING_PARAMS
 	//START_HEAL_PARAMS (SPELL_HEAL, SPELL_PERIODIC_HEAL)
 	//START_DAMAGE_PARAMS e.g. 3724,5319,-1,1,0,0,0,nil,nil,nil
 	ActualAmount int64 //reduced by amor, 2x for crit, reduced by absorb
-	BaseAmount   int64 //before reduction, before crit
+	// BaseAmount   int64 //before reduction, before crit
 	//--
-	Overhealing int64 //0 HEAL events only
+	// Overhealing int64 //0 HEAL events only
 	//--
-	Overkill string //0 DMG events only
-	School   string //0 DMG events only - confirmed as spell school
-	Resisted string //0 DMG events only
-	Blocked  string //0 DMG events only
+	// Overkill string //0 DMG events only
+	// School   string //0 DMG events only - confirmed as spell school
+	// Resisted string //0 DMG events only
+	// Blocked  string //0 DMG events only
 	//--
-	Absorbed int64  //0
-	Critical string //1 = crit, nil = noncrit
+	// Absorbed int64  //0
+	// Critical string //1 = crit, nil = noncrit
 	//END_HEAL_PARAMS
-	Glancing  string //0
-	Crushing  string //0
-	IsOffhand string
+	// Glancing  string //0
+	// Crushing  string //0
+	// IsOffhand string
 	//END_DAMAGE_PARAMS
 }
 

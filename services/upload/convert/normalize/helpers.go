@@ -116,27 +116,27 @@ func eventsAsStringSlices(events *[]Event) ([][]string, error) {
 
 	for _, e := range *events {
 		s := []string{
-			e.ColumnUUID,
-			e.UploadUUID,
-			strconv.FormatBool(e.Unsupported),
-			e.CombatlogUUID,
-			e.BossFightUUID,
+			// e.ColumnUUID,
+			// e.UploadUUID,
+			// strconv.FormatBool(e.Unsupported),
+			// e.CombatlogUUID,
+			// e.BossFightUUID,
 			e.MythicplusUUID,
 			// strconv.FormatInt(e.Timestamp, 10),
-			e.EventType,
-			strconv.FormatInt(int64(e.Version), 10),
-			strconv.FormatInt(int64(e.AdvancedLogEnabled), 10),
-			e.DungeonName,
-			strconv.FormatInt(int64(e.DungeonID), 10),
-			strconv.FormatInt(int64(e.KeyUnkown1), 10),
-			strconv.FormatInt(int64(e.KeyLevel), 10),
-			e.KeyArray,
-			strconv.FormatInt(e.KeyDuration, 10),
-			strconv.FormatInt(int64(e.EncounterID), 10),
-			e.EncounterName,
-			strconv.FormatInt(int64(e.EncounterUnknown1), 10),
-			strconv.FormatInt(int64(e.EncounterUnknown2), 10),
-			strconv.FormatInt(int64(e.Killed), 10),
+			// e.EventType,
+			// strconv.FormatInt(int64(e.Version), 10),
+			// strconv.FormatInt(int64(e.AdvancedLogEnabled), 10),
+			// e.DungeonName,
+			// strconv.FormatInt(int64(e.DungeonID), 10),
+			// strconv.FormatInt(int64(e.KeyUnkown1), 10),
+			// strconv.FormatInt(int64(e.KeyLevel), 10),
+			// e.KeyArray,
+			// strconv.FormatInt(e.KeyDuration, 10),
+			// strconv.FormatInt(int64(e.EncounterID), 10),
+			// e.EncounterName,
+			// strconv.FormatInt(int64(e.EncounterUnknown1), 10),
+			// strconv.FormatInt(int64(e.EncounterUnknown2), 10),
+			// strconv.FormatInt(int64(e.Killed), 10),
 			e.CasterID,
 			e.CasterName,
 			e.CasterType,
@@ -148,38 +148,38 @@ func eventsAsStringSlices(events *[]Event) ([][]string, error) {
 			strconv.FormatInt(int64(e.SpellID), 10),
 			e.SpellName,
 			e.SpellType,
-			strconv.FormatInt(int64(e.ExtraSpellID), 10),
-			e.ExtraSpellName,
-			e.ExtraSchool,
-			e.AuraType,
-			e.AnotherPlayerID,
-			e.D0,
-			strconv.FormatInt(e.D1, 10),
-			strconv.FormatInt(e.D2, 10),
-			strconv.FormatInt(e.D3, 10),
-			strconv.FormatInt(e.D4, 10),
-			strconv.FormatInt(e.D5, 10),
-			strconv.FormatInt(e.D6, 10),
-			strconv.FormatInt(e.D7, 10),
-			strconv.FormatInt(e.D8, 10),
-			e.D9,
-			e.D10,
-			e.D11,
-			e.D12,
-			e.D13,
-			e.DamageUnkown14,
+			// strconv.FormatInt(int64(e.ExtraSpellID), 10),
+			// e.ExtraSpellName,
+			// e.ExtraSchool,
+			// e.AuraType,
+			// e.AnotherPlayerID,
+			// e.D0,
+			// strconv.FormatInt(e.D1, 10),
+			// strconv.FormatInt(e.D2, 10),
+			// strconv.FormatInt(e.D3, 10),
+			// strconv.FormatInt(e.D4, 10),
+			// strconv.FormatInt(e.D5, 10),
+			// strconv.FormatInt(e.D6, 10),
+			// strconv.FormatInt(e.D7, 10),
+			// strconv.FormatInt(e.D8, 10),
+			// e.D9,
+			// e.D10,
+			// e.D11,
+			// e.D12,
+			// e.D13,
+			// e.DamageUnkown14,
 			strconv.FormatInt(e.ActualAmount, 10),
-			strconv.FormatInt(e.BaseAmount, 10),
-			strconv.FormatInt(e.Overhealing, 10),
-			e.Overkill,
-			e.School,
-			e.Resisted,
-			e.Blocked,
-			strconv.FormatInt(e.Absorbed, 10),
-			e.Critical,
-			e.Glancing,
-			e.Crushing,
-			e.IsOffhand,
+			// strconv.FormatInt(e.BaseAmount, 10),
+			// strconv.FormatInt(e.Overhealing, 10),
+			// e.Overkill,
+			// e.School,
+			// e.Resisted,
+			// e.Blocked,
+			// strconv.FormatInt(e.Absorbed, 10),
+			// e.Critical,
+			// e.Glancing,
+			// e.Crushing,
+			// e.IsOffhand,
 		}
 		ss = append(ss, s)
 	}
@@ -213,23 +213,23 @@ func uploadS3(r *io.Reader, sess *session.Session, mythicplugUUID string, csvBuc
 }
 
 //IMPROVE: add all fields once table design is stable
-func (s *Event) String() string {
-	return fmt.Sprintf(`[
-  UUID            -> %s
-  TimeStamp       -> %v
-  EventType       -> %s
-  CasterID        -> %s
-  CasterName      -> %s
-  CasterType      -> %s
-  SourceFlag      -> %s
-  TargetID        -> %s
-  TargetName      -> %s
-  TargetType      -> %s
-  DestFlag        -> %s
-  SpellID         -> %v
-  SpellName       -> %s
-  SpellType       -> %s
-]
-`, s.UploadUUID, s.Timestamp, s.EventType, s.CasterID, s.CasterName, s.CasterType, s.SourceFlag, s.TargetID, s.TargetName, s.TargetType, s.DestFlag, s.SpellID, s.SpellName, s.SpellType)
-	//  AnotherPlayerID -> %s
-}
+// func (s *Event) String() string {
+// 	return fmt.Sprintf(`[
+//   UUID            -> %s
+//   TimeStamp       -> %v
+//   EventType       -> %s
+//   CasterID        -> %s
+//   CasterName      -> %s
+//   CasterType      -> %s
+//   SourceFlag      -> %s
+//   TargetID        -> %s
+//   TargetName      -> %s
+//   TargetType      -> %s
+//   DestFlag        -> %s
+//   SpellID         -> %v
+//   SpellName       -> %s
+//   SpellType       -> %s
+// ]
+// `, s.UploadUUID, s.Timestamp, s.EventType, s.CasterID, s.CasterName, s.CasterType, s.SourceFlag, s.TargetID, s.TargetName, s.TargetType, s.DestFlag, s.SpellID, s.SpellName, s.SpellType)
+// 	//  AnotherPlayerID -> %s
+// }
