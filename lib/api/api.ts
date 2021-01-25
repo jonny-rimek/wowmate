@@ -2,7 +2,8 @@ import cdk = require('@aws-cdk/core');
 import ec2 = require('@aws-cdk/aws-ec2');
 import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
 import { RetentionDays } from '@aws-cdk/aws-logs';
-import { HttpApi, LambdaProxyIntegration, HttpMethod } from '@aws-cdk/aws-apigatewayv2';
+import { HttpApi, HttpMethod } from '@aws-cdk/aws-apigatewayv2';
+import { LambdaProxyIntegration } from '@aws-cdk/aws-apigatewayv2-integrations';
 import lambda = require('@aws-cdk/aws-lambda');
 import { CfnOutput } from '@aws-cdk/core';
 
