@@ -13,7 +13,7 @@ type Event struct {
 	// BossFightUUID  string
 	MythicplusUUID string
 	// ColumnUUID     string
-	Timestamp      int64  //6/30 21:46:57.014
+	Timestamp int64 //6/30 21:46:57.014
 	// EventType      string //SPELL_HEAL
 
 	//START COMBAT_LOG_VERSION

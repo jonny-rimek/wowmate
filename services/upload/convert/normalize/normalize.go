@@ -49,7 +49,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			// BossFightUUID:  BossFightUUID,
 			MythicplusUUID: MythicplusUUID,
 			// ColumnUUID:     uuid.Must(uuid.NewV4()).String(),
-			Timestamp:      timestamp,
+			Timestamp: timestamp,
 			// EventType:      params[0],
 		}
 

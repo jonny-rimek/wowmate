@@ -27,8 +27,8 @@ func (e *Event) spellDamage(params []string) (err error) {
 		log.Printf("failed to convert damage event, field spell id. got: %v", params[9])
 		return err
 	}
-	e.SpellName = trimQuotes(params[10])             //"Reckless Flurry" ✔
-	e.SpellType = params[11]                         //0x1
+	e.SpellName = trimQuotes(params[10]) //"Reckless Flurry" ✔
+	e.SpellType = params[11]             //0x1
 	// e.AnotherPlayerID = params[12]                   //Vehicle-0-3892-1763-30316-122963-00005D638F
 	// e.D0 = params[13]                                //0000000000000000
 	// e.D1, err = strconv.ParseInt(params[14], 10, 64) //3600186
