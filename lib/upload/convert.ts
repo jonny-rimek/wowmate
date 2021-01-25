@@ -40,7 +40,7 @@ export class Convert extends cdk.Construct {
 			code: lambda.Code.fromAsset('services/upload/convert'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 3008,
+			memorySize: 10240,
 			timeout: cdk.Duration.minutes(2),
 			environment: {
 				// CSV_BUCKET_NAME: props.csvBucket.bucketName,
