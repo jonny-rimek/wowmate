@@ -13,6 +13,7 @@ import { Buckets } from './common/buckets';
 import { Migrate } from './common/migrate';
 import { Partition } from './common/partition';
 import { Cloudtrail } from './common/cloudtrail';
+import { Timestream } from './common/timestream';
 
 export class Wowmate extends Stack {
 	constructor(scope: Construct, id: string, props?: StackProps) {
@@ -25,6 +26,8 @@ export class Wowmate extends Stack {
 		new Cloudtrail(this, 'Cloudtrail-', {
 			uploadBucket: buckets.uploadBucket,
 		})
+
+		new Timestream(this, 'Timestream-')
 
 		// const db = new Database(this, 'Database-',{
 		// 	vpc: vpc.vpc,
