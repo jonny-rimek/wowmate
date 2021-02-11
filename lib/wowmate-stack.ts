@@ -66,7 +66,7 @@ export class Wowmate extends Stack {
 		})
 
 		const convert = new Convert(this, 'Convert-', {
-			// timestreamArn: timestream.timestreamArn,
+			timestreamArn: timestream.timestreamArn,
 			uploadBucket: buckets.uploadBucket,
 		})
 

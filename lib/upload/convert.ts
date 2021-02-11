@@ -65,7 +65,6 @@ export class Convert extends cdk.Construct {
 		convertLambda.addToRolePolicy(new iam.PolicyStatement({
 			actions: [
 				"timestream:DescribeEndpoints",
-				"timestream:WriteRecords",
 			],
 			resources: ["*"], 
 			effect: iam.Effect.ALLOW,
