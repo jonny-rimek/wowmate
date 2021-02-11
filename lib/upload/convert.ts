@@ -7,6 +7,7 @@ import { RetentionDays } from '@aws-cdk/aws-logs';
 import s3n = require('@aws-cdk/aws-s3-notifications');
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import * as efs from '@aws-cdk/aws-efs';
+import * as iam from "@aws-cdk/aws-iam"
 
 interface Props extends cdk.StackProps {
 	// vpc: ec2.IVpc;
@@ -61,6 +62,15 @@ export class Convert extends cdk.Construct {
 
 		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(q))
 		props.uploadBucket.grantRead(convertLambda)
+
+		convertLambda.addToRolePolicy(new iam.PolicyStatement({
+			actions: [
+				"timestream:DescribeEndpoints",
+				"timestream:WriteRecords",
+			],
+			resources: ["*"],
+		}))
+
 		// props.csvBucket.grantWrite(convertLambda)
 	}
 }
