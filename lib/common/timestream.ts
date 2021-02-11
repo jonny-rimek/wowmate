@@ -6,7 +6,7 @@ interface Props extends cdk.StackProps {
 }
 
 export class Timestream extends cdk.Construct {
-	// public readonly timestreamArn: string;
+	public readonly timestreamArn: string;
 
 	constructor(scope: cdk.Construct, id: string, props?: Props) {
 		super(scope, id)
@@ -22,7 +22,7 @@ export class Timestream extends cdk.Construct {
 
 		table.node.addDependency(db)
 
-		// this.timestreamArn = table.attrArn
+		this.timestreamArn = table.attrArn
 
 		// new CfnOutput(this, 'HttpApiEndpoint', {
 		// 	value: table.attrArn,

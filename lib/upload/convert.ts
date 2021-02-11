@@ -11,7 +11,7 @@ import * as iam from "@aws-cdk/aws-iam"
 
 interface Props extends cdk.StackProps {
 	uploadBucket: s3.Bucket
-	// timestreamArn: string
+	timestreamArn: string
 }
 
 export class Convert extends cdk.Construct {
@@ -68,13 +68,15 @@ export class Convert extends cdk.Construct {
 				"timestream:WriteRecords",
 			],
 			resources: ["*"], 
-			//tried adding a specific table arn, but for some reason it didn't work
-			//even tho the resulting role looked good, doesn't really matter because there is
-			//only one timestream table
-			//https://docs.aws.amazon.com/timestream/latest/developerguide/security_iam_id-based-policy-examples.html
 			effect: iam.Effect.ALLOW,
 		}))
 
-		// props.csvBucket.grantWrite(convertLambda)
+		convertLambda.addToRolePolicy(new iam.PolicyStatement({
+			actions: [
+				"timestream:WriteRecords",
+			],
+			resources: [props.timestreamArn], 
+			effect: iam.Effect.ALLOW,
+		}))
 	}
 }
