@@ -22,6 +22,6 @@ export class Timestream extends cdk.Construct {
 
 		table.node.addDependency(db)
 
-		this.timestreamArn = db.attrArn
+		this.timestreamArn = table.attrArn
 	}
 }
