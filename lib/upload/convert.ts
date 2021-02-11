@@ -10,10 +10,8 @@ import * as efs from '@aws-cdk/aws-efs';
 import * as iam from "@aws-cdk/aws-iam"
 
 interface Props extends cdk.StackProps {
-	// vpc: ec2.IVpc;
-	// csvBucket: s3.Bucket
 	uploadBucket: s3.Bucket
-	timestreamArn: string
+	// timestreamArn: string
 }
 
 export class Convert extends cdk.Construct {
@@ -69,7 +67,12 @@ export class Convert extends cdk.Construct {
 				"timestream:DescribeEndpoints",
 				"timestream:WriteRecords",
 			],
-			resources: [props.timestreamArn],
+			resources: ["*"], 
+			//tried adding a specific table arn, but for some reason it didn't work
+			//even tho the resulting role looked good, doesn't really matter because there is
+			//only one timestream table
+			//https://docs.aws.amazon.com/timestream/latest/developerguide/security_iam_id-based-policy-examples.html
+			effect: iam.Effect.ALLOW,
 		}))
 
 		// props.csvBucket.grantWrite(convertLambda)
