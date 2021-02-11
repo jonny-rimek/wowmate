@@ -13,6 +13,7 @@ interface Props extends cdk.StackProps {
 	// vpc: ec2.IVpc;
 	// csvBucket: s3.Bucket
 	uploadBucket: s3.Bucket
+	timestreamArn: string
 }
 
 export class Convert extends cdk.Construct {
@@ -68,7 +69,7 @@ export class Convert extends cdk.Construct {
 				"timestream:DescribeEndpoints",
 				"timestream:WriteRecords",
 			],
-			resources: ["*"],
+			resources: [props.timestreamArn],
 		}))
 
 		// props.csvBucket.grantWrite(convertLambda)

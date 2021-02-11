@@ -27,7 +27,7 @@ export class Wowmate extends Stack {
 			uploadBucket: buckets.uploadBucket,
 		})
 
-		new Timestream(this, 'Timestream-')
+		const timestream = new Timestream(this, 'Timestream-')
 
 		// const db = new Database(this, 'Database-',{
 		// 	vpc: vpc.vpc,
@@ -68,6 +68,7 @@ export class Wowmate extends Stack {
 		const convert = new Convert(this, 'Convert-', {
 			// vpc: vpc.vpc,
 			// csvBucket: buckets.csvBucket,
+			timestreamArn: timestream.timestreamArn,
 			uploadBucket: buckets.uploadBucket,
 		})
 
