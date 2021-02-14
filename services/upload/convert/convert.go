@@ -2,12 +2,15 @@ package main
 
 import (
 	"archive/zip"
+	"bufio"
+	"bytes"
+	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
-	"net"
-	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -17,8 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/aws/aws-sdk-go/service/timestreamwrite"
-	"golang.org/x/net/http2"
+	"github.com/wowmate/jonny-rimek/wowmate/services/upload/convert/normalize"
 )
 
 /*
@@ -127,202 +129,122 @@ type SQSEvent struct {
 }
 
 func handler(e SQSEvent) error {
-	tr := &http.Transport{
-		ResponseHeaderTimeout: 20 * time.Second,
-		// Using DefaultTransport values for other parameters: https://golang.org/pkg/net/http/#RoundTripper
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			KeepAlive: 30 * time.Second,
-			DualStack: true,
-			Timeout:   30 * time.Second,
-		}).DialContext,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+
+	csvBucket := os.Getenv("CSV_BUCKET_NAME")
+	if csvBucket == "" {
+		return fmt.Errorf("csv bucket env var is empty")
 	}
 
-	// So client makes HTTP/2 requests
-	http2.ConfigureTransport(tr)
+	sess, _ := session.NewSession()
 
-	sess, err := session.NewSession(&aws.Config{Region: aws.String("us-east-1"), MaxRetries: aws.Int(10), HTTPClient: &http.Client{Transport: tr}})
-	writeSvc := timestreamwrite.New(sess)
-	now := time.Now()
-	currentTimeInSeconds := now.Unix()
-	writeRecordsInput := &timestreamwrite.WriteRecordsInput{
-		DatabaseName: aws.String("wowmate-analytics"),
-		TableName:    aws.String("combatlogs"),
-		Records: []*timestreamwrite.Record{
-			{
-				Dimensions: []*timestreamwrite.Dimension{
-					{
-						Name:  aws.String("region"),
-						Value: aws.String("us-east-1"),
-					},
-					{
-						Name:  aws.String("az"),
-						Value: aws.String("az1"),
-					},
-					{
-						Name:  aws.String("hostname"),
-						Value: aws.String("host1"),
-					},
-				},
-				MeasureName:      aws.String("cpu_utilization"),
-				MeasureValue:     aws.String("13.5"),
-				MeasureValueType: aws.String("DOUBLE"),
-				Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
-				TimeUnit:         aws.String("SECONDS"),
-			},
-			{
-				Dimensions: []*timestreamwrite.Dimension{
-					{
-						Name:  aws.String("region"),
-						Value: aws.String("us-east-1"),
-					},
-					{
-						Name:  aws.String("az"),
-						Value: aws.String("az1"),
-					},
-					{
-						Name:  aws.String("hostname"),
-						Value: aws.String("host1"),
-					},
-				},
-				MeasureName:      aws.String("memory_utilization"),
-				MeasureValue:     aws.String("40"),
-				MeasureValueType: aws.String("DOUBLE"),
-				Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
-				TimeUnit:         aws.String("SECONDS"),
-			},
-		},
+	if len(e.Records) == 0 {
+		return fmt.Errorf("SQS Event doesn't contain any messages")
 	}
+	log.Printf("amount of messages %v", len(e.Records))
 
-	_, err = writeSvc.WriteRecords(writeRecordsInput)
+	for j, msg := range e.Records {
+		err := timeMessageInQueue(e, j)
+		if err != nil {
+			return nil
+		}
 
-	if err != nil {
-		fmt.Println("Error:")
-		fmt.Println(err)
-	} else {
-		fmt.Println("Write records is successful")
+		log.Printf("%v. message(s) in SQS event", j+1)
+
+		//get s3 event from sqs event body
+		req := Request{}
+		err = json.Unmarshal([]byte(msg.Body), &req)
+		if err != nil {
+			return err
+		}
+
+		if len(req.Records) > 1 {
+			log.Printf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
+			return err
+		}
+
+		bucketName := req.Records[0].S3.Bucket.Name
+		objectKey := req.Records[0].S3.Object.Key
+
+		var maxSize int
+		var gz bool
+		var z bool
+
+		if strings.HasSuffix(objectKey, ".txt") {
+			maxSize = 1000
+		} else if strings.HasSuffix(objectKey, ".txt.gz") {
+			maxSize = 100
+			gz = true
+		} else if strings.HasSuffix(objectKey, ".zip") {
+			maxSize = 100
+			z = true
+		} else {
+			return fmt.Errorf("file suffix is not supported")
+		}
+
+		objectSize, err := sizeOfS3Object(sess, bucketName, objectKey)
+		if err != nil {
+			return err
+		}
+		log.Printf("Object is %v MB", objectSize)
+
+		if objectSize > maxSize {
+			return fmt.Errorf("wow that's huge. um phrasing?")
+		}
+
+		fileContent := &aws.WriteAtBuffer{}
+
+		err = downloadS3(sess, bucketName, objectKey, fileContent)
+		if err != nil {
+			return err
+		}
+
+		var data []byte
+
+		if gz /* == true*/ {
+			buf := bytes.NewBuffer(fileContent.Bytes())
+			r, err := gzip.NewReader(buf)
+			if err != nil {
+				return err
+			}
+
+			var resB bytes.Buffer
+			_, err = resB.ReadFrom(r)
+			if err != nil {
+				return err
+			}
+
+			data = resB.Bytes()
+			log.Println("successfully ungziped")
+		} else if z /* == true*/ {
+			zipReader, err := zip.NewReader(bytes.NewReader(fileContent.Bytes()), int64(len(fileContent.Bytes())))
+			if err != nil {
+				return err
+			}
+
+			for i, zipFile := range zipReader.File {
+				log.Printf("zip loop i = %v", i)
+				fmt.Println("Reading file:", zipFile.Name)
+				unzippedFileBytes, err := readZipFile(zipFile)
+				if err != nil {
+					return err
+				}
+
+				data = append(data, unzippedFileBytes...)
+			}
+			log.Println("successfully unziped")
+		} else {
+			data = fileContent.Bytes()
+		}
+
+		s := bufio.NewScanner(bytes.NewReader(data))
+		uploadUUID := uploadUUID(objectKey)
+
+		err = normalize.Normalize(s, uploadUUID, sess, csvBucket)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
-
-	// csvBucket := os.Getenv("CSV_BUCKET_NAME")
-	// if csvBucket == "" {
-	// 	return fmt.Errorf("csv bucket env var is empty")
-	// }
-
-	// sess, _ := session.NewSession()
-
-	// if len(e.Records) == 0 {
-	// 	return fmt.Errorf("SQS Event doesn't contain any messages")
-	// }
-	// log.Printf("amount of messages %v", len(e.Records))
-
-	// for j, msg := range e.Records {
-	// 	err := timeMessageInQueue(e, j)
-	// 	if err != nil {
-	// 		return nil
-	// 	}
-
-	// 	log.Printf("%v. message in SQS event", j+1)
-
-	// 	//get s3 event from sqs event body
-	// 	req := Request{}
-	// 	err = json.Unmarshal([]byte(msg.Body), &req)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	if len(req.Records) > 1 {
-	// 		log.Printf("Failed: the S3 event contains more than 1 element, not sure how that would happen")
-	// 		return err
-	// 	}
-
-	// 	bucketName := req.Records[0].S3.Bucket.Name
-	// 	objectKey := req.Records[0].S3.Object.Key
-
-	// 	var maxSize int
-	// 	var gz bool
-	// 	var z bool
-
-	// 	if strings.HasSuffix(objectKey, ".txt") {
-	// 		maxSize = 1000
-	// 	} else if strings.HasSuffix(objectKey, ".txt.gz") {
-	// 		maxSize = 100
-	// 		gz = true
-	// 	} else if strings.HasSuffix(objectKey, ".zip") {
-	// 		maxSize = 100
-	// 		z = true
-	// 	} else {
-	// 		return fmt.Errorf("file suffix is not supported")
-	// 	}
-
-	// 	objectSize, err := sizeOfS3Object(sess, bucketName, objectKey)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	log.Printf("Object is %v MB", objectSize)
-
-	// 	if objectSize > maxSize {
-	// 		return fmt.Errorf("wow that's way too big. um phrasing?")
-	// 	}
-
-	// 	fileContent := &aws.WriteAtBuffer{}
-
-	// 	err = downloadS3(sess, bucketName, objectKey, fileContent)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	var data []byte
-
-	// 	if gz /* == true*/ {
-	// 		buf := bytes.NewBuffer(fileContent.Bytes())
-	// 		r, err := gzip.NewReader(buf)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-
-	// 		var resB bytes.Buffer
-	// 		_, err = resB.ReadFrom(r)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-
-	// 		data = resB.Bytes()
-	// 		log.Println("successfully ungziped")
-	// 	} else if z /* == true*/ {
-	// 		zipReader, err := zip.NewReader(bytes.NewReader(fileContent.Bytes()), int64(len(fileContent.Bytes())))
-	// 		if err != nil {
-	// 			return err
-	// 		}
-
-	// 		for i, zipFile := range zipReader.File {
-	// 			log.Printf("zip loop i = %v", i)
-	// 			fmt.Println("Reading file:", zipFile.Name)
-	// 			unzippedFileBytes, err := readZipFile(zipFile)
-	// 			if err != nil {
-	// 				return err
-	// 			}
-
-	// 			data = append(data, unzippedFileBytes...)
-	// 		}
-	// 		log.Println("successfully unziped")
-	// 	} else {
-	// 		data = fileContent.Bytes()
-	// 	}
-
-	// 	s := bufio.NewScanner(bytes.NewReader(data))
-	// 	uploadUUID := uploadUUID(objectKey)
-
-	// 	err = normalize.Normalize(s, uploadUUID, sess, csvBucket)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
-	// return nil
 }
 
 func readZipFile(zf *zip.File) ([]byte, error) {

@@ -2,7 +2,15 @@ package normalize
 
 import (
 	"fmt"
-	"log"
+	"net"
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/timestreamwrite"
+	"golang.org/x/net/http2"
 )
 
 //11/3 09:00:29.792  SPELL_DAMAGE,Player-1302-09C8C064,"Hyrriuk-Archimonde",0x512,0x0,Vehicle-0-3892-1763-30316-122963-00005D638F,"Rezan",0x10a48,0x0,283810,"Reckless Flurry",0x1,Vehicle-0-3892-1763-30316-122963-00005D638F,0000000000000000,3600186,3811638,0,0,2700,1,0,0,0,-790.59,2265.96,935,0.8059,122,1287,1599,-1,1,0,0,0,nil,nil,nil
@@ -10,6 +18,88 @@ import (
 // v16
 // 10/3 05:51:15.415  SPELL_DAMAGE,Player-4184-00130F03,"Unstaebl-Torghast",0x512,0x0,Creature-0-2085-2287-15092-165515-0005F81144,"Depraved Darkblade",0xa48,0x0,127802,"Touch of the Grave",0x20,Creature-0-2085-2287-15092-165515-0005F81144,0000000000000000,92482,96120,0,0,1071,0,3,100,100,0,-2206.68,5071.68,1663,2.1133,60,456,456,-1,32,0,0,0,nil,nil,nil
 func (e *Event) spellDamage(params []string) (err error) {
+
+	tr := &http.Transport{
+		ResponseHeaderTimeout: 20 * time.Second,
+		// Using DefaultTransport values for other parameters: https://golang.org/pkg/net/http/#RoundTripper
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+			Timeout:   30 * time.Second,
+		}).DialContext,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	// So client makes HTTP/2 requests
+	http2.ConfigureTransport(tr)
+
+	sess, err := session.NewSession(&aws.Config{Region: aws.String("us-east-1"), MaxRetries: aws.Int(10), HTTPClient: &http.Client{Transport: tr}})
+	writeSvc := timestreamwrite.New(sess)
+	now := time.Now()
+	currentTimeInSeconds := now.Unix()
+	writeRecordsInput := &timestreamwrite.WriteRecordsInput{
+		DatabaseName: aws.String("wowmate-analytics"),
+		TableName:    aws.String("combatlogs"),
+		Records: []*timestreamwrite.Record{
+			{
+				Dimensions: []*timestreamwrite.Dimension{
+					{
+						Name:  aws.String("region"),
+						Value: aws.String("us-east-1"),
+					},
+					{
+						Name:  aws.String("az"),
+						Value: aws.String("az1"),
+					},
+					{
+						Name:  aws.String("hostname"),
+						Value: aws.String("host1"),
+					},
+				},
+				MeasureName:      aws.String("cpu_utilization"),
+				MeasureValue:     aws.String("13.5"),
+				MeasureValueType: aws.String("DOUBLE"),
+				Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
+				TimeUnit:         aws.String("SECONDS"),
+			},
+			{
+				Dimensions: []*timestreamwrite.Dimension{
+					{
+						Name:  aws.String("region"),
+						Value: aws.String("us-east-1"),
+					},
+					{
+						Name:  aws.String("az"),
+						Value: aws.String("az1"),
+					},
+					{
+						Name:  aws.String("hostname"),
+						Value: aws.String("host1"),
+					},
+				},
+				MeasureName:      aws.String("memory_utilization"),
+				MeasureValue:     aws.String("40"),
+				MeasureValueType: aws.String("DOUBLE"),
+				Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
+				TimeUnit:         aws.String("SECONDS"),
+			},
+		},
+	}
+
+	_, err = writeSvc.WriteRecords(writeRecordsInput)
+
+	if err != nil {
+		fmt.Println("Error:")
+		fmt.Println(err)
+	} else {
+		fmt.Println("Write records is successful")
+	}
+	return nil
+	/*
 	if len(params) != 39 {
 		return fmt.Errorf("combatlog version should have 39 columns, it has %v: %v", len(params), params)
 	}
@@ -101,4 +191,5 @@ func (e *Event) spellDamage(params []string) (err error) {
 	// e.IsOffhand = params[37] //nil always nil with ad10-disci TODO double check with more data NOT CONFIRMED AS is_offhand
 
 	return nil
+	*/
 }
