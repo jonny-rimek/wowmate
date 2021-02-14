@@ -187,18 +187,30 @@ func uploadToTimestream(e []*timestreamwrite.Record) error {
 		return err
 	}
 
-	writeSvc := timestreamwrite.New(sess)
-	writeRecordsInput := &timestreamwrite.WriteRecordsInput{
-		DatabaseName: aws.String("wowmate-analytics"),
-		TableName:    aws.String("combatlogs"),
-		Records:      e[0:99],
-	}
+	for i := 0; i < len(e); i+=100 {
 
-	_, err = writeSvc.WriteRecords(writeRecordsInput)
-	if err != nil {
-		return err
-	} else {
-		fmt.Println("Write records is successful")
-		return nil
+		//get the upper bound of the record to write, in case it is the
+		//last bit of records and i + 99 does not exist
+		j := 0
+		if i + 99 > len(e) {
+			j = len(e)
+		} else {
+			j = i+99
+		}
+			
+		writeSvc := timestreamwrite.New(sess)
+		writeRecordsInput := &timestreamwrite.WriteRecordsInput{
+			DatabaseName: aws.String("wowmate-analytics"),
+			TableName:    aws.String("combatlogs"),
+			Records:      e[i:j], //only upload a part of the records
+		}
+
+		_, err = writeSvc.WriteRecords(writeRecordsInput)
+		if err != nil {
+			return err
+		} else {
+			fmt.Println("Write records is successful")
+		}
 	}
+	return nil
 }
