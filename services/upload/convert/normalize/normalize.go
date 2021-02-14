@@ -52,7 +52,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session)
 
 		params := splitAtCommas(&row[1])
 
-		e := &timestreamwrite.Record{}
+		// e := &timestreamwrite.Record{}
 		// e := Event{
 		// 	// UploadUUID:     uploadUUID,
 		// 	// CombatlogUUID:  CombatlogUUID,
@@ -135,10 +135,11 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session)
 		// 	err = e.importHeal(params)
 		case "SPELL_DAMAGE":
 			// log.Println("inside spell damage")
-			err := spellDamage(e, params)
+			e, err := spellDamage(params)
 			if err != nil {
 				return err
 			}
+			combatEvents = append(combatEvents, e)
 
 		default:
 			// e.Unsupported = true
@@ -147,7 +148,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session)
 		if params[0] == "CHALLENGE_MODE_END" {
 			continue //I'm appending inside the case statement because im uploading the summary after
 		}
-		combatEvents = append(combatEvents, e)
 	}
 
 	err := uploadToTimestream(combatEvents)

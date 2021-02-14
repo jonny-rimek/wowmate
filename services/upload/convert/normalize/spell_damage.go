@@ -12,30 +12,32 @@ import (
 
 // v16
 // 10/3 05:51:15.415  SPELL_DAMAGE,Player-4184-00130F03,"Unstaebl-Torghast",0x512,0x0,Creature-0-2085-2287-15092-165515-0005F81144,"Depraved Darkblade",0xa48,0x0,127802,"Touch of the Grave",0x20,Creature-0-2085-2287-15092-165515-0005F81144,0000000000000000,92482,96120,0,0,1071,0,3,100,100,0,-2206.68,5071.68,1663,2.1133,60,456,456,-1,32,0,0,0,nil,nil,nil
-func spellDamage(e *timestreamwrite.Record, params []string) (err error) {
+func spellDamage(params []string) (*timestreamwrite.Record, error) {
 	now := time.Now()
 	currentTimeInSeconds := now.Unix()
-
-	e.Dimensions = []*timestreamwrite.Dimension{
-		{
-			Name:  aws.String("region"),
-			Value: aws.String("us-east-1"),
+	e := &timestreamwrite.Record{
+		Dimensions: []*timestreamwrite.Dimension{
+			&timestreamwrite.Dimension{
+				Name:  aws.String("region"),
+				Value: aws.String("us-east-1"),
+			},
+			&timestreamwrite.Dimension{
+				Name:  aws.String("az"),
+				Value: aws.String("az1"),
+			},
+			&timestreamwrite.Dimension{
+				Name:  aws.String("hostname"),
+				Value: aws.String("host1"),
+			},
 		},
-		{
-			Name:  aws.String("az"),
-			Value: aws.String("az1"),
-		},
-		{
-			Name:  aws.String("hostname"),
-			Value: aws.String("host1"),
-		},
+		MeasureName:      aws.String("memory_utilization"),
+		MeasureValue:     aws.String("40"),
+		MeasureValueType: aws.String("DOUBLE"),
+		Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
+		TimeUnit:    aws.String("SECONDS"),
 	}
-	e.MeasureName = aws.String("cpu_utilization")
-	e.MeasureValue = aws.String("13.5")
-	e.MeasureValueType = aws.String("DOUBLE")
-	e.Time = aws.String(strconv.FormatInt(currentTimeInSeconds, 10))
-	e.TimeUnit = aws.String("SECONDS")
 
+	return e, nil
 	/*
 		if len(params) != 39 {
 			return fmt.Errorf("combatlog version should have 39 columns, it has %v: %v", len(params), params)
@@ -129,5 +131,4 @@ func spellDamage(e *timestreamwrite.Record, params []string) (err error) {
 
 		return nil
 	*/
-	return nil
 }
