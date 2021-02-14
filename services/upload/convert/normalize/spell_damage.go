@@ -100,96 +100,96 @@ func (e *Event) spellDamage(params []string) (err error) {
 	}
 	return nil
 	/*
-	if len(params) != 39 {
-		return fmt.Errorf("combatlog version should have 39 columns, it has %v: %v", len(params), params)
-	}
+		if len(params) != 39 {
+			return fmt.Errorf("combatlog version should have 39 columns, it has %v: %v", len(params), params)
+		}
 
-	e.CasterID = params[1]               //Player-1302-09C8C064 ✔
-	e.CasterName = trimQuotes(params[2]) //"Hyrriuk-Archimonde" ✔
-	e.CasterType = params[3]             //0x512
-	e.SourceFlag = params[4]             //0x0
-	e.TargetID = params[5]               //Vehicle-0-3892-1763-30316-122963-00005D638F
-	e.TargetName = trimQuotes(params[6]) //"Rezan" ✔
-	e.TargetType = params[7]             //0x10a48
-	e.DestFlag = params[8]               //0x0
-	e.SpellID, err = Atoi32(params[9])   //283810
-	if err != nil {
-		log.Printf("failed to convert damage event, field spell id. got: %v", params[9])
-		return err
-	}
-	e.SpellName = trimQuotes(params[10]) //"Reckless Flurry" ✔
-	e.SpellType = params[11]             //0x1
-	// e.AnotherPlayerID = params[12]                   //Vehicle-0-3892-1763-30316-122963-00005D638F
-	// e.D0 = params[13]                                //0000000000000000
-	// e.D1, err = strconv.ParseInt(params[14], 10, 64) //3600186
-	if err != nil {
-		log.Printf("failed to convert damage event, field d1. got: %v", params[14])
-		return err
-	}
-	// e.D2, err = strconv.ParseInt(params[15], 10, 64) //3811638
-	// if err != nil {
-	// 	log.Printf("failed to convert damage event, field d2. got: %v", params[15])
-	// 	return err
-	// }
-	// e.D3, err = strconv.ParseInt(params[16], 10, 64) //0
-	// if err != nil {
-	// 	log.Printf("failed to convert damage event, field d3. got: %v", params[16])
-	// 	return err
-	// }
-	// e.D4, err = strconv.ParseInt(params[17], 10, 64) //0
-	// if err != nil {
-	// 	log.Printf("failed to convert damage event, field d4. got: %v", params[17])
-	// 	return err
-	// }
-	// e.D5, err = strconv.ParseInt(params[18], 10, 64) //2700
-	// if err != nil {
-	// 	log.Printf("failed to convert damage event, field d5. got: %v", params[18])
-	// 	return err
-	// }
-	// e.D6, err = strconv.ParseInt(params[19], 10, 64) //1
-	// if err != nil {
-	// 	log.Printf("failed to convert damage event, field d6. got: %v", params[19])
-	// 	return err
-	// }
-	// e.D7, err = strconv.ParseInt(params[20], 10, 64) //0
-	// if err != nil {
-	// 	log.Printf("failed to convert damage event, field d7. got: %v", params[20])
-	// 	return err
-	// }
-	// e.D8, err = strconv.ParseInt(params[21], 10, 64) //0
-	// if err != nil {
-	// 	log.Printf("failed to convert damage event, field d8. got: %v", params[21])
-	// 	return err
-	// }
-	// e.D9 = params[22]                        //0
-	// e.D10 = params[23]                       //-790.59
-	// e.D11 = params[24]                       //2265.96
-	// e.D12 = params[25]                       //935 -- mb something like a map id?
-	// e.D13 = params[26]                       //0.8059
-	// e.DamageUnkown14 = params[27]            //122
-	e.ActualAmount, err = Atoi64(params[28]) //1287
-	if err != nil {
-		log.Printf("failed to convert damage event, field actual amount. got: %v", params[27])
-		return err
-	}
-	// e.BaseAmount, err = Atoi64(params[29]) //1599
-	// if err != nil {
-	// 	log.Printf("failed to convert damage event, field base amount. got: %v", params[29])
-	// 	return err
-	// }
-	// e.Overkill = params[30]              // ✔ -1 no overkill, otherwise the dmg number it was overkilled with. TODO: convert to int64
-	// e.School = params[31]                //1 ✔
-	// e.Crushing = params[32]              //0 always 0 with ad10-disci TODO: double check with more data NOT CONFIRMED AS crushing
-	// e.Blocked = params[33]               //0 TODO: always a number and should be converted to int64, pretty sure it is not blocked bc it is not reflected by actual_amount vs base_amount like absorbed
-	// e.Absorbed, err = Atoi64(params[34]) //0 ✔
-	// if err != nil {
-	// 	log.Printf("failed to convert damage event, field absorbed. got: %v", params[34])
-	// 	return err
-	// }
-	// e.Critical = params[35]  //nil ✔ fairly certain this one is crit it plays into base and actual amount, nil or 1
-	// e.Glancing = params[36]  //nil always nil with ad10-disci TODO double check with more data NOT CONFIRMED AS glancing
-	// e.IsOffhand = params[37] //nil always nil with ad10-disci TODO double check with more data NOT CONFIRMED AS is_offhand
+		e.CasterID = params[1]               //Player-1302-09C8C064 ✔
+		e.CasterName = trimQuotes(params[2]) //"Hyrriuk-Archimonde" ✔
+		e.CasterType = params[3]             //0x512
+		e.SourceFlag = params[4]             //0x0
+		e.TargetID = params[5]               //Vehicle-0-3892-1763-30316-122963-00005D638F
+		e.TargetName = trimQuotes(params[6]) //"Rezan" ✔
+		e.TargetType = params[7]             //0x10a48
+		e.DestFlag = params[8]               //0x0
+		e.SpellID, err = Atoi32(params[9])   //283810
+		if err != nil {
+			log.Printf("failed to convert damage event, field spell id. got: %v", params[9])
+			return err
+		}
+		e.SpellName = trimQuotes(params[10]) //"Reckless Flurry" ✔
+		e.SpellType = params[11]             //0x1
+		// e.AnotherPlayerID = params[12]                   //Vehicle-0-3892-1763-30316-122963-00005D638F
+		// e.D0 = params[13]                                //0000000000000000
+		// e.D1, err = strconv.ParseInt(params[14], 10, 64) //3600186
+		if err != nil {
+			log.Printf("failed to convert damage event, field d1. got: %v", params[14])
+			return err
+		}
+		// e.D2, err = strconv.ParseInt(params[15], 10, 64) //3811638
+		// if err != nil {
+		// 	log.Printf("failed to convert damage event, field d2. got: %v", params[15])
+		// 	return err
+		// }
+		// e.D3, err = strconv.ParseInt(params[16], 10, 64) //0
+		// if err != nil {
+		// 	log.Printf("failed to convert damage event, field d3. got: %v", params[16])
+		// 	return err
+		// }
+		// e.D4, err = strconv.ParseInt(params[17], 10, 64) //0
+		// if err != nil {
+		// 	log.Printf("failed to convert damage event, field d4. got: %v", params[17])
+		// 	return err
+		// }
+		// e.D5, err = strconv.ParseInt(params[18], 10, 64) //2700
+		// if err != nil {
+		// 	log.Printf("failed to convert damage event, field d5. got: %v", params[18])
+		// 	return err
+		// }
+		// e.D6, err = strconv.ParseInt(params[19], 10, 64) //1
+		// if err != nil {
+		// 	log.Printf("failed to convert damage event, field d6. got: %v", params[19])
+		// 	return err
+		// }
+		// e.D7, err = strconv.ParseInt(params[20], 10, 64) //0
+		// if err != nil {
+		// 	log.Printf("failed to convert damage event, field d7. got: %v", params[20])
+		// 	return err
+		// }
+		// e.D8, err = strconv.ParseInt(params[21], 10, 64) //0
+		// if err != nil {
+		// 	log.Printf("failed to convert damage event, field d8. got: %v", params[21])
+		// 	return err
+		// }
+		// e.D9 = params[22]                        //0
+		// e.D10 = params[23]                       //-790.59
+		// e.D11 = params[24]                       //2265.96
+		// e.D12 = params[25]                       //935 -- mb something like a map id?
+		// e.D13 = params[26]                       //0.8059
+		// e.DamageUnkown14 = params[27]            //122
+		e.ActualAmount, err = Atoi64(params[28]) //1287
+		if err != nil {
+			log.Printf("failed to convert damage event, field actual amount. got: %v", params[27])
+			return err
+		}
+		// e.BaseAmount, err = Atoi64(params[29]) //1599
+		// if err != nil {
+		// 	log.Printf("failed to convert damage event, field base amount. got: %v", params[29])
+		// 	return err
+		// }
+		// e.Overkill = params[30]              // ✔ -1 no overkill, otherwise the dmg number it was overkilled with. TODO: convert to int64
+		// e.School = params[31]                //1 ✔
+		// e.Crushing = params[32]              //0 always 0 with ad10-disci TODO: double check with more data NOT CONFIRMED AS crushing
+		// e.Blocked = params[33]               //0 TODO: always a number and should be converted to int64, pretty sure it is not blocked bc it is not reflected by actual_amount vs base_amount like absorbed
+		// e.Absorbed, err = Atoi64(params[34]) //0 ✔
+		// if err != nil {
+		// 	log.Printf("failed to convert damage event, field absorbed. got: %v", params[34])
+		// 	return err
+		// }
+		// e.Critical = params[35]  //nil ✔ fairly certain this one is crit it plays into base and actual amount, nil or 1
+		// e.Glancing = params[36]  //nil always nil with ad10-disci TODO double check with more data NOT CONFIRMED AS glancing
+		// e.IsOffhand = params[37] //nil always nil with ad10-disci TODO double check with more data NOT CONFIRMED AS is_offhand
 
-	return nil
+		return nil
 	*/
 }

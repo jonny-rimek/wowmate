@@ -43,7 +43,6 @@ export class Convert extends cdk.Construct {
 			memorySize: 10240,
 			timeout: cdk.Duration.minutes(2),
 			environment: {
-				// CSV_BUCKET_NAME: props.csvBucket.bucketName,
 			},
 			reservedConcurrentExecutions: 50, 
 			logRetention: RetentionDays.ONE_WEEK,

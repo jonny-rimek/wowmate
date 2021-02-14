@@ -10,7 +10,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -130,10 +129,11 @@ type SQSEvent struct {
 
 func handler(e SQSEvent) error {
 
-	csvBucket := os.Getenv("CSV_BUCKET_NAME")
-	if csvBucket == "" {
-		return fmt.Errorf("csv bucket env var is empty")
-	}
+	// NOTE: don't export the data csv anymore
+	// csvBucket := os.Getenv("CSV_BUCKET_NAME")
+	// if csvBucket == "" {
+	// 	return fmt.Errorf("csv bucket env var is empty")
+	// }
 
 	sess, _ := session.NewSession()
 
@@ -239,7 +239,7 @@ func handler(e SQSEvent) error {
 		s := bufio.NewScanner(bytes.NewReader(data))
 		uploadUUID := uploadUUID(objectKey)
 
-		err = normalize.Normalize(s, uploadUUID, sess, csvBucket)
+		err = normalize.Normalize(s, uploadUUID, sess)
 		if err != nil {
 			return err
 		}

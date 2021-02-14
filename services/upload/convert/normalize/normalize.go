@@ -7,7 +7,7 @@ import (
 )
 
 //Normalize converts the combatlog to a slice of Event structs
-func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session, csvBucket string) error {
+func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session) error {
 	var combatEvents []Event
 	//IMPROVE: the UploadUUID logic should be part of the normalize package
 	//UploadUUID //for the whole file
@@ -109,14 +109,14 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session,
 			// }
 			combatEvents = append(combatEvents, e)
 
-			r, err := convertToCSV(&combatEvents)
+			// r, err := convertToCSV(&combatEvents)
 			if err != nil {
 				return err
 			}
-			err = uploadS3(&r, sess, e.MythicplusUUID, csvBucket)
-			if err != nil {
-				return err
-			}
+			// err = uploadS3(&r, sess, e.MythicplusUUID, csvBucket)
+			// if err != nil {
+			// 	return err
+			// }
 
 			combatEvents = nil
 			MythicplusUUID = ""
