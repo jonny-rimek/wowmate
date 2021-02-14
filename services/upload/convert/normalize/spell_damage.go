@@ -28,7 +28,7 @@ func spellDamage(params []string) (*timestreamwrite.Record, error) {
 			},
 			{
 				Name:  aws.String("hostname"),
-				Value: aws.String("host1"),
+				Value: aws.String(strconv.Itoa(rand.Int())),
 			},
 		},
 		MeasureName:      aws.String("memory_utilization"),
