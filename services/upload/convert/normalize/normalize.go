@@ -2,7 +2,6 @@ package normalize
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -198,6 +197,8 @@ func uploadToTimestream(e []*timestreamwrite.Record) error {
 			j = i + 99
 		}
 
+		//use common batching https://docs.aws.amazon.com/timestream/latest/developerguide/metering-and-pricing.writes.html#metering-and-pricing.writes.write-size-multiple-events
+		//probably only applies to the uploadUuid tho
 		writeSvc := timestreamwrite.New(sess)
 		writeRecordsInput := &timestreamwrite.WriteRecordsInput{
 			DatabaseName: aws.String("wowmate-analytics"),
@@ -208,9 +209,8 @@ func uploadToTimestream(e []*timestreamwrite.Record) error {
 		_, err = writeSvc.WriteRecords(writeRecordsInput)
 		if err != nil {
 			return err
-		} else {
-			fmt.Println("Write records is successful")
-		}
+		} 
 	}
+	log.Println("Write records is successful")
 	return nil
 }
