@@ -51,7 +51,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session)
 		// }
 
 		params := splitAtCommas(&row[1])
-		
+
 		e := &timestreamwrite.Record{}
 		// e := Event{
 		// 	// UploadUUID:     uploadUUID,
@@ -178,18 +178,18 @@ func uploadToTimestream(e []*timestreamwrite.Record) error {
 	err := http2.ConfigureTransport(tr)
 	if err != nil {
 		return err
-	} 
+	}
 
 	sess, err := session.NewSession(&aws.Config{Region: aws.String("us-east-1"), MaxRetries: aws.Int(10), HTTPClient: &http.Client{Transport: tr}})
 	if err != nil {
 		return err
-	} 
+	}
 
 	writeSvc := timestreamwrite.New(sess)
 	writeRecordsInput := &timestreamwrite.WriteRecordsInput{
 		DatabaseName: aws.String("wowmate-analytics"),
 		TableName:    aws.String("combatlogs"),
-		Records: e,
+		Records:      e[0:199],
 	}
 
 	_, err = writeSvc.WriteRecords(writeRecordsInput)
