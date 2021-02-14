@@ -1,6 +1,7 @@
 package normalize
 
 import (
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -17,24 +18,24 @@ func spellDamage(params []string) (*timestreamwrite.Record, error) {
 	currentTimeInSeconds := now.Unix()
 	e := &timestreamwrite.Record{
 		Dimensions: []*timestreamwrite.Dimension{
-			&timestreamwrite.Dimension{
+			{
 				Name:  aws.String("region"),
 				Value: aws.String("us-east-1"),
 			},
-			&timestreamwrite.Dimension{
+			{
 				Name:  aws.String("az"),
 				Value: aws.String("az1"),
 			},
-			&timestreamwrite.Dimension{
+			{
 				Name:  aws.String("hostname"),
 				Value: aws.String("host1"),
 			},
 		},
 		MeasureName:      aws.String("memory_utilization"),
-		MeasureValue:     aws.String("40"),
+		MeasureValue:     aws.String(strconv.Itoa(rand.Int())),
 		MeasureValueType: aws.String("DOUBLE"),
 		Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
-		TimeUnit:    aws.String("SECONDS"),
+		TimeUnit:         aws.String("SECONDS"),
 	}
 
 	return e, nil
