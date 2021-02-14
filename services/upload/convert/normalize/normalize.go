@@ -3,6 +3,7 @@ package normalize
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"time"
@@ -158,6 +159,8 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session)
 }
 
 func uploadToTimestream(e []*timestreamwrite.Record) error {
+	log.Printf("%v dmg records: ", len(e))
+
 	tr := &http.Transport{
 		ResponseHeaderTimeout: 20 * time.Second,
 		// Using DefaultTransport values for other parameters: https://golang.org/pkg/net/http/#RoundTripper

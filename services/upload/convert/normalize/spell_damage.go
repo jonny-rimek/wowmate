@@ -16,27 +16,26 @@ func spellDamage(e *timestreamwrite.Record, params []string) (err error) {
 	now := time.Now()
 	currentTimeInSeconds := now.Unix()
 
-	*e = timestreamwrite.Record{
-		Dimensions: []*timestreamwrite.Dimension{
-			{
-				Name:  aws.String("region"),
-				Value: aws.String("us-east-1"),
-			},
-			{
-				Name:  aws.String("az"),
-				Value: aws.String("az1"),
-			},
-			{
-				Name:  aws.String("hostname"),
-				Value: aws.String("host1"),
-			},
+	e.Dimensions = []*timestreamwrite.Dimension{
+		{
+			Name:  aws.String("region"),
+			Value: aws.String("us-east-1"),
 		},
-		MeasureName:      aws.String("cpu_utilization"),
-		MeasureValue:     aws.String("13.5"),
-		MeasureValueType: aws.String("DOUBLE"),
-		Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
-		TimeUnit:         aws.String("SECONDS"),
+		{
+			Name:  aws.String("az"),
+			Value: aws.String("az1"),
+		},
+		{
+			Name:  aws.String("hostname"),
+			Value: aws.String("host1"),
+		},
 	}
+	e.MeasureName = aws.String("cpu_utilization")
+	e.MeasureValue = aws.String("13.5")
+	e.MeasureValueType = aws.String("DOUBLE")
+	e.Time = aws.String(strconv.FormatInt(currentTimeInSeconds, 10))
+	e.TimeUnit = aws.String("SECONDS")
+
 	/*
 		if len(params) != 39 {
 			return fmt.Errorf("combatlog version should have 39 columns, it has %v: %v", len(params), params)
