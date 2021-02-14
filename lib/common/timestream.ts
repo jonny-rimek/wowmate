@@ -19,7 +19,10 @@ export class Timestream extends cdk.Construct {
 			databaseName: "wowmate-analytics",
 			tableName: "combatlogs",
 			retentionProperties: {
-				MemoryStoreRetentionPeriodInHours: "1",
+				MemoryStoreRetentionPeriodInHours: "4380", //6month, can't ingest data older, than this value
+				//NOTE: should be lowered in the future to save cost as memory storage is very expensive,
+				//		won't be a problem now as I'm not storing a lot of data
+				//		users won't be able to upload logs older than this value
 				MagneticStoreRetentionPeriodInDays: "73000", //200years = max
 				//data will be deleted after 200years
 			}

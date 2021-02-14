@@ -209,7 +209,7 @@ func uploadToTimestream(e []*timestreamwrite.Record) error {
 		_, err = writeSvc.WriteRecords(writeRecordsInput)
 		if err != nil {
 			return err
-		} 
+		}
 	}
 	log.Println("Write records is successful")
 	return nil
