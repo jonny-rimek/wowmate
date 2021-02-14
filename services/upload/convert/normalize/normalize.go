@@ -3,7 +3,6 @@ package normalize
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"time"
@@ -134,7 +133,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session)
 		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
 		// 	err = e.importHeal(params)
 		case "SPELL_DAMAGE":
-			log.Println("inside spell damage")
+			// log.Println("inside spell damage")
 			err := spellDamage(e, params)
 			if err != nil {
 				return err
@@ -189,7 +188,7 @@ func uploadToTimestream(e []*timestreamwrite.Record) error {
 	writeRecordsInput := &timestreamwrite.WriteRecordsInput{
 		DatabaseName: aws.String("wowmate-analytics"),
 		TableName:    aws.String("combatlogs"),
-		Records:      e[0:199],
+		Records:      e[0:99],
 	}
 
 	_, err = writeSvc.WriteRecords(writeRecordsInput)
