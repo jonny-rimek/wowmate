@@ -187,17 +187,17 @@ func uploadToTimestream(e []*timestreamwrite.Record) error {
 		return err
 	}
 
-	for i := 0; i < len(e); i+=100 {
+	for i := 0; i < len(e); i += 100 {
 
 		//get the upper bound of the record to write, in case it is the
 		//last bit of records and i + 99 does not exist
 		j := 0
-		if i + 99 > len(e) {
+		if i+99 > len(e) {
 			j = len(e)
 		} else {
-			j = i+99
+			j = i + 99
 		}
-			
+
 		writeSvc := timestreamwrite.New(sess)
 		writeRecordsInput := &timestreamwrite.WriteRecordsInput{
 			DatabaseName: aws.String("wowmate-analytics"),
