@@ -25,7 +25,8 @@ func spellDamage(params []string) (*timestreamwrite.Record, error) {
 		return nil, err
 	}
 
-	currentTimeInMilliseconds := time.Now().UnixNano() / 1e6
+	// currentTimeInMilliseconds := time.Now().UnixNano() / 1e6
+	currentTimeInMilliseconds := time.Now().Unix()
 
 	e := &timestreamwrite.Record{
 		Dimensions: []*timestreamwrite.Dimension{
