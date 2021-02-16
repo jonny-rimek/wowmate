@@ -25,8 +25,7 @@ func spellDamage(params []string) (*timestreamwrite.Record, error) {
 		return nil, err
 	}
 
-	now := time.Now()
-	currentTimeInSeconds := now.UnixNano()
+	currentTimeInMilliseconds := time.Now().UnixNano() / 1e6
 
 	e := &timestreamwrite.Record{
 		Dimensions: []*timestreamwrite.Dimension{
@@ -46,7 +45,7 @@ func spellDamage(params []string) (*timestreamwrite.Record, error) {
 		MeasureName:      aws.String("damage"),
 		MeasureValue:     aws.String(strconv.FormatInt(actualAmount, 10)),
 		MeasureValueType: aws.String("BIGINT"),
-		Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)), //TODO: get time from log
+		Time:             aws.String(strconv.FormatInt(currentTimeInMilliseconds, 10)), //TODO: get time from log
 		TimeUnit:         aws.String("SECONDS"),
 	}
 
