@@ -19,7 +19,7 @@ func spellDamage(params []string) (*timestreamwrite.Record, error) {
 		return nil, fmt.Errorf("combatlog version should have 39 columns, it has %v: %v", len(params), params)
 	}
 
-	actualAmount, err := Atoi64(params[28]) //1287
+	actualAmount, err := Atoi64(params[29]) //1287
 	if err != nil {
 		log.Printf("failed to convert damage event, field actual amount. got: %v", params[27])
 		return nil, err
