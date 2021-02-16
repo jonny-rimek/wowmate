@@ -1,6 +1,8 @@
 package normalize
 
 import (
+	"fmt"
+	"log"
 	"math/rand"
 	"strconv"
 	"time"
@@ -14,31 +16,36 @@ import (
 // v16
 // 10/3 05:51:15.415  SPELL_DAMAGE,Player-4184-00130F03,"Unstaebl-Torghast",0x512,0x0,Creature-0-2085-2287-15092-165515-0005F81144,"Depraved Darkblade",0xa48,0x0,127802,"Touch of the Grave",0x20,Creature-0-2085-2287-15092-165515-0005F81144,0000000000000000,92482,96120,0,0,1071,0,3,100,100,0,-2206.68,5071.68,1663,2.1133,60,456,456,-1,32,0,0,0,nil,nil,nil
 func spellDamage(params []string) (*timestreamwrite.Record, error) {
+	if len(params) != 39 {
+		return nil, fmt.Errorf("combatlog version should have 39 columns, it has %v: %v", len(params), params)
+	}
+
+	actualAmount, err := Atoi64(params[28]) //1287
+	if err != nil {
+		log.Printf("failed to convert damage event, field actual amount. got: %v", params[27])
+		return nil, err
+	}
+
 	now := time.Now()
 	currentTimeInSeconds := now.Unix()
+
 	e := &timestreamwrite.Record{
 		Dimensions: []*timestreamwrite.Dimension{
 			{
 				//switch do player name
-				Name:  aws.String("region"),
-				Value: aws.String("us-east-1"),
+				Name:  aws.String("player_name"),
+				Value: aws.String(trimQuotes(params[2])),
 			},
 			{
-				//switch to spell name
-				Name:  aws.String("az"),
-				Value: aws.String("az1"),
-			},
-			{
-				//delete
-				Name:  aws.String("hostname"),
-				Value: aws.String(strconv.Itoa(rand.Int())),
+				Name:  aws.String("spell_name"),
+				Value: aws.String(strconv.FormatInt(actualAmount, 10)),
 			},
 		},
 		//switch to dmg
-		MeasureName:      aws.String("memory_utilization"),
+		MeasureName:      aws.String("damage"),
 		MeasureValue:     aws.String(strconv.Itoa(rand.Int())),
-		MeasureValueType: aws.String("DOUBLE"),
-		Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
+		MeasureValueType: aws.String("BIGINT"),
+		Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)), //TODO: get time from log
 		TimeUnit:         aws.String("SECONDS"),
 	}
 
