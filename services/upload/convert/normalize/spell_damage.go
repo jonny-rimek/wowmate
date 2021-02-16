@@ -3,7 +3,6 @@ package normalize
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"strconv"
 	"time"
 
@@ -38,12 +37,13 @@ func spellDamage(params []string) (*timestreamwrite.Record, error) {
 			},
 			{
 				Name:  aws.String("spell_name"),
-				Value: aws.String(strconv.FormatInt(actualAmount, 10)),
+				Value: aws.String(trimQuotes(params[10])),
+				// Value: aws.String(strconv.FormatInt(actualAmount, 10)),
 			},
 		},
 		//switch to dmg
 		MeasureName:      aws.String("damage"),
-		MeasureValue:     aws.String(strconv.Itoa(rand.Int())),
+		MeasureValue:     aws.String(strconv.FormatInt(actualAmount, 10)),
 		MeasureValueType: aws.String("BIGINT"),
 		Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)), //TODO: get time from log
 		TimeUnit:         aws.String("SECONDS"),
