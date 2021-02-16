@@ -19,18 +19,22 @@ func spellDamage(params []string) (*timestreamwrite.Record, error) {
 	e := &timestreamwrite.Record{
 		Dimensions: []*timestreamwrite.Dimension{
 			{
+				//switch do player name
 				Name:  aws.String("region"),
 				Value: aws.String("us-east-1"),
 			},
 			{
+				//switch to spell name
 				Name:  aws.String("az"),
 				Value: aws.String("az1"),
 			},
 			{
+				//delete
 				Name:  aws.String("hostname"),
 				Value: aws.String(strconv.Itoa(rand.Int())),
 			},
 		},
+		//switch to dmg
 		MeasureName:      aws.String("memory_utilization"),
 		MeasureValue:     aws.String(strconv.Itoa(rand.Int())),
 		MeasureValueType: aws.String("DOUBLE"),
