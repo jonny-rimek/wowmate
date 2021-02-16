@@ -26,22 +26,23 @@ func spellDamage(params []string) (*timestreamwrite.Record, error) {
 	}
 
 	now := time.Now()
-	currentTimeInSeconds := now.Unix()
+	currentTimeInSeconds := now.UnixNano()
 
 	e := &timestreamwrite.Record{
 		Dimensions: []*timestreamwrite.Dimension{
 			{
-				//switch do player name
-				Name:  aws.String("player_name"),
+				Name:  aws.String("caster_name"),
 				Value: aws.String(trimQuotes(params[2])),
 			},
 			{
 				Name:  aws.String("spell_name"),
 				Value: aws.String(trimQuotes(params[10])),
-				// Value: aws.String(strconv.FormatInt(actualAmount, 10)),
+			},
+			{
+				Name:  aws.String("target_name"),
+				Value: aws.String(trimQuotes(params[6])),
 			},
 		},
-		//switch to dmg
 		MeasureName:      aws.String("damage"),
 		MeasureValue:     aws.String(strconv.FormatInt(actualAmount, 10)),
 		MeasureValueType: aws.String("BIGINT"),
