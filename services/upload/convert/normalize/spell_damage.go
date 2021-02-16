@@ -3,6 +3,7 @@ package normalize
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -25,8 +26,10 @@ func spellDamage(params []string) (*timestreamwrite.Record, error) {
 		return nil, err
 	}
 
-	// currentTimeInMilliseconds := time.Now().UnixNano() / 1e6
+	// currentTimeInMilliseconds := time.Now().UnixNano() / 1000000
 	currentTimeInMilliseconds := time.Now().Unix()
+
+	rand.Seed(time.Now().UnixNano())
 
 	e := &timestreamwrite.Record{
 		Dimensions: []*timestreamwrite.Dimension{
@@ -41,6 +44,10 @@ func spellDamage(params []string) (*timestreamwrite.Record, error) {
 			{
 				Name:  aws.String("target_name"),
 				Value: aws.String(trimQuotes(params[6])),
+			},
+			{
+				Name:  aws.String("rnd"),
+				Value: aws.String(strconv.Itoa(rand.Int())),
 			},
 		},
 		MeasureName:      aws.String("damage"),
