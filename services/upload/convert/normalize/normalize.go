@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
+	"github.com/gofrs/uuid"
 	"golang.org/x/net/http2"
 )
 
@@ -18,7 +19,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session)
 	var combatEvents []*timestreamwrite.Record
 	//IMPROVE: the UploadUUID logic should be part of the normalize package
 	//UploadUUID //for the whole file
-	// CombatlogUUID := "" //after every COMBAT_LOG_VERSION
+	combatlogUUID := "" //after every COMBAT_LOG_VERSION
 	// BossFightUUID := ""
 	// MythicplusUUID := ""
 
@@ -77,7 +78,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session)
 			//- [ ] generate report uuid
 			//		- not sure what this is about
 
-			// CombatlogUUID = uuid.Must(uuid.NewV4()).String()
+			combatlogUUID = uuid.Must(uuid.NewV4()).String()
 			// e.CombatlogUUID = CombatlogUUID
 			// err = e.combatLogVersion(params)
 			// if err != nil {
@@ -134,7 +135,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session)
 		// 	err = e.importHeal(params)
 		case "SPELL_DAMAGE":
 			// log.Println("inside spell damage")
-			e, err := spellDamage(params)
+			e, err := spellDamage(params, uploadUUID, combatlogUUID)
 			if err != nil {
 				return err
 			}

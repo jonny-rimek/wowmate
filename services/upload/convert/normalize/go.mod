@@ -4,5 +4,6 @@ go 1.15
 
 require (
 	github.com/aws/aws-sdk-go v1.35.7
+	github.com/gofrs/uuid v4.0.0+incompatible
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 )
