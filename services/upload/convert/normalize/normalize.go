@@ -145,9 +145,9 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session)
 			// e.Unsupported = true
 		}
 
-		if params[0] == "CHALLENGE_MODE_END" {
-			continue //I'm appending inside the case statement because im uploading the summary after
-		}
+		// if params[0] == "CHALLENGE_MODE_END" {
+		// 	continue
+		// }
 	}
 
 	err := uploadToTimestream(combatEvents)

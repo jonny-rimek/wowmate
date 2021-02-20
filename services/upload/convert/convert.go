@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -128,12 +129,10 @@ type SQSEvent struct {
 }
 
 func handler(e SQSEvent) error {
-
-	// NOTE: don't export the data csv anymore
-	// csvBucket := os.Getenv("CSV_BUCKET_NAME")
-	// if csvBucket == "" {
-	// 	return fmt.Errorf("csv bucket env var is empty")
-	// }
+	summaryQueue := os.Getenv("SUMMARY_QUEUE")
+	if summaryQueue == "" {
+		return fmt.Errorf("csv bucket env var is empty")
+	}
 
 	sess, _ := session.NewSession()
 
