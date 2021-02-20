@@ -10,53 +10,49 @@ import * as sns from '@aws-cdk/aws-sns';
 import * as subs from '@aws-cdk/aws-sns-subscriptions';
 
 interface VpcProps extends cdk.StackProps {
-	vpc: ec2.IVpc
-	csvBucket: s3.Bucket
-	dbSecGrp: ec2.SecurityGroup
-	dbSecret : secretsmanager.ISecret
-	dbEndpoint: string
+	// vpc: ec2.IVpc
+	// csvBucket: s3.Bucket
+	// dbSecret : secretsmanager.ISecret
+	// dbEndpoint: string
 }
 
 export class Summary extends cdk.Construct {
-	public readonly summaryLambda: lambda.Function;
-	public readonly summaryDLQ: sqs.Queue;
-	public readonly summaryTopic: sns.Topic
+	public readonly lambda: lambda.Function;
+	public readonly lambdaDLQ: sqs.Queue;
+	public readonly queue: sqs.Queue;
+	public readonly queueDLQ: sqs.Queue;
+	public readonly topic: sns.Topic
 
 	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
 		super(scope, id)
 
-		this.summaryDLQ = new sqs.Queue(this, 'DeadLetterQueue', {
+		this.queueDLQ = new sqs.Queue(this, 'QueueDLQ', {
+			retentionPeriod: cdk.Duration.days(14),
+		});
+
+		this.queue = new sqs.Queue(this, 'Queue', {
+			deadLetterQueue: {
+				queue: this.queueDLQ,
+				maxReceiveCount: 1, //NOTE: I want failed messages to directly land in dlq during dev
+			},
+			visibilityTimeout: cdk.Duration.minutes(10)
+		});
+
+		this.lambdaDLQ = new sqs.Queue(this, 'LambdaDLQ', {
 			retentionPeriod: cdk.Duration.days(14)
 		})
 
-		this.summaryTopic = new sns.Topic(this, 'Topic');
-
-		this.summaryLambda = new lambda.Function(this, 'Lambda', {
+		this.lambda = new lambda.Function(this, 'Lambda', {
 			code: lambda.Code.fromAsset('services/upload/summary'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(60),
-			environment: {
-				SECRET_ARN: props.dbSecret.secretArn,
-				DB_ENDPOINT: props.dbEndpoint,
-			},
+			// environment: {},
 			reservedConcurrentExecutions: 10, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
-			vpc: props.vpc,
-			securityGroups: [props.dbSecGrp],
-			onFailure: new destinations.SqsDestination(this.summaryDLQ)
+			onFailure: new destinations.SqsDestination(this.lambdaDLQ)
 		})
-		props.dbSecret?.grantRead(this.summaryLambda)
-
-		const dlQueue = new sqs.Queue(this, 'TopicDeadletterQueue', {
-			retentionPeriod: cdk.Duration.days(14),
-		});
-
-		this.summaryTopic.addSubscription(new subs.LambdaSubscription(this.summaryLambda, {
-			deadLetterQueue: dlQueue,
-			// filterPolicy: all messages delivered
-		}))
 	}
 }
