@@ -1,19 +1,12 @@
 import cdk = require('@aws-cdk/core');
-import ec2 = require('@aws-cdk/aws-ec2');
-import s3 = require('@aws-cdk/aws-s3');
 import sqs = require('@aws-cdk/aws-sqs');
 import lambda = require('@aws-cdk/aws-lambda');
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import * as destinations from '@aws-cdk/aws-lambda-destinations';
-import * as secretsmanager from '@aws-cdk/aws-secretsmanager';
-import * as sns from '@aws-cdk/aws-sns';
-import * as subs from '@aws-cdk/aws-sns-subscriptions';
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
 
-interface VpcProps extends cdk.StackProps {
-	// vpc: ec2.IVpc
-	// csvBucket: s3.Bucket
-	// dbSecret : secretsmanager.ISecret
-	// dbEndpoint: string
+interface Props extends cdk.StackProps {
+	dynamoDB: dynamodb.Table,
 }
 
 export class Summary extends cdk.Construct {
@@ -21,9 +14,8 @@ export class Summary extends cdk.Construct {
 	public readonly lambdaDLQ: sqs.Queue;
 	public readonly queue: sqs.Queue;
 	public readonly queueDLQ: sqs.Queue;
-	public readonly topic: sns.Topic
 
-	constructor(scope: cdk.Construct, id: string, props: VpcProps) {
+	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
 		this.queueDLQ = new sqs.Queue(this, 'QueueDLQ', {
@@ -48,11 +40,16 @@ export class Summary extends cdk.Construct {
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
 			timeout: cdk.Duration.seconds(60),
-			// environment: {},
+			environment: {
+				dynamodb_table: dynamodb.Table.name,
+			},
 			reservedConcurrentExecutions: 10, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			onFailure: new destinations.SqsDestination(this.lambdaDLQ)
 		})
+
+		//IMPROVE: this also adds permission to delete data, which we don't want
+		props.dynamoDB.grantWriteData(this.lambda)
 	}
 }

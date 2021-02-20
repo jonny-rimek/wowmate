@@ -8,7 +8,7 @@ import { Presign } from "./upload/presign";
 import { EtlDashboard } from "./upload/etl-dashboard";
 import { ApiFrontendDashboard } from "./common/api-frontend-dashboard";
 import { Vpc } from "./common/vpc";
-import { Database } from "./common/database";
+import { DynamoDB } from "./common/dynamodb";
 import { Buckets } from "./common/buckets";
 import { Migrate } from "./common/migrate";
 import { Partition } from "./common/partition";
@@ -21,18 +21,13 @@ export class Wowmate extends Stack {
 
 		const buckets = new Buckets(this, "Buckets-");
 
-		// const vpc = new Vpc(this, 'Vpc-')
-
 		new Cloudtrail(this, "Cloudtrail-", {
 			uploadBucket: buckets.uploadBucket,
 		});
 
 		const timestream = new Timestream(this, "Timestream-");
 
-		// const db = new Database(this, 'Database-',{
-		// 	vpc: vpc.vpc,
-		// 	csvBucket: buckets.csvBucket,
-		// })
+		const dynamoDB = new DynamoDB(this, 'DynamoDB-')
 
 		// const api = new Api(this, 'Api-', {
 		// 	dbSecret: db.dbSecret,
@@ -51,11 +46,7 @@ export class Wowmate extends Stack {
 		});
 
 		const summary = new Summary(this, "Summary-", {
-			// vpc: vpc.vpc,
-			// csvBucket: buckets.csvBucket,
-			// dbSecGrp: db.dbSecGrp,
-			// dbSecret: db.dbSecret,
-			// dbEndpoint: db.dbEndpoint,
+			dynamoDB: dynamoDB.table,
 		});
 
 		const convert = new Convert(this, "Convert-", {
