@@ -26,6 +26,11 @@ func spellDamage(params []string, uploadUUID string, combatlogUUID string) (*tim
 		return nil, err
 	}
 
+	spellID, err := strconv.Atoi(params[9]) //283810
+	if err != nil {
+		log.Printf("failed to convert damage event, field spell id. got: %v", params[9])
+		return nil, err
+	}
 	// currentTimeInMilliseconds := time.Now().UnixNano() / 1000000
 	currentTimeInMilliseconds := time.Now().Unix()
 
@@ -34,16 +39,48 @@ func spellDamage(params []string, uploadUUID string, combatlogUUID string) (*tim
 	e := &timestreamwrite.Record{
 		Dimensions: []*timestreamwrite.Dimension{
 			{
+				Name:  aws.String("caster_id"),
+				Value: aws.String(params[1]),
+			},
+			{
 				Name:  aws.String("caster_name"),
 				Value: aws.String(trimQuotes(params[2])),
+			},
+			{
+				Name:  aws.String("caster_type"),
+				Value: aws.String(trimQuotes(params[3])),
+			},
+			{
+				Name:  aws.String("sourceflag"),
+				Value: aws.String(trimQuotes(params[4])),
+			},
+			{
+				Name:  aws.String("target_id"),
+				Value: aws.String(params[5]),
+			},
+			{
+				Name:  aws.String("target_name"),
+				Value: aws.String(trimQuotes(params[6])),
+			},
+			{
+				Name:  aws.String("target_type"),
+				Value: aws.String(trimQuotes(params[7])),
+			},
+			{
+				Name:  aws.String("destflag"),
+				Value: aws.String(trimQuotes(params[8])),
+			},
+			{
+				Name:  aws.String("spell_id"),
+				Value: aws.String(strconv.Itoa(spellID)),
 			},
 			{
 				Name:  aws.String("spell_name"),
 				Value: aws.String(trimQuotes(params[10])),
 			},
 			{
-				Name:  aws.String("target_name"),
-				Value: aws.String(trimQuotes(params[6])),
+				Name:  aws.String("spell_type"),
+				Value: aws.String(params[11]),
 			},
 			{
 				Name:  aws.String("upload_uuid"),
