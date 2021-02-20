@@ -159,7 +159,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string, sess *session.Session)
 }
 
 func uploadToTimestream(e []*timestreamwrite.Record) error {
-	log.Printf("%v dmg records: ", len(e))
+	log.Printf("%v dmg records", len(e))
 
 	tr := &http.Transport{
 		ResponseHeaderTimeout: 20 * time.Second,

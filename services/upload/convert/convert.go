@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/wowmate/jonny-rimek/wowmate/services/upload/convert/normalize"
 )
 
@@ -129,8 +130,9 @@ type SQSEvent struct {
 }
 
 func handler(e SQSEvent) error {
-	summaryQueue := os.Getenv("SUMMARY_QUEUE")
-	if summaryQueue == "" {
+
+	summaryQueueUrl := os.Getenv("SUMMARY_QUEUE_URL")
+	if summaryQueueUrl == "" {
 		return fmt.Errorf("csv bucket env var is empty")
 	}
 
@@ -238,7 +240,13 @@ func handler(e SQSEvent) error {
 		s := bufio.NewScanner(bytes.NewReader(data))
 		uploadUUID := uploadUUID(objectKey)
 
+		//NOTE: shouldnt upload inside of normalize, but after
 		err = normalize.Normalize(s, uploadUUID, sess)
+		if err != nil {
+			return err
+		}
+
+		err = sendMsg(sess, "sdfgdfgdfg", &summaryQueueUrl)
 		if err != nil {
 			return err
 		}
@@ -246,6 +254,35 @@ func handler(e SQSEvent) error {
 	return nil
 }
 
+func sendMsg(sess *session.Session, combatlogUUID string, queueURL *string) error {
+	svc := sqs.New(sess)
+
+	_, err := svc.SendMessage(&sqs.SendMessageInput{
+		// DelaySeconds: aws.Int64(10),
+		// MessageAttributes: map[string]*sqs.MessageAttributeValue{
+		//     "Title": &sqs.MessageAttributeValue{
+		//         DataType:    aws.String("String"),
+		//         StringValue: aws.String("The Whistler"),
+		//     },
+		//     "Author": &sqs.MessageAttributeValue{
+		//         DataType:    aws.String("String"),
+		//         StringValue: aws.String("John Grisham"),
+		//     },
+		//     "WeeksOn": &sqs.MessageAttributeValue{
+		//         DataType:    aws.String("Number"),
+		//         StringValue: aws.String("6"),
+		//     },
+		// },
+		MessageBody: aws.String(combatlogUUID),
+		QueueUrl:    queueURL,
+	})
+	if err != nil {
+		return err
+	}
+
+	log.Println("message successfully sent to queue")
+	return nil
+}
 func readZipFile(zf *zip.File) ([]byte, error) {
 	f, err := zf.Open()
 	if err != nil {

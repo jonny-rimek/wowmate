@@ -17,7 +17,8 @@ import (
 var ConnStr string
 
 func handler(e events.SNSEvent) error {
-	log.Println("hello world: " + e.Records[0].SNS.Message)
+	log.Println("hello world: ")
+	return nil
 
 	db, err := sql.Open("postgres", ConnStr)
 	if err != nil {

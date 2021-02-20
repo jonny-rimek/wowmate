@@ -41,7 +41,7 @@ export class Convert extends cdk.Construct {
 			memorySize: 10240,
 			timeout: cdk.Duration.minutes(2),
 			environment: {
-				SUMMARY_QUEUE: props.summaryQueue.queueName,
+				SUMMARY_QUEUE_URL: props.summaryQueue.queueUrl,
 			},
 			reservedConcurrentExecutions: 50, 
 			logRetention: RetentionDays.ONE_WEEK,
