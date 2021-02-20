@@ -4,6 +4,7 @@ import lambda = require('@aws-cdk/aws-lambda');
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import * as destinations from '@aws-cdk/aws-lambda-destinations';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
+import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 
 interface Props extends cdk.StackProps {
 	dynamoDB: dynamodb.Table,
@@ -39,17 +40,20 @@ export class Summary extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 3008,
-			timeout: cdk.Duration.seconds(60),
+			timeout: cdk.Duration.seconds(10),
 			environment: {
-				dynamodb_table: dynamodb.Table.name,
+				DYNAMODB_TABLE: dynamodb.Table.name,
 			},
-			reservedConcurrentExecutions: 10, 
+			reservedConcurrentExecutions: 50, 
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			onFailure: new destinations.SqsDestination(this.lambdaDLQ)
 		})
+		this.lambda.addEventSource(new SqsEventSource(this.queue, {
+			batchSize: 1,
+		}))
 
-		//IMPROVE: this also adds permission to delete data, which we don't want
+		//IMPROVE: this also adds permission to delete data, which we don't need
 		props.dynamoDB.grantWriteData(this.lambda)
 	}
 }
