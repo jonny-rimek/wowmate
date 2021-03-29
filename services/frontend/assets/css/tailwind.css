@@ -1,0 +1,10 @@
+/* purgecss start ignore */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+/* purgecss end ignore */
+@import 'tailwindcss/utilities';
+
+body {
+	@apply bg-gray-800;
+	@apply text-gray-200;
+}

@@ -1,0 +1,128 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/jonny-rimek/wowmate/services/common/golib"
+	"github.com/sirupsen/logrus"
+	"strconv"
+
+	"os"
+)
+
+type logData struct {
+	Rcu        float64
+	DungeonID  int
+	EmptyQuery bool
+}
+
+var client *dynamodb.Client
+
+func handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	errMsg := "no error"
+
+	response, logData, err := handle(request)
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	golib.CanonicalLog(map[string]interface{}{
+		"rcu":         logData.Rcu,
+		"dungeon_id":  logData.DungeonID,
+		"err":         errMsg,
+		"empty_query": logData.EmptyQuery,
+	})
+	return response, err
+}
+
+func handle(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, logData, error) {
+	var logData logData
+	ddbTableName := os.Getenv("DYNAMODB_TABLE_NAME")
+	if ddbTableName == "" {
+		return golib.AGW500(),
+			logData, fmt.Errorf("failed dynamodb table name env var is empty")
+	}
+
+	dungeonID, err := checkInput(request.PathParameters["dungeon_id"])
+	if err != nil {
+		return golib.AGW500(), logData, err
+	}
+	logData.DungeonID = dungeonID
+
+	//TODO: use GetItem api call as only 1 item is needed to return
+	result, err := golib.DynamoDBQuery(client, dynamodb.QueryInput{
+		TableName: &ddbTableName,
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":v1": types.AttributeValue(&types.AttributeValueMemberS{
+				Value: "LOG#S2",
+			}),
+		},
+		IndexName:              nil, //use pk and sk instead of GSI
+		KeyConditionExpression: aws.String("pk = :v1"),
+		Limit:                  aws.Int32(5),
+		ReturnConsumedCapacity: types.ReturnConsumedCapacityTotal,
+		ScanIndexForward:       aws.Bool(false),
+		ExclusiveStartKey:      nil,
+	})
+
+	if err != nil {
+		return golib.AGW500(), logData, err
+	}
+	rcu := *result.ConsumedCapacity.CapacityUnits
+	logData.Rcu = rcu
+
+	if len(result.Items) == 0 {
+		logData.EmptyQuery = true
+		return golib.AGW200("", nil), logData, nil
+	}
+
+	logrus.Debug(result.Items)
+
+	json, err := golib.PlayerDamageSimpleToJson(result)
+	if err != nil {
+		return golib.AGW500(), logData, err
+	}
+
+	return golib.AGW200(json, map[string]string{
+		"Content-type": "application/json",
+	}), logData, nil
+}
+
+func checkInput(input string) (int, error) {
+	if input == "" {
+		return 0, fmt.Errorf("dungeon id parameter is empty")
+	}
+
+	dungeonID, err := strconv.Atoi(input)
+	if err != nil {
+		return 0, err
+	}
+	//IMPROVE: we could check it against a list of known dungeon ids
+
+	return dungeonID, nil
+}
+
+func init() {
+	//I don't get when it makes sense to use init the docs doesnt explain it
+	//I tried starting the session here, but no performance difference
+	//https://docs.aws.amazon.com/lambda/latest/dg/golang-handler.html#golang-handler-state
+}
+
+func main() {
+	golib.InitLogging()
+
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		//not sure how to fail this
+		//return
+	}
+	client = dynamodb.NewFromConfig(cfg)
+
+	lambda.Start(handler)
+}

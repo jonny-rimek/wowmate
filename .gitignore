@@ -1,0 +1,26 @@
+# ignore compiled js from cdk
+bin/*/*.js
+bin/*/*.d.ts
+lib/*/*.js
+lib/*/*.d.ts
+lib/*.js
+lib/*.d.ts
+bin/*.js
+bin/*.d.ts
+
+!jest.config.js
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+#go binaries
+main
+
+#combatlog
+*.txt
+*.txt.gz
+
+#goland
+.idea
