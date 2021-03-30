@@ -1,7 +1,7 @@
 name: CI
 
 on:
-  push:
+  pull_request:
     branches: [ prod ]
 
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
       - name: build
         run: ./misc/build.sh
 
-      - name: AWS CDK GitHub Actions
+      - name: cdk diff
         uses: youyo/aws-cdk-github-actions@v2.0.0
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

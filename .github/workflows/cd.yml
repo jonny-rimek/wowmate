@@ -1,7 +1,7 @@
 name: CD
 
 on:
-  pull_request:
+  push:
     branches: [ prod ]
 
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
       - name: build
         run: ./misc/build.sh
 
-      - name: AWS CDK GitHub Actions
+      - name: cdk deploy
         uses: youyo/aws-cdk-github-actions@v2.0.0
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -36,7 +36,7 @@ jobs:
           # AWS CDK version to install.
           #cdk_version: # optional, default is latest
           # AWS CDK subcommand to execute.
-          cdk_subcommand: diff
+          cdk_subcommand: deploy
           # AWS CDK subcommand arguments.
           #cdk_args: # optional
           # Whether or not to comment on pull requests.
