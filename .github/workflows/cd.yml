@@ -37,8 +37,7 @@ jobs:
           #cdk_version: # optional, default is latest
           # AWS CDK subcommand to execute.
           cdk_subcommand: deploy
-          # AWS CDK subcommand arguments.
-          #cdk_args: # optional
+          cdk_args: --require-approval=never
           # Whether or not to comment on pull requests.
           #actions_comment: # optional, default is true
           # Enable debug-log
