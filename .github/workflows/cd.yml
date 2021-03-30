@@ -1,0 +1,45 @@
+name: CD
+
+on:
+  push:
+    branches: [ prod ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: install
+        run: ./misc/install.sh
+
+      - name: build
+        run: ./misc/build.sh
+
+      - name: cdk deploy
+        uses: youyo/aws-cdk-github-actions@v2.0.0
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          # AWS CDK stack name to execute.
+          #cdk_stack: # optional, default is *
+          # AWS CDK version to install.
+          #cdk_version: # optional, default is latest
+          # AWS CDK subcommand to execute.
+          cdk_subcommand: deploy
+          # AWS CDK subcommand arguments.
+          #cdk_args: # optional
+          # Whether or not to comment on pull requests.
+          #actions_comment: # optional, default is true
+          # Enable debug-log
+          #debug_log: # optional
