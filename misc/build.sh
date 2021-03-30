@@ -1,6 +1,6 @@
 #!/bin/bash
 
-wowmateDir="/home/jonny/dev/wowmate/"
+wowmateDir=$(pwd)
 
 #TODO: measure time total and substeps
 #TODO: get them dynamically with log list ./... or smth
