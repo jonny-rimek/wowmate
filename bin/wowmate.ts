@@ -14,5 +14,7 @@ constructor(scope: Construct, id: string, props?: EnvProps) {
 
 const app = new cdk.App();
 new Wowmate(app, 'wm', {
-	env: {region: "us-east-1", account: "302123354508"}
+	env: {region: "us-east-1", account: "302123354508"},
+	hostedZoneId: "Z08580822XS57UHUUVCD4",
+	hostedZoneName: "wowmate.io",
 });

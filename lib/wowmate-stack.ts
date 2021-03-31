@@ -12,8 +12,13 @@ import { Buckets } from "./common/buckets";
 import { Cloudtrail } from "./common/cloudtrail";
 import { Timestream } from "./common/timestream";
 
+interface Props extends StackProps {
+	hostedZoneId: string
+	hostedZoneName: string
+}
+
 export class Wowmate extends Stack {
-	constructor(scope: Construct, id: string, props?: StackProps) {
+	constructor(scope: Construct, id: string, props: Props) {
 		super(scope, id, props);
 		const errorMail = 'hi@wowmate.io'
 
@@ -39,8 +44,8 @@ export class Wowmate extends Stack {
 		const frontend = new Frontend(this, "Frontend-", {
 			api: api.api,
 			presignApi: presign.api,
-			hostedZoneId: "Z08580822XS57UHUUVCD4",
-			hostedZoneName: "wowmate.io",
+			hostedZoneId: props.hostedZoneId,
+			hostedZoneName: props.hostedZoneName,
 		});
 
 		const queryKeys = new QueryTimestream(this, "QueryKeys-", {

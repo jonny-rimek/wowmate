@@ -31,12 +31,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         with:
-          # AWS CDK stack name to execute.
-          #cdk_stack: # optional, default is *
+          cdk_stack: wm
+          cdk_subcommand: diff
           # AWS CDK version to install.
           #cdk_version: # optional, default is latest
           # AWS CDK subcommand to execute.
-          cdk_subcommand: diff
           # AWS CDK subcommand arguments.
           #cdk_args: # optional
           # Whether or not to comment on pull requests.
