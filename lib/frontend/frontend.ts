@@ -5,7 +5,6 @@ import s3deploy = require('@aws-cdk/aws-s3-deployment');
 import cloudfront = require('@aws-cdk/aws-cloudfront');
 import route53= require('@aws-cdk/aws-route53');
 import acm = require('@aws-cdk/aws-certificatemanager');
-import { SSLMethod, SecurityPolicyProtocol } from '@aws-cdk/aws-cloudfront';
 import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 import * as origins from "@aws-cdk/aws-cloudfront-origins"
 
@@ -29,7 +28,7 @@ export class Frontend extends cdk.Construct {
 		});
 
 		const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
-			domainName: 'wowmate.io',
+			domainName: 'wowmate.io', //TODO:
 			hostedZone,
 		});
 
@@ -93,81 +92,6 @@ export class Frontend extends cdk.Construct {
 			comment: "wowmate.io frontend, log api and presign api",
 		})
 
-		/*
-		const distribution = new cloudfront.CloudFrontWebDistribution(this, 'Distribution', {
-			originConfigs: [
-				{
-					customOriginSource: {
-						domainName: props.api.url!.replace('https://','').replace('/',''),
-						// allowedOriginSSLVersions
-						// httpPort
-						// httpsPort
-						// originHeaders:
-						// originKeepaliveTimeout
-						// originPath
-						// originProtocolPolicy
-						// originReadTimeout
-					},
-					behaviors: [{
-						pathPattern: '/api/*',
-						compress: true,
-						allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
-						// cachedMethods
-						// defaultTtl
-						// forwardedValues:
-						// maxTtl
-						// minTtl
-					}]
-				},
-				{
-					customOriginSource: {
-						domainName: props.presignApi.url!.replace('https://','').replace('/',''),
-					},
-					behaviors: [{
-						pathPattern: '/presign/*',
-						compress: true,
-						allowedMethods: cloudfront.CloudFrontAllowedMethods.ALL,
-					}],
-				},
-				{
-					customOriginSource: {
-						domainName: bucket.bucketWebsiteDomainName,
-						originProtocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY, //doesn't work with https
-					},
-					behaviors : [{
-						isDefaultBehavior: true,
-						compress: true,
-					}]
-				}
-			],
-			errorConfigurations: [
-				{
-					errorCode: 404,
-					errorCachingMinTtl: 0,
-					responseCode: 200,
-					responsePagePath: '/index.html',
-				}
-			],
-			aliasConfiguration: {
-				names: ['wowmate.io'],
-				acmCertRef: cert.certificateArn,
-				sslMethod: SSLMethod.SNI,
-				securityPolicy: SecurityPolicyProtocol.TLS_V1_2_2018,
-			},
-			// comment
-			// defaultRootObject
-			// enableIpV6
-			// httpVersion
-			// loggingConfig
-			// priceClass
-			// viewerCertificate
-			// viewerProtocolPolicy //redirect to https
-			// webACLId //WAF config
-		});
-		this.cloudfront = distribution
-
-		 */
-
 		const cfnDist = this.cloudfront.node.defaultChild as cloudfront.CfnDistribution;
 		cfnDist.addPropertyOverride('DistributionConfig.Origins.0.OriginShield', {
 			Enabled: true,
@@ -187,8 +111,6 @@ export class Frontend extends cdk.Construct {
 		new route53.ARecord(this, 'Alias', {
 			zone: hostedZone,
 			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.cloudfront)),
-			// recordName
-			// ttl: cdk.Duration.minutes(30)
 		});
 
 		new route53.AaaaRecord(this, 'AliasAAA', {
