@@ -1,5 +1,7 @@
 # wowmate mono repo
 
+wowmate is a log analysis software for world of warcraft combatlogs.
+
 ## manual steps:
 
 - creating the public hosted zone in route53
