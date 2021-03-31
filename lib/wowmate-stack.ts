@@ -39,6 +39,8 @@ export class Wowmate extends Stack {
 		const frontend = new Frontend(this, "Frontend-", {
 			api: api.api,
 			presignApi: presign.api,
+			hostedZoneId: "Z08580822XS57UHUUVCD4",
+			hostedZoneName: "wowmate.io",
 		});
 
 		const queryKeys = new QueryTimestream(this, "QueryKeys-", {
@@ -56,9 +58,6 @@ export class Wowmate extends Stack {
             topic: queryKeys.topic,
 			topicDLQ: queryKeys.topicDLQ,
 			lambdaDescription: 'writes the keys, keys per dungeon etc to dynamodb for access by the frontend',
-			//upload/insert/dynamodb/keys
-			//upload/insert/dynamodb/player-damage-done
-			//upload/insert/timestream/player-damage-done
 			codePath: 'services/upload/insert/dynamodb/keys',
             envVars: {
 				LOG_LEVEL: "info", //only info or debug are support

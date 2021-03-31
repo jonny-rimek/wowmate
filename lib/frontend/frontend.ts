@@ -12,6 +12,8 @@ import * as origins from "@aws-cdk/aws-cloudfront-origins"
 interface Props extends cdk.StackProps {
 	api: HttpApi
 	presignApi: HttpApi
+	hostedZoneId: string
+	hostedZoneName: string
 }
 
 export class Frontend extends cdk.Construct {
@@ -22,8 +24,8 @@ export class Frontend extends cdk.Construct {
 		super(scope, id);
 
 		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
-			zoneName: 'wowmate.io',
-			hostedZoneId: 'Z3LVG9ZF2H87DX',
+			zoneName: props.hostedZoneName,
+			hostedZoneId: props.hostedZoneId,
 		});
 
 		const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
