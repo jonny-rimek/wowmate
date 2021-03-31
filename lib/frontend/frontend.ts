@@ -13,6 +13,7 @@ interface Props extends cdk.StackProps {
 	presignApi: HttpApi
 	hostedZoneId: string
 	hostedZoneName: string
+	domainName: string
 }
 
 export class Frontend extends cdk.Construct {
@@ -28,7 +29,7 @@ export class Frontend extends cdk.Construct {
 		});
 
 		const cert = new acm.DnsValidatedCertificate(this, 'Certificate', {
-			domainName: 'wowmate.io', //TODO:
+			domainName: props.domainName,
 			hostedZone,
 		});
 
@@ -88,7 +89,7 @@ export class Frontend extends cdk.Construct {
 				ttl: cdk.Duration.seconds(0),
 			}],
 			certificate: cert,
-			domainNames: ["wowmate.io"],
+			domainNames: [props.domainName],
 			comment: "wowmate.io frontend, log api and presign api",
 		})
 

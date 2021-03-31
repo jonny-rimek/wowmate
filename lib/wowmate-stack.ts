@@ -15,6 +15,7 @@ import { Timestream } from "./common/timestream";
 interface Props extends StackProps {
 	hostedZoneId: string
 	hostedZoneName: string
+	domainName: string
 }
 
 export class Wowmate extends Stack {
@@ -46,6 +47,7 @@ export class Wowmate extends Stack {
 			presignApi: presign.api,
 			hostedZoneId: props.hostedZoneId,
 			hostedZoneName: props.hostedZoneName,
+            domainName: props.domainName,
 		});
 
 		const queryKeys = new QueryTimestream(this, "QueryKeys-", {
