@@ -5,8 +5,9 @@
   "author": "",
   "private": true,
   "scripts": {
-    "dev": "NUXT_ENV=dev nuxt",
+    "dev": "NUXT_ENV=local nuxt",
     "build": "NUXT_ENV=prod nuxt build",
+    "buildDev": "NUXT_ENV=dev nuxt build",
     "start": "nuxt start",
     "generate": "nuxt generate",
     "test": "jest"

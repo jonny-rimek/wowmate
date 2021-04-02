@@ -9,8 +9,10 @@ export default {
   },
   env: {
     baseUrl:
-      process.env.NUXT_ENV == 'dev'
+      process.env.NUXT_ENV === 'local'
         ? 'http://localhost:3000'
+        : process.env.NUXT_ENV === 'dev'
+        ? 'https://dev.wowmate.io'
         : 'https://wowmate.io'
   },
   components: true,
