@@ -13,13 +13,14 @@ export class Cloudtrail extends cdk.Construct {
 		super(scope, id)
 		
 		const trail = new cloudtrail.Trail(this, 't', {
-			managementEvents: ReadWriteType.WRITE_ONLY,
+			managementEvents: ReadWriteType.NONE,
 			sendToCloudWatchLogs: true,
 			// cloudWatchLogsRetention:^
 		});
 
 		trail.addS3EventSelector([{
-			bucket: props.uploadBucket, 
+			bucket: props.uploadBucket,
+			objectPrefix: "upload",
 		}]);
 	}
 }
