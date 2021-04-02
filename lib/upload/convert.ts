@@ -57,7 +57,7 @@ export class Convert extends cdk.Construct {
 				LOCAL: "false",
 				...props.envVars,
 			},
-			reservedConcurrentExecutions: 10,
+			reservedConcurrentExecutions: 200,
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			retryAttempts: 2, //default

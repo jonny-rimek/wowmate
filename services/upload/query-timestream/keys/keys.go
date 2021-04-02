@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 	"github.com/sirupsen/logrus"
-	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -76,7 +75,6 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	ORDER BY
 		damage DESC
 	`, combatlogUUID)
-	log.Println(query)
 
 	//CHALLENGE_MODE_END contains duration in milliseconds in the last field
 
