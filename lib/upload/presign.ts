@@ -22,7 +22,7 @@ export class Presign extends cdk.Construct {
 			handler: 'index.handler',
 			environment: {BUCKET_NAME: props.uploadBucket.bucketName},
 			memorySize: 128,
-			reservedConcurrentExecutions: 500,
+			reservedConcurrentExecutions: 100,
 		});
 		this.lambda = presignLambda
 

@@ -19,7 +19,8 @@ export class Api extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
-		this.getKeysLambda = new lambda.Function(this, 'DamageSummariesLambda', {
+		//TODO: rename the id
+		this.getKeysLambda = new lambda.Function(this, 'GetKeysLambda', {
 			code: lambda.Code.fromAsset('services/api/combatlogs/keys/index/get'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -43,7 +44,7 @@ export class Api extends cdk.Construct {
 			handler: this.getKeysLambda
 		})
 
-		this.getKeysPerDungeonLambda = new lambda.Function(this, 'DamageDungeonSummariesLambda', {
+		this.getKeysPerDungeonLambda = new lambda.Function(this, 'GetKeysPerDungeonLambda', {
 			code: lambda.Code.fromAsset('services/api/combatlogs/keys/_dungeon_id/get'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
@@ -62,7 +63,7 @@ export class Api extends cdk.Construct {
 			handler: this.getKeysPerDungeonLambda
 		})
 
-		this.getPlayerDamageDoneLambda = new lambda.Function(this, 'CombatlogPlayerDamageAdvanced', {
+		this.getPlayerDamageDoneLambda = new lambda.Function(this, 'GetPlayerDamageDoneLambda', {
 			code: lambda.Code.fromAsset('services/api/combatlogs/keys/_combatlog_uuid/player-damage-done/get'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,

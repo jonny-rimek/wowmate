@@ -1,9 +1,9 @@
 #!/bin/bash
 
-./misc/damagePerLog.sh && \
-  ./misc/insertAdvancedDamageDynamoDB.sh && \
-  ./misc/topkeys.sh && \
-  ./misc/topkeysPerDungeon.sh && \
+./misc/getPlayerDamageDone.sh && \
+  ./misc/insertPlayerDamageDoneToDynamodb.sh && \
+  ./misc/getKeys.sh && \
+  ./misc/getKeysPerDungeon.sh && \
   ./misc/convert.sh skipBuild && \
   echo "integration tests done"
 

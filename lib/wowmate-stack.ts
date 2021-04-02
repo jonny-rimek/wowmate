@@ -95,7 +95,7 @@ export class Wowmate extends Stack {
 			}
 		});
 
-		const insertPlayerDamageDoneToDynamodb = new InsertResult(this, "SummaryInsertPlayerDamageDoneToDynamodb-", {
+		const insertPlayerDamageDoneToDynamodb = new InsertResult(this, "InsertPlayerDamageDoneToDynamodb-", {
 			dynamoDB: dynamoDB.table,
 			topic: queryPlayerDamageDone.topic,
 			topicDLQ: queryPlayerDamageDone.topicDLQ,

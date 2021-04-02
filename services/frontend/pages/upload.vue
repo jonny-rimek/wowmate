@@ -44,7 +44,7 @@ export default {
 			},
 			awss3: {
 				signingURL: f => {
-					return 'https://wowmate.io/presign/' + f.name
+					return process.env.baseUrl + '/presign/' + f.name
 				},
 				headers: {},
 				params: {},

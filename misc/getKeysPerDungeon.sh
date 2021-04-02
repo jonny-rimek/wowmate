@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo '{"pathParameters": {"dungeon_id": "2291"}}' | \
-sam local invoke ApiDamageDungeonSummariesLambda00443886 \
+sam local invoke ApiGetKeysPerDungeonLambda073DE524 \
   --template cdk.out/wm.template.json \
   --event - \
   --profile default \
