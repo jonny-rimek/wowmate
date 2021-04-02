@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sam local invoke ApiDamageSummariesLambdaAB40B084 \
+sam local invoke ApiGetKeysLambdaFDF1A526 \
   --no-event \
   --template cdk.out/wm.template.json \
   --profile default \
