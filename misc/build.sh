@@ -2,8 +2,7 @@
 
 wowmateDir=$(pwd)
 
-#TODO: measure time total and substeps
-#TODO: get them dynamically with log list ./... or smth
+#TODO: measure time total and sub steps
 goDirs=(
   "services/common/golib"
   "services/api/combatlogs/keys/_combatlog_uuid/player-damage-done/get"
@@ -22,7 +21,7 @@ frontendDir="services/frontend"
 
 for i in "${goDirs[@]}"
 do
-  cd $wowmateDir || exit
+  cd "$wowmateDir" || exit
   cd "$i" || exit
   pwd
   go mod tidy
@@ -35,7 +34,7 @@ done
 #if there is a 2nd argument skip cdk build step
 if [ -z "$2" ]
 then
-  cd $wowmateDir || exit
+  cd "$wowmateDir" || exit
   echo "start typescript compile"
   npm run tsc #compile cdk typescript
   echo "start cdk synth"
