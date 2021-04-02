@@ -19,6 +19,7 @@ export class Api extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
+		//TODO: rename the id
 		this.getKeysLambda = new lambda.Function(this, 'DamageSummariesLambda', {
 			code: lambda.Code.fromAsset('services/api/combatlogs/keys/index/get'),
 			handler: 'main',
