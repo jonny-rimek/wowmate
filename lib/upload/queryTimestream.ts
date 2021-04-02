@@ -42,7 +42,7 @@ export class QueryTimestream extends cdk.Construct {
 				TOPIC_ARN: this.topic.topicArn,
 				...props.envVars,
 			},
-			reservedConcurrentExecutions: 200,
+			reservedConcurrentExecutions: 100,
 			logRetention: RetentionDays.ONE_MONTH,
 			tracing: lambda.Tracing.ACTIVE,
 			retryAttempts: 2, //default
