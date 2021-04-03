@@ -5,12 +5,9 @@ import s3deploy = require('@aws-cdk/aws-s3-deployment');
 import cloudfront = require('@aws-cdk/aws-cloudfront');
 import route53= require('@aws-cdk/aws-route53');
 import acm = require('@aws-cdk/aws-certificatemanager');
-import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 import * as origins from "@aws-cdk/aws-cloudfront-origins"
 
 interface Props extends cdk.StackProps {
-	api: HttpApi
-	presignApi: HttpApi
 	hostedZoneId: string
 	hostedZoneName: string
 	domainName: string
@@ -50,13 +47,6 @@ export class Frontend extends cdk.Construct {
 		});
 		this.bucket = bucket
 
-		const allowCorsAndQueryString = new cloudfront.OriginRequestPolicy(this, 'AllowCorsAndQueryStringParam', {
-			originRequestPolicyName: 'AllowCorsAndQueryStringParam',
-			cookieBehavior: cloudfront.OriginRequestCookieBehavior.none(),
-			queryStringBehavior: cloudfront.OriginRequestQueryStringBehavior.all(),
-			headerBehavior: cloudfront.OriginRequestHeaderBehavior.allowList('origin')
-		})
-
 		//make sure enhanced metrics is enabled via the GUI no CF support =(
 		//https://console.aws.amazon.com/cloudfront/v2/home#/monitoring
 		this.cloudfront = new cloudfront.Distribution(this, 'Distribution', {
@@ -64,23 +54,6 @@ export class Frontend extends cdk.Construct {
 				origin: new origins.S3Origin(bucket),
 				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
 				originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
-			},
-            additionalBehaviors: {
-				"/api/*": {
-					origin: new origins.HttpOrigin(props.api.url!.replace('https://','').replace('/',''), {}),
-					cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-					originRequestPolicy: allowCorsAndQueryString,
-					viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-					allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-					cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD_OPTIONS,
-				},
-				"/presign/*": {
-					origin: new origins.HttpOrigin(props.presignApi.url!.replace('https://','').replace('/','')),
-					cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-					originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_CUSTOM_ORIGIN,
-					viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-					allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-				}
 			},
             errorResponses: [{
 				httpStatus: 404,
@@ -90,15 +63,11 @@ export class Frontend extends cdk.Construct {
 			}],
 			certificate: cert,
 			domainNames: [props.domainName],
-			comment: "wowmate.io frontend, log api and presign api",
+			comment: "wowmate.io frontend",
 		})
 
 		const cfnDist = this.cloudfront.node.defaultChild as cloudfront.CfnDistribution;
 		cfnDist.addPropertyOverride('DistributionConfig.Origins.0.OriginShield', {
-			Enabled: true,
-			OriginShieldRegion: 'us-east-1',
-		});
-		cfnDist.addPropertyOverride('DistributionConfig.Origins.1.OriginShield', {
 			Enabled: true,
 			OriginShieldRegion: 'us-east-1',
 		});
@@ -112,11 +81,13 @@ export class Frontend extends cdk.Construct {
 		new route53.ARecord(this, 'Alias', {
 			zone: hostedZone,
 			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.cloudfront)),
+			recordName: props.domainName,
 		});
 
 		new route53.AaaaRecord(this, 'AliasAAA', {
 			zone: hostedZone,
-			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.cloudfront))
+			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.cloudfront)),
+			recordName: props.domainName,
 		});
 	}
 }

@@ -8,7 +8,7 @@ export default function(context, inject){
 
   async function getPlayerDamageDone() {
     const log = await context.app.$axios.$request({
-      url: process.env.baseUrl + '/api/combatlogs/keys/' + context.route.params.id + '/player-damage-done',
+      url: process.env.baseUrl + '/combatlogs/keys/' + context.route.params.id + '/player-damage-done',
       method: "get",
     })
 
@@ -19,7 +19,7 @@ export default function(context, inject){
     let logs
     if (context.route.query.next != null && context.route.prev == null) {
       logs = await context.app.$axios.$request({
-        url: process.env.baseUrl + '/api/combatlogs/keys/' + context.route.params.id,
+        url: process.env.baseUrl + '/combatlogs/keys/' + context.route.params.id,
         method: "get",
         params: {
           next: encodeURIComponent(context.route.query.next)
@@ -27,7 +27,7 @@ export default function(context, inject){
       })
     } else if (context.route.query.prev != null && context.route.next == null) {
       logs = await context.app.$axios.$request({
-        url: process.env.baseUrl + '/api/combatlogs/keys/' + context.route.params.id,
+        url: process.env.baseUrl + '/combatlogs/keys/' + context.route.params.id,
         method: "get",
         params: {
           prev: encodeURIComponent(context.route.query.prev)
@@ -35,7 +35,7 @@ export default function(context, inject){
       })
     } else {
       logs = await context.app.$axios.$request({
-        url: process.env.baseUrl + '/api/combatlogs/keys/' + context.route.params.id,
+        url: process.env.baseUrl + '/combatlogs/keys/' + context.route.params.id,
         method: "get",
       })
     }
@@ -66,7 +66,7 @@ export default function(context, inject){
     let logs
     if (context.route.query.next != null && context.route.prev == null) {
       logs = await context.app.$axios.$request({
-        url: process.env.baseUrl + '/api/combatlogs/keys',
+        url: process.env.baseUrl + '/combatlogs/keys',
         method: "get",
         params: {
           next: encodeURIComponent(context.route.query.next)
@@ -74,7 +74,7 @@ export default function(context, inject){
       })
     } else if (context.route.query.prev != null && context.route.next == null) {
       logs = await context.app.$axios.$request({
-        url: process.env.baseUrl + '/api/combatlogs/keys',
+        url: process.env.baseUrl + '/combatlogs/keys',
         method: "get",
         params: {
           prev: encodeURIComponent(context.route.query.prev)
@@ -82,7 +82,7 @@ export default function(context, inject){
       })
     } else {
       logs = await context.app.$axios.$request({
-        url: process.env.baseUrl + '/api/combatlogs/keys',
+        url: process.env.baseUrl + '/combatlogs/keys',
         method: "get",
       })
     }

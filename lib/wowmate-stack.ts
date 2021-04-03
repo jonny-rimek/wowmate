@@ -4,7 +4,6 @@ import { Api } from "./api/api";
 import { Convert } from "./upload/convert";
 import { QueryTimestream } from "./upload/queryTimestream";
 import { InsertResult } from "./upload/insert-result";
-import { Presign } from "./upload/presign";
 import { EtlDashboard } from "./upload/etl-dashboard";
 import { ApiFrontendDashboard } from "./common/api-frontend-dashboard";
 import { DynamoDB } from "./common/dynamodb";
@@ -16,6 +15,7 @@ interface Props extends StackProps {
 	hostedZoneId: string
 	hostedZoneName: string
 	domainName: string
+	apiDomainName: string
 }
 
 export class Wowmate extends Stack {
@@ -30,21 +30,18 @@ export class Wowmate extends Stack {
 		});
 
 		const timestream = new Timestream(this, "Timestream-");
-		//TODO: don't hardcode names
 
 		const dynamoDB = new DynamoDB(this, 'DynamoDB-')
 
 		const api = new Api(this, 'Api-', {
 			dynamoDB: dynamoDB.table,
+			uploadBucket: buckets.uploadBucket,
+			hostedZoneId: props.hostedZoneId,
+			hostedZoneName: props.hostedZoneName,
+			apiDomainName: props.apiDomainName,
 		})
 
-		const presign = new Presign(this, "Presign-", {
-			uploadBucket: buckets.uploadBucket,
-		});
-
 		const frontend = new Frontend(this, "Frontend-", {
-			api: api.api,
-			presignApi: presign.api,
 			hostedZoneId: props.hostedZoneId,
 			hostedZoneName: props.hostedZoneName,
             domainName: props.domainName,
@@ -144,9 +141,9 @@ export class Wowmate extends Stack {
 			insertKeysToDynamoDBLambdaDLQ: insertKeysToDynamoDB.lambdaDLQ,
 			insertKeysToTimestreamLambdaDLQ: insertKeysToTimestream.lambdaDLQ,
 			insertPlayerDamageDoneDynamoDBLambdaDLQ: insertPlayerDamageDoneToDynamodb.lambdaDLQ,
-			presignLambda: presign.lambda,
+			presignLambda: api.presignLambda,
 			uploadBucket: buckets.uploadBucket,
-			presignApi: presign.api,
+			presignApi: api.api,
 			dynamoDB: dynamoDB.table,
 			convertTopic: convert.topic,
             queryKeysTopic: queryKeys.topic,

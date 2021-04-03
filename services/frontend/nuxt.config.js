@@ -12,8 +12,8 @@ export default {
       process.env.NUXT_ENV === 'local'
         ? 'http://localhost:3000'
         : process.env.NUXT_ENV === 'dev'
-        ? 'https://dev.wowmate.io'
-        : 'https://wowmate.io'
+        ? 'https://api.dev.wowmate.io'
+        : 'https://api.wowmate.io'
   },
   components: true,
   head: {
