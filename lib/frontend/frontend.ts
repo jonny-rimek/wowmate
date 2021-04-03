@@ -48,13 +48,6 @@ export class Frontend extends cdk.Construct {
 		});
 		this.bucket = bucket
 
-		const allowCorsAndQueryString = new cloudfront.OriginRequestPolicy(this, 'AllowCorsAndQueryStringParam', {
-			originRequestPolicyName: 'AllowCorsAndQueryStringParam',
-			cookieBehavior: cloudfront.OriginRequestCookieBehavior.none(),
-			queryStringBehavior: cloudfront.OriginRequestQueryStringBehavior.all(),
-			headerBehavior: cloudfront.OriginRequestHeaderBehavior.allowList('origin')
-		})
-
 		//make sure enhanced metrics is enabled via the GUI no CF support =(
 		//https://console.aws.amazon.com/cloudfront/v2/home#/monitoring
 		this.cloudfront = new cloudfront.Distribution(this, 'Distribution', {

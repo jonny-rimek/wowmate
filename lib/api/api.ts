@@ -109,9 +109,9 @@ export class Api extends cdk.Construct {
 
 		const httpApi = new HttpApi(this, 'Api', {
 			corsPreflight: {
-				allowOrigins: ["wowmate.io"],
+				allowOrigins: ["*"],
 			},
-			description: "wowmate combatlog api",
+			description: "wowmate API",
 		})
 
 		new CfnOutput(this, 'HttpApiEndpoint', {
