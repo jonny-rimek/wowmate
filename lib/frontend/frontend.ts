@@ -5,7 +5,6 @@ import s3deploy = require('@aws-cdk/aws-s3-deployment');
 import cloudfront = require('@aws-cdk/aws-cloudfront');
 import route53= require('@aws-cdk/aws-route53');
 import acm = require('@aws-cdk/aws-certificatemanager');
-import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 import * as origins from "@aws-cdk/aws-cloudfront-origins"
 
 interface Props extends cdk.StackProps {

@@ -11,6 +11,7 @@ export class Timestream extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props?: Props) {
 		super(scope, id)
 
+		//TODO: don't hardcode names
 		const db = new timestream.CfnDatabase(this, "db", {
 			databaseName: "wowmate-analytics",
 		})

@@ -30,7 +30,6 @@ export class Wowmate extends Stack {
 		});
 
 		const timestream = new Timestream(this, "Timestream-");
-		//TODO: don't hardcode names
 
 		const dynamoDB = new DynamoDB(this, 'DynamoDB-')
 

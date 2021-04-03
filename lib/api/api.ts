@@ -152,11 +152,11 @@ export class Api extends cdk.Construct {
 			hostedZone,
 		});
 
-		const allowCorsAndQueryString = new cloudfront.OriginRequestPolicy(this, 'AllowCorsAndQueryStringParam', {
-			originRequestPolicyName: 'AllowCorsAndQueryStringParam',
+		const allowCorsAndQueryString = new cloudfront.OriginRequestPolicy(this, 'AllowCorsAndQueryStringParam2', {
+			originRequestPolicyName: 'AllowCorsAndQueryStringParam2',
 			cookieBehavior: cloudfront.OriginRequestCookieBehavior.none(),
 			queryStringBehavior: cloudfront.OriginRequestQueryStringBehavior.all(),
-			headerBehavior: cloudfront.OriginRequestHeaderBehavior.allowList('origin')
+			headerBehavior: cloudfront.OriginRequestHeaderBehavior.allowList('origin'),
 		})
 
 		//make sure enhanced metrics is enabled via the GUI no CF support =(
