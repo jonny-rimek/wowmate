@@ -9,8 +9,6 @@ import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 import * as origins from "@aws-cdk/aws-cloudfront-origins"
 
 interface Props extends cdk.StackProps {
-	api: HttpApi
-	presignApi: HttpApi
 	hostedZoneId: string
 	hostedZoneName: string
 	domainName: string
@@ -65,23 +63,6 @@ export class Frontend extends cdk.Construct {
 				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
 				originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
 			},
-            additionalBehaviors: {
-				"/api/*": {
-					origin: new origins.HttpOrigin(props.api.url!.replace('https://','').replace('/',''), {}),
-					cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-					originRequestPolicy: allowCorsAndQueryString,
-					viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-					allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-					cachedMethods: cloudfront.CachedMethods.CACHE_GET_HEAD_OPTIONS,
-				},
-				"/presign/*": {
-					origin: new origins.HttpOrigin(props.presignApi.url!.replace('https://','').replace('/','')),
-					cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-					originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_CUSTOM_ORIGIN,
-					viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-					allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-				}
-			},
             errorResponses: [{
 				httpStatus: 404,
 				responseHttpStatus: 200,
@@ -95,10 +76,6 @@ export class Frontend extends cdk.Construct {
 
 		const cfnDist = this.cloudfront.node.defaultChild as cloudfront.CfnDistribution;
 		cfnDist.addPropertyOverride('DistributionConfig.Origins.0.OriginShield', {
-			Enabled: true,
-			OriginShieldRegion: 'us-east-1',
-		});
-		cfnDist.addPropertyOverride('DistributionConfig.Origins.1.OriginShield', {
 			Enabled: true,
 			OriginShieldRegion: 'us-east-1',
 		});
