@@ -181,6 +181,7 @@ export class Api extends cdk.Construct {
 			OriginShieldRegion: 'us-east-1',
 		});
 
+		/*
 		new route53.ARecord(this, 'Alias', {
 			zone: hostedZone,
 			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.cloudfront)),
@@ -190,5 +191,7 @@ export class Api extends cdk.Construct {
 			zone: hostedZone,
 			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.cloudfront))
 		});
+		
+		 */
 	}
 }

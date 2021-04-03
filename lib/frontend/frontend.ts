@@ -63,7 +63,7 @@ export class Frontend extends cdk.Construct {
 			}],
 			certificate: cert,
 			domainNames: [props.domainName],
-			comment: "wowmate.io frontend, log api and presign api",
+			comment: "wowmate.io frontend",
 		})
 
 		const cfnDist = this.cloudfront.node.defaultChild as cloudfront.CfnDistribution;
