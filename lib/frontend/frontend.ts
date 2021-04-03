@@ -81,11 +81,13 @@ export class Frontend extends cdk.Construct {
 		new route53.ARecord(this, 'Alias', {
 			zone: hostedZone,
 			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.cloudfront)),
+			recordName: props.domainName,
 		});
 
 		new route53.AaaaRecord(this, 'AliasAAA', {
 			zone: hostedZone,
-			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.cloudfront))
+			target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.cloudfront)),
+			recordName: props.domainName,
 		});
 	}
 }
