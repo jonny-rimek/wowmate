@@ -96,7 +96,8 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 
 	if len(result.Items) == 0 {
 		logData.EmptyQuery = true
-		return golib.AGW404(), logData, nil
+		return golib.AGW200("", nil), logData, nil
+		//return golib.AGW404(), logData, nil
 	}
 
 	logrus.Debug(result.Items)
