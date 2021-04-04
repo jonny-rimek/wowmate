@@ -141,7 +141,6 @@ export class Api extends cdk.Construct {
 
 		this.api = httpApi
 
-
 		const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
 			zoneName: props.hostedZoneName,
 			hostedZoneId: props.hostedZoneId,

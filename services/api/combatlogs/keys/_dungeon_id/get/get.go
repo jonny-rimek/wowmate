@@ -81,7 +81,7 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 
 	dungeonID, err := checkInput(request.PathParameters["dungeon_id"])
 	if err != nil {
-		return golib.AGW500(), logData, err
+		return golib.AGW400(), logData, err
 	}
 	logData.DungeonID = dungeonID
 
@@ -106,7 +106,7 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 
 	if len(result.Items) == 0 {
 		logData.EmptyQuery = true
-		return golib.AGW200("", nil), logData, nil
+		return golib.AGW404(), logData, nil
 	}
 
 	logrus.Debug(result.Items)
