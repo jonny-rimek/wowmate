@@ -431,12 +431,16 @@ func SNSPublishMsg(ctx aws.Context, snsSvc *sns.SNS, input string, topicArn *str
 	}
 	logrus.Debug("sns input to publish: ", input)
 
-	_, err := snsSvc.PublishWithContext(ctx, &sns.PublishInput{
+	_, err := snsSvc.Publish(&sns.PublishInput{
 		Message:  aws.String(input),
 		TopicArn: topicArn,
 	})
+	//_, err := snsSvc.PublishWithContext(ctx, &sns.PublishInput{
+	//	Message:  aws.String(input),
+	//	TopicArn: topicArn,
+	//})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed publishing a message to sns: %v", err)
 	}
 
 	logrus.Debug("message successfully sent to topic")
@@ -463,10 +467,13 @@ func SNSPublishMsg2(client *sns2.Client, input string, topicArn *string) error {
 }
 */
 
-func TimestreamQuery(ctx aws.Context, query *string, querySvc *timestreamquery.TimestreamQuery) (*timestreamquery.QueryOutput, error) {
-	result, err := querySvc.QueryWithContext(ctx, &timestreamquery.QueryInput{
+func TimestreamQuery(ctx aws.Context, query *string, querySvc *timestreamquery.TimestreamQuery) (result *timestreamquery.QueryOutput, err error) {
+	result, err = querySvc.Query(&timestreamquery.QueryInput{
 		QueryString: query,
 	})
+	//result, err = querySvc.QueryWithContext(ctx, &timestreamquery.QueryInput{
+	//	QueryString: query,
+	//})
 	if err != nil {
 		return nil, fmt.Errorf("failed querying timestream: %v", err.Error())
 	}

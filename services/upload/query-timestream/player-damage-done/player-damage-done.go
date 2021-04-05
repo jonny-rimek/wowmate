@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 	"github.com/sirupsen/logrus"
-	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -51,7 +50,6 @@ func handler(ctx aws.Context, e events.SNSEvent) error {
 
 func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	var logData logData
-	log.Printf("SNS EVENT: %+v", e)
 
 	topicArn, combatlogUUID, err := validateInput(e)
 	if err != nil {
@@ -129,31 +127,6 @@ func validateInput(e events.SNSEvent) (topicArn string, combatlogUUID string, er
 func main() {
 	golib.InitLogging()
 
-	/* THIS DOESNT HELP
-	tr := &http.Transport{
-		ResponseHeaderTimeout: 20 * time.Second,
-		// Using DefaultTransport values for other parameters: https://golang.org/pkg/net/http/#RoundTripper
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			KeepAlive: 30 * time.Second,
-			DualStack: true,
-			Timeout:   30 * time.Second,
-		}).DialContext,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-	}
-
-	// So client makes HTTP/2 requests
-	http2.ConfigureTransport(tr)
-
-	sess, err := session.NewSession(&aws.Config{
-		MaxRetries: aws.Int(10),
-		HTTPClient: &http.Client{Transport: tr},
-	})
-
-	*/
 	sess, err := session.NewSession()
 	if err != nil {
 		logrus.Info(fmt.Sprintf("Error creating session: %v", err.Error()))
@@ -161,9 +134,13 @@ func main() {
 	}
 
 	snsSvc = sns.New(sess)
-	xray.AWS(snsSvc.Client)
+	if os.Getenv("LOCAL") == "false" {
+		xray.AWS(snsSvc.Client)
+	}
 	querySvc = timestreamquery.New(sess)
-	xray.AWS(querySvc.Client)
 
+	if os.Getenv("LOCAL") == "false" {
+		xray.AWS(querySvc.Client)
+	}
 	lambda.Start(handler)
 }

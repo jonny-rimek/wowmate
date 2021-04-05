@@ -38,7 +38,7 @@ then
   echo "start typescript compile"
   npm run tsc #compile cdk typescript
   echo "start cdk synth"
-  npm run cdk synth >/dev/null #this suppresses the output because it just spits out endless cfn yaml
+  npm run cdk synth "wm-dev" >/dev/null #this suppresses the output because it just spits out endless cfn yaml
   echo "built cdk"
 fi
 
