@@ -72,7 +72,7 @@ func spellDamage(params []string, uploadUUID string, combatlogUUID string) (*tim
 			},
 			{
 				Name:  aws.String("rnd"),
-				Value: aws.String(strconv.Itoa(rand.Intn(999-1) + 1)),
+				Value: aws.String(strconv.Itoa(rand.Int())),
 			},
 		},
 		MeasureName:      aws.String("damage"),
