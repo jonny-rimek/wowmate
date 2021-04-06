@@ -30,8 +30,7 @@ func spellDamage(params []string, uploadUUID string, combatlogUUID string) (*tim
 		log.Printf("failed to convert damage event, field spell id. got: %v", params[9])
 		return nil, err
 	}
-	// currentTimeInMilliseconds := time.Now().UnixNano() / 1000000
-	//TODO: timestream expects ms not seconds, double check this
+	//can specify seconds as input for timestream instead of ms
 	currentTimeInSeconds := time.Now().Unix()
 
 	rand.Seed(time.Now().UnixNano())
