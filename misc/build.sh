@@ -2,7 +2,7 @@
 
 wowmateDir=$(pwd)
 
-#TODO: measure time total and sub steps
+#idea: measure time total and sub steps
 goDirs=(
   "services/common/golib"
   "services/api/combatlogs/keys/_combatlog_uuid/player-damage-done/get"

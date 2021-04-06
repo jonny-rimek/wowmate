@@ -14,6 +14,7 @@ import (
 
 // v16
 // 10/3 05:51:15.415  SPELL_DAMAGE,Player-4184-00130F03,"Unstaebl-Torghast",0x512,0x0,Creature-0-2085-2287-15092-165515-0005F81144,"Depraved Darkblade",0xa48,0x0,127802,"Touch of the Grave",0x20,Creature-0-2085-2287-15092-165515-0005F81144,0000000000000000,92482,96120,0,0,1071,0,3,100,100,0,-2206.68,5071.68,1663,2.1133,60,456,456,-1,32,0,0,0,nil,nil,nil
+//TODO: add new example
 func spellDamage(params []string, uploadUUID string, combatlogUUID string) (*timestreamwrite.Record, error) {
 	if len(params) != 39 {
 		return nil, fmt.Errorf("combatlog version should have 39 columns, it has %v: %v", len(params), params)
@@ -30,7 +31,7 @@ func spellDamage(params []string, uploadUUID string, combatlogUUID string) (*tim
 		log.Printf("failed to convert damage event, field spell id. got: %v", params[9])
 		return nil, err
 	}
-	//can specify seconds as input for timestream instead of ms
+	//can specify seconds as input for timestream instead of ms!
 	currentTimeInSeconds := time.Now().Unix()
 
 	rand.Seed(time.Now().UnixNano())

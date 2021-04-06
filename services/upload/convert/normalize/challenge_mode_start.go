@@ -13,6 +13,7 @@ import (
 
 //v16
 //10/3 05:51:00.975  CHALLENGE_MODE_START,"Halls of Atonement",2287,378,2,[10]
+//TODO: add new example
 //NOTE: the array is definitely the affixes
 func challengeModeStart(params []string, uploadUUID string, combatlogUUID string) (*timestreamwrite.Record, error) {
 	if len(params) != 6 {
