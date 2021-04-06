@@ -543,7 +543,6 @@ func UploadToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWri
 		}
 
 		//use common batching https://docs.aws.amazon.com/timestream/latest/developerguide/metering-and-pricing.writes.html#metering-and-pricing.writes.write-size-multiple-events
-		//probably only applies to the uploadUuid tho
 		writeRecordsInput := &timestreamwrite.WriteRecordsInput{
 			//TODO: add to and read from env
 			DatabaseName: aws.String("wowmate-analytics"),

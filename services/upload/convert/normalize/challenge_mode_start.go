@@ -19,7 +19,7 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 
 	dungeonID, err := Atoi64(params[2]) //283810
 	if err != nil {
-		log.Printf("failed to challange mode start event, field dungeon id. got: %v", params[2])
+		log.Printf("failed to convert challange mode start event, field dungeon id. got: %v", params[2])
 		return nil, err
 	}
 
@@ -28,10 +28,19 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 	var e = &timestreamwrite.Record{
 		Dimensions: []*timestreamwrite.Dimension{
 			{
-				Name:  aws.String("dungeon_name"),
+				Name:  aws.String("dungeon_name"), //TODO: trim "
 				Value: aws.String(params[1]),
 			},
+			{
+				Name:  aws.String("upload_uuid"),
+				Value: aws.String(uploadUUID),
+			},
+			{
+				Name:  aws.String("combatlog_uuid"),
+				Value: aws.String(combatlogUUID),
+			},
 		},
+		//measure name is always damage, read docs
 		MeasureName:      aws.String("dungeon_id"),
 		MeasureValue:     aws.String(strconv.FormatInt(dungeonID, 10)),
 		MeasureValueType: aws.String("BIGINT"),
