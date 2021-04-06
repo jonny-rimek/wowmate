@@ -73,6 +73,8 @@ func spellDamage(params []string, uploadUUID string, combatlogUUID string) (*tim
 			{
 				Name:  aws.String("rnd"),
 				Value: aws.String(strconv.Itoa(rand.Int())),
+				//only randoming between 1 and 999 didnt work
+				//maybe I can remove this when I add the real time as a value
 			},
 		},
 		MeasureName:      aws.String("damage"),
