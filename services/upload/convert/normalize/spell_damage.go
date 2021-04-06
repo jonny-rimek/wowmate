@@ -31,7 +31,8 @@ func spellDamage(params []string, uploadUUID string, combatlogUUID string) (*tim
 		return nil, err
 	}
 	// currentTimeInMilliseconds := time.Now().UnixNano() / 1000000
-	currentTimeInMilliseconds := time.Now().Unix()
+	//TODO: timestream expects ms not seconds, double check this
+	currentTimeInSeconds := time.Now().Unix()
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -48,26 +49,6 @@ func spellDamage(params []string, uploadUUID string, combatlogUUID string) (*tim
 			{
 				Name:  aws.String("caster_type"),
 				Value: aws.String(trimQuotes(params[3])),
-			},
-			{
-				Name:  aws.String("sourceflag"),
-				Value: aws.String(trimQuotes(params[4])),
-			},
-			{
-				Name:  aws.String("target_id"),
-				Value: aws.String(params[5]),
-			},
-			{
-				Name:  aws.String("target_name"),
-				Value: aws.String(trimQuotes(params[6])),
-			},
-			{
-				Name:  aws.String("target_type"),
-				Value: aws.String(trimQuotes(params[7])),
-			},
-			{
-				Name:  aws.String("destflag"),
-				Value: aws.String(trimQuotes(params[8])),
 			},
 			{
 				Name:  aws.String("spell_id"),
@@ -91,13 +72,13 @@ func spellDamage(params []string, uploadUUID string, combatlogUUID string) (*tim
 			},
 			{
 				Name:  aws.String("rnd"),
-				Value: aws.String(strconv.Itoa(rand.Int())),
+				Value: aws.String(strconv.Itoa(rand.Intn(999-1) + 1)),
 			},
 		},
 		MeasureName:      aws.String("damage"),
 		MeasureValue:     aws.String(strconv.FormatInt(actualAmount, 10)),
 		MeasureValueType: aws.String("BIGINT"),
-		Time:             aws.String(strconv.FormatInt(currentTimeInMilliseconds, 10)), //TODO: get time from log
+		Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
 		TimeUnit:         aws.String("SECONDS"),
 	}
 
