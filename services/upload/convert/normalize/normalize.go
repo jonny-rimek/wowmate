@@ -102,6 +102,8 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Re
 			// if err != nil {
 			// 	return err
 			// }
+			//TODO: fail if either uuid is empty
+			//	I had another combatlog version after this event, check other logs
 			e, err := challengeModeStart(params, uploadUUID, combatlogUUID)
 			if err != nil {
 				return nil, "", err
@@ -130,7 +132,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Re
 		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
 		// 	err = e.importHeal(params)
 		case "SPELL_DAMAGE":
-			// log.Println("inside spell damage")
 			e, err := spellDamage(params, uploadUUID, combatlogUUID)
 			if err != nil {
 				return nil, "", err
