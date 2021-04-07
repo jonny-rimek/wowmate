@@ -108,7 +108,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Re
 			if err != nil {
 				return nil, "", err
 			}
-			combatEvents = append(combatEvents, e)
+			combatEvents = append(combatEvents, e...)
 
 		case "CHALLENGE_MODE_END":
 			// err = e.challengeModeEnd(params)
