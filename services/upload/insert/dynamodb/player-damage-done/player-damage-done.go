@@ -29,8 +29,9 @@ func handler(ctx aws.Context, e events.SNSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
 		golib.CanonicalLog(map[string]interface{}{
-			"wcu": logData.Wcu,
-			"err": err.Error(),
+			"wcu":   logData.Wcu,
+			"err":   err.Error(),
+			"event": e,
 		})
 		return err
 	}

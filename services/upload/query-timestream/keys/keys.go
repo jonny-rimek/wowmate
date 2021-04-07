@@ -36,6 +36,7 @@ func handler(ctx aws.Context, e events.SNSEvent) error {
 			"scanned_megabytes": logData.ScannedMegabytes,
 			"query_id":          logData.QueryID,
 			"err":               err.Error(),
+			"event":             e,
 		})
 		return err
 	}

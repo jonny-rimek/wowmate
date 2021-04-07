@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/timestreamquery"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 	"log"
 	"strconv"
@@ -18,22 +19,24 @@ type logData struct {
 	Wcu float64
 }
 
-func handler(e events.SNSEvent) error {
-	errMsg := "this function is not implemented yet" //TODO: replace with "no error" when done
-
-	logData, err := handle(e)
+func handler(ctx aws.Context, e events.SNSEvent) error {
+	logData, err := handle(ctx, e)
 	if err != nil {
-		errMsg = err.Error()
+		golib.CanonicalLog(map[string]interface{}{
+			"wcu":   logData.Wcu,
+			"err":   err.Error(),
+			"event": e,
+		})
+		return err
 	}
 
 	golib.CanonicalLog(map[string]interface{}{
 		"wcu": logData.Wcu,
-		"err": errMsg,
 	})
-	return nil
+	return err
 }
 
-func handle(e events.SNSEvent) (logData, error) {
+func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	var logData logData
 
 	/*

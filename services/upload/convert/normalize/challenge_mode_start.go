@@ -17,6 +17,7 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 		return nil, fmt.Errorf("combatlog version should have 6 columns, it has %v: %v", len(params), params)
 	}
 	*/
+	//TODO: add affixes as lvl 2, 5, 7 and 10 seperately
 
 	dungeonID, err := Atoi64(params[2]) //2291
 	if err != nil {

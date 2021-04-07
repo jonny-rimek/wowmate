@@ -35,6 +35,7 @@ func handler(ctx aws.Context, e events.SNSEvent) error {
 			"scanned_megabytes": logData.ScannedMegabytes,
 			"query_id":          logData.QueryID,
 			"err":               err.Error(),
+			"event":             e,
 		})
 		return err
 	}
@@ -83,7 +84,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = 'a9803993-ef58-4527-851b-8dadddc8187e'  AND
+				combatlog_uuid = '08408a8a-1c1d-4ded-9c8e-34a63ad7cdd5'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'dungeon_id'
 		),
@@ -94,9 +95,31 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = 'a9803993-ef58-4527-851b-8dadddc8187e'  AND
+				combatlog_uuid = '08408a8a-1c1d-4ded-9c8e-34a63ad7cdd5'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'key_level'
+		),
+		duration AS (
+		    SELECT
+		        measure_value::bigint AS duration,
+		        combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = '08408a8a-1c1d-4ded-9c8e-34a63ad7cdd5'  AND
+		        time between ago(15m) and now() AND
+		        measure_name = 'duration'
+		),
+		finished AS (
+		    SELECT
+		        measure_value::bigint AS finished,
+		        combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = '08408a8a-1c1d-4ded-9c8e-34a63ad7cdd5'  AND
+		        time between ago(15m) and now() AND
+		        measure_name = 'finished'
 		),
 		damage as (
 			SELECT
@@ -107,7 +130,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = 'a9803993-ef58-4527-851b-8dadddc8187e' AND
+				combatlog_uuid = '08408a8a-1c1d-4ded-9c8e-34a63ad7cdd5' AND
 				(caster_type = '0x512' OR caster_type = '0x511') AND
 		  		time between ago(15m) and now()
 			GROUP BY
@@ -125,6 +148,12 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		JOIN
 			key_level
 		    ON key_level.combatlog_uuid = dungeon.combatlog_uuid
+		JOIN
+			duration
+		    ON duration.combatlog_uuid = dungeon.combatlog_uuid
+		JOIN
+			finished
+		    ON finished.combatlog_uuid = dungeon.combatlog_uuid
 	*/
 
 	//CHALLENGE_MODE_END contains duration in milliseconds in the last field
