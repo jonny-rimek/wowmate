@@ -47,7 +47,6 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 					Value: aws.String(combatlogUUID),
 				},
 			},
-			//measure name is always damage, read docs
 			MeasureName:      aws.String("dungeon_id"),
 			MeasureValue:     aws.String(strconv.FormatInt(dungeonID, 10)),
 			MeasureValueType: aws.String("BIGINT"),

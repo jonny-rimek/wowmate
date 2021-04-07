@@ -1,39 +1,48 @@
 package normalize
 
-//11/3 09:34:07.310  CHALLENGE_MODE_END,1763,1,10,2123441
+import (
+	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/timestreamwrite"
+	"log"
+	"strconv"
+	"time"
+)
 
-//v16
-// 10/3 05:51:00.879  CHALLENGE_MODE_END,2287,0,0,0 //this one was just after entering the dungeon
-// 10/3 06:14:35.797  CHALLENGE_MODE_END,2287,1,2,1451286 // this was after finishing the key
-// func (e *Event) challengeModeEnd(params []string) (err error) {
-// 	if len(params) != 5 {
-// 		return fmt.Errorf("combatlog version should have 5 columns, it has %v: %v", len(params), params)
-// 	}
+//1/24 17:23:07.443  CHALLENGE_MODE_END,2291,1,10,2136094
+//not sure what the 1 stands for, maybe finished or timed
+func challengeModeEnd(params []string, uploadUUID string, combatlogUUID string) ([]*timestreamwrite.Record, error) {
+	if len(params) != 5 {
+		return nil, fmt.Errorf("combatlog version should have 5 columns, it has %v: %v", len(params), params)
+	}
 
-// 	e.DungeonID, err = Atoi32(params[1])
-// 	if err != nil {
-// 		log.Printf("failed to convert challenge_mode_end field dungeon id: %v", params[1])
-// 		return err
-// 	}
+	duration, err := Atoi64(params[4]) //2136094
+	if err != nil {
+		log.Printf("failed to convert challange mode end event, field duration. got: %v", params[4])
+		return nil, err
+	}
 
-// 	//NOTE: this is if you timed the key and with how many chests.
-// 	e.KeyUnkown1, err = Atoi32(params[2])
-// 	if err != nil {
-// 		log.Printf("failed to convert challenge_mode_end field key chests: %v", params[2])
-// 		return err
-// 	}
+	currentTimeInSeconds := time.Now().Unix()
 
-// 	e.KeyLevel, err = Atoi32(params[3])
-// 	if err != nil {
-// 		log.Printf("failed to convert challenge_mode_end field key level: %v", params[3])
-// 		return err
-// 	}
+	var e = []*timestreamwrite.Record{
+		{
+			Dimensions: []*timestreamwrite.Dimension{
+				{
+					Name:  aws.String("upload_uuid"),
+					Value: aws.String(uploadUUID),
+				},
+				{
+					Name:  aws.String("combatlog_uuid"),
+					Value: aws.String(combatlogUUID),
+				},
+			},
+			MeasureName:      aws.String("duration"),
+			MeasureValue:     aws.String(strconv.FormatInt(duration, 10)),
+			MeasureValueType: aws.String("BIGINT"),
+			Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
+			TimeUnit:         aws.String("SECONDS"),
+		},
+	}
 
-// 	e.KeyDuration, err = Atoi64(params[4])
-// 	if err != nil {
-// 		log.Printf("failed to convert challenge_mode_end field key duration: %v", params[4])
-// 		return err
-// 	}
-
-// 	return nil
-// }
+	return e, nil
+}

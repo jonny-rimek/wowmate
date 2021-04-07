@@ -75,56 +75,56 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		damage DESC
 	`, combatlogUUID)
 	/*
-	WITH dungeon AS (
-	    SELECT
-			dungeon_name,
-	        measure_value::bigint AS dungeon_id,
-	        combatlog_uuid
-		FROM
-			"wowmate-analytics"."combatlogs"
-		WHERE
-			combatlog_uuid = 'a9803993-ef58-4527-851b-8dadddc8187e'  AND
-	        time between ago(15m) and now() AND
-	        measure_name = 'dungeon_id'
-	),
-	key_level AS (
-	    SELECT
-	        measure_value::bigint AS key_level,
-	        combatlog_uuid
-		FROM
-			"wowmate-analytics"."combatlogs"
-		WHERE
-			combatlog_uuid = 'a9803993-ef58-4527-851b-8dadddc8187e'  AND
-	        time between ago(15m) and now() AND
-	        measure_name = 'key_level'
-	),
-	damage as (
+		WITH dungeon AS (
+		    SELECT
+				dungeon_name,
+		        measure_value::bigint AS dungeon_id,
+		        combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = 'a9803993-ef58-4527-851b-8dadddc8187e'  AND
+		        time between ago(15m) and now() AND
+		        measure_name = 'dungeon_id'
+		),
+		key_level AS (
+		    SELECT
+		        measure_value::bigint AS key_level,
+		        combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = 'a9803993-ef58-4527-851b-8dadddc8187e'  AND
+		        time between ago(15m) and now() AND
+		        measure_name = 'key_level'
+		),
+		damage as (
+			SELECT
+				SUM(measure_value::bigint) AS damage,
+				caster_name,
+				caster_id,
+				combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = 'a9803993-ef58-4527-851b-8dadddc8187e' AND
+				(caster_type = '0x512' OR caster_type = '0x511') AND
+		  		time between ago(15m) and now()
+			GROUP BY
+				caster_name, caster_id, combatlog_uuid
+			ORDER BY
+				damage DESC
+		)
 		SELECT
-			SUM(measure_value::bigint) AS damage,
-			caster_name,
-			caster_id,
-			combatlog_uuid
+			*
 		FROM
-			"wowmate-analytics"."combatlogs"
-		WHERE
-			combatlog_uuid = 'a9803993-ef58-4527-851b-8dadddc8187e' AND
-			(caster_type = '0x512' OR caster_type = '0x511') AND
-	  		time between ago(15m) and now()
-		GROUP BY
-			caster_name, caster_id, combatlog_uuid
-		ORDER BY
-			damage DESC
-	)
-	SELECT
-		*
-	FROM
-		damage
-	JOIN
-		dungeon
-		ON damage.combatlog_uuid = dungeon.combatlog_uuid
-	JOIN
-		key_level
-	    ON key_level.combatlog_uuid = dungeon.combatlog_uuid
+			damage
+		JOIN
+			dungeon
+			ON damage.combatlog_uuid = dungeon.combatlog_uuid
+		JOIN
+			key_level
+		    ON key_level.combatlog_uuid = dungeon.combatlog_uuid
 	*/
 
 	//CHALLENGE_MODE_END contains duration in milliseconds in the last field
