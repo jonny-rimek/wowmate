@@ -747,3 +747,13 @@ func TimeMessageInQueue(e SQSEvent, i int) error {
 
 	return nil
 }
+
+//Atoi64 is just a small wrapper around ParseInt
+func Atoi64(input string) (int64, error) {
+	num, err := strconv.ParseInt(input, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return num, nil
+}

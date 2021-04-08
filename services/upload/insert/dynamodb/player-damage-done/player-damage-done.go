@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 )
 
 type logData struct {
@@ -103,35 +104,47 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		summaries = append(summaries, d)
 	}
 	combatlogUUID := *queryResult.Rows[0].Data[3].ScalarValue
+
 	dungeonName := *queryResult.Rows[0].Data[4].ScalarValue
+
 	dungeonID, err := strconv.Atoi(*queryResult.Rows[0].Data[5].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
+
 	keyLevel, err := strconv.Atoi(*queryResult.Rows[0].Data[6].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	durationInMilliseconds, err := strconv.Atoi(*queryResult.Rows[0].Data[7].ScalarValue)
+
+	durationInMilliseconds, err := golib.Atoi64(*queryResult.Rows[0].Data[7].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
+	//converts duration to date 1970 + duration, of which I only display the minutes and seconds
+	//time duration, doesn't allow mixed formatting like min:seconds
+	t := time.Unix(0, durationInMilliseconds*1e6) //milliseconds > nanoseconds
+
 	finished, err := strconv.Atoi(*queryResult.Rows[0].Data[8].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
+
 	twoAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[9].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
+
 	fourAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[10].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
+
 	sevenAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[11].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
+
 	tenAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[12].ScalarValue)
 	if err != nil {
 		return resp, err
@@ -141,8 +154,8 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		Pk:            fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
 		Sk:            fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
 		Damage:        summaries,
-		Duration:      strconv.Itoa(durationInMilliseconds),
-		Deaths:        0, //TODO:
+		Duration:      t.Format("04:05"), //formats to minutes:seconds
+		Deaths:        0,                 //TODO:
 		Affixes:       fmt.Sprintf("%v, %v, %v, %v", twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
 		Keylevel:      keyLevel,
 		DungeonName:   dungeonName,
