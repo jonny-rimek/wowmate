@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
-	"github.com/sirupsen/logrus"
 	"log"
 	"os"
 	"strconv"
@@ -48,7 +47,9 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		return logData, fmt.Errorf("dynamo db table name env var is empty")
 	}
 
-	record, err := extractInput(e)
+	queryResult, err := extractQueryResult(e)
+
+	record, err := convertQueryResult(queryResult)
 	if err != nil {
 		return logData, err
 	}
@@ -63,74 +64,75 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	return logData, nil
 }
 
-//TODO: tests
-func extractInput(e events.SNSEvent) (golib.DynamoDBPlayerDamageDone, error) {
-	resp := golib.DynamoDBPlayerDamageDone{}
-
-	//extract sns part into extra func
+func extractQueryResult(e events.SNSEvent) (*timestreamquery.QueryOutput, error) {
 	message := e.Records[0].SNS.Message
 	if message == "" {
-		return resp, fmt.Errorf("message is empty")
+		return nil, fmt.Errorf("message is empty")
 	}
-	logrus.Debug("message:" + message)
 
-	var result timestreamquery.QueryOutput
+	var result *timestreamquery.QueryOutput
 
 	err := json.Unmarshal([]byte(message), &result)
 	if err != nil {
-		return resp, err
+		return nil, fmt.Errorf("failed to unmarshal sns message which contains the query result: %v", err)
 	}
+
+	return result, err
+}
+
+//TODO: tests
+func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoDBPlayerDamageDone, error) {
+	resp := golib.DynamoDBPlayerDamageDone{}
 
 	var summaries []golib.KeysResult
 
-	for i := 0; i < len(result.Rows); i++ {
-		dam, err := strconv.Atoi(*result.Rows[i].Data[0].ScalarValue)
+	for i := 0; i < len(queryResult.Rows); i++ {
+		dam, err := strconv.Atoi(*queryResult.Rows[i].Data[0].ScalarValue)
 		if err != nil {
 			return resp, err
 		}
 
 		d := golib.KeysResult{
 			Damage:   dam,
-			Name:     *result.Rows[i].Data[1].ScalarValue,
-			PlayerID: *result.Rows[i].Data[2].ScalarValue,
+			Name:     *queryResult.Rows[i].Data[1].ScalarValue,
+			PlayerID: *queryResult.Rows[i].Data[2].ScalarValue,
+			Class:    "unsupported",
+			Specc:    "unsupported",
 		}
-		//TODO:
-		//	- convert affix ids to values
-		//	- update query keys and insert keys lambdas
 
 		summaries = append(summaries, d)
 	}
-	combatlogUUID := *result.Rows[0].Data[3].ScalarValue
-	dungeonName := *result.Rows[0].Data[4].ScalarValue
-	dungeonID, err := strconv.Atoi(*result.Rows[0].Data[5].ScalarValue)
+	combatlogUUID := *queryResult.Rows[0].Data[3].ScalarValue
+	dungeonName := *queryResult.Rows[0].Data[4].ScalarValue
+	dungeonID, err := strconv.Atoi(*queryResult.Rows[0].Data[5].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	keyLevel, err := strconv.Atoi(*result.Rows[0].Data[6].ScalarValue)
+	keyLevel, err := strconv.Atoi(*queryResult.Rows[0].Data[6].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	durationInMilliseconds, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	durationInMilliseconds, err := strconv.Atoi(*queryResult.Rows[0].Data[7].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	finished, err := strconv.Atoi(*result.Rows[0].Data[8].ScalarValue)
+	finished, err := strconv.Atoi(*queryResult.Rows[0].Data[8].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	twoAffixID, err := strconv.Atoi(*result.Rows[0].Data[9].ScalarValue)
+	twoAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[9].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	fourAffixID, err := strconv.Atoi(*result.Rows[0].Data[10].ScalarValue)
+	fourAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[10].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	sevenAffixID, err := strconv.Atoi(*result.Rows[0].Data[11].ScalarValue)
+	sevenAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[11].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	tenAffixID, err := strconv.Atoi(*result.Rows[0].Data[12].ScalarValue)
+	tenAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[12].ScalarValue)
 	if err != nil {
 		return resp, err
 	}

@@ -23,10 +23,13 @@ import (
 	"time"
 )
 
+//rethink name
 type KeysResult struct {
 	Damage   int    `json:"damage"`
 	Name     string `json:"player_name"`
 	PlayerID string `json:"player_id"`
+	Class    string `json="class"`
+	Specc    string `json="specc"`
 }
 
 type DynamoDBPlayerDamageDone struct {
