@@ -96,7 +96,7 @@ func extractInput(e events.SNSEvent) (golib.DynamoDBPlayerDamageDone, error) {
 		}
 		//TODO:
 		//	- convert affix ids to values
-		//	- update query and insert keys
+		//	- update query keys and insert keys lambdas
 
 		summaries = append(summaries, d)
 	}
@@ -114,23 +114,23 @@ func extractInput(e events.SNSEvent) (golib.DynamoDBPlayerDamageDone, error) {
 	if err != nil {
 		return resp, err
 	}
-	finished, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	finished, err := strconv.Atoi(*result.Rows[0].Data[8].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	twoAffixID, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	twoAffixID, err := strconv.Atoi(*result.Rows[0].Data[9].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	fourAffixID, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	fourAffixID, err := strconv.Atoi(*result.Rows[0].Data[10].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	sevenAffixID, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	sevenAffixID, err := strconv.Atoi(*result.Rows[0].Data[11].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
-	tenAffixID, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	tenAffixID, err := strconv.Atoi(*result.Rows[0].Data[12].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
