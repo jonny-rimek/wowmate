@@ -431,14 +431,19 @@ func SNSPublishMsg(ctx aws.Context, snsSvc *sns.SNS, input string, topicArn *str
 	}
 	logrus.Debug("sns input to publish: ", input)
 
-	_, err := snsSvc.Publish(&sns.PublishInput{
-		Message:  aws.String(input),
-		TopicArn: topicArn,
-	})
-	//_, err := snsSvc.PublishWithContext(ctx, &sns.PublishInput{
-	//	Message:  aws.String(input),
-	//	TopicArn: topicArn,
-	//})
+	var err error
+
+	if os.Getenv("LOCAL") == "true" {
+		_, err = snsSvc.Publish(&sns.PublishInput{
+			Message:  aws.String(input),
+			TopicArn: topicArn,
+		})
+	} else {
+		_, err = snsSvc.PublishWithContext(ctx, &sns.PublishInput{
+			Message:  aws.String(input),
+			TopicArn: topicArn,
+		})
+	}
 	if err != nil {
 		return fmt.Errorf("failed publishing a message to sns: %v", err)
 	}
@@ -468,12 +473,15 @@ func SNSPublishMsg2(client *sns2.Client, input string, topicArn *string) error {
 */
 
 func TimestreamQuery(ctx aws.Context, query *string, querySvc *timestreamquery.TimestreamQuery) (result *timestreamquery.QueryOutput, err error) {
-	result, err = querySvc.Query(&timestreamquery.QueryInput{
-		QueryString: query,
-	})
-	//result, err = querySvc.QueryWithContext(ctx, &timestreamquery.QueryInput{
-	//	QueryString: query,
-	//})
+	if os.Getenv("LOCAL") == "true" {
+		result, err = querySvc.Query(&timestreamquery.QueryInput{
+			QueryString: query,
+		})
+	} else {
+		result, err = querySvc.QueryWithContext(ctx, &timestreamquery.QueryInput{
+			QueryString: query,
+		})
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed querying timestream: %v", err.Error())
 	}
@@ -550,12 +558,17 @@ func UploadToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWri
 			Records:      e[i:j], //only upload a part of the records
 		}
 
-		_, err := writeSvc.WriteRecordsWithContext(ctx, writeRecordsInput)
+		var err error
+
+		if os.Getenv("LOCAL") == "true" {
+			_, err = writeSvc.WriteRecords(writeRecordsInput)
+		} else {
+			_, err = writeSvc.WriteRecordsWithContext(ctx, writeRecordsInput)
+		}
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to write to timestream: %v", err)
 		}
 	}
-	log.Println("Write records to timestream was successful")
 	return nil
 }
 
@@ -604,14 +617,26 @@ func PrettyStruct(input interface{}) (string, error) {
 }
 
 func DownloadS3(ctx aws.Context, downloader *s3manager.Downloader, bucketName string, objectKey string, fileContent io.WriterAt) error {
-	_, err := downloader.DownloadWithContext(
-		ctx,
-		fileContent,
-		&s3.GetObjectInput{
-			Bucket: aws.String(bucketName),
-			Key:    aws.String(objectKey),
-		},
-	)
+	var err error
+
+	if os.Getenv("LOCAL") == "true" {
+		_, err = downloader.Download(
+			fileContent,
+			&s3.GetObjectInput{
+				Bucket: aws.String(bucketName),
+				Key:    aws.String(objectKey),
+			},
+		)
+	} else {
+		_, err = downloader.DownloadWithContext(
+			ctx,
+			fileContent,
+			&s3.GetObjectInput{
+				Bucket: aws.String(bucketName),
+				Key:    aws.String(objectKey),
+			},
+		)
+	}
 	if err != nil {
 		return err
 	}
@@ -657,10 +682,20 @@ func RenameFileS3(ctx aws.Context, s3Svc *s3.S3, oldName, newName, bucketName st
 
 //checks the file size without actually downloading it in KB
 func SizeOfS3Object(ctx aws.Context, s3Svc *s3.S3, bucketName string, objectKey string) (int, error) {
-	output, err := s3Svc.HeadObjectWithContext(ctx, &s3.HeadObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(objectKey),
-	})
+	var output *s3.HeadObjectOutput
+	var err error
+	//if it's local do without context
+	if os.Getenv("LOCAL") == "true" {
+		output, err = s3Svc.HeadObject(&s3.HeadObjectInput{
+			Bucket: aws.String(bucketName),
+			Key:    aws.String(objectKey),
+		})
+	} else {
+		output, err = s3Svc.HeadObjectWithContext(ctx, &s3.HeadObjectInput{
+			Bucket: aws.String(bucketName),
+			Key:    aws.String(objectKey),
+		})
+	}
 	if err != nil {
 		return 0, fmt.Errorf("unable to to send head request to item %q, %v", objectKey, err)
 	}
