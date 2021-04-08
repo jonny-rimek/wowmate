@@ -269,12 +269,12 @@ func main() {
 	}
 
 	snsSvc = sns.New(sess)
-	if os.Getenv("LOCAL") == "false" {
+	if os.Getenv("LOCAL") != "true" {
 		xray.AWS(snsSvc.Client)
 	}
 	querySvc = timestreamquery.New(sess)
 
-	if os.Getenv("LOCAL") == "false" {
+	if os.Getenv("LOCAL") != "true" {
 		xray.AWS(querySvc.Client)
 	}
 	lambda.Start(handler)
