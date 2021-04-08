@@ -3,6 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,10 +16,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
-	"log"
-	"os"
-	"strconv"
-	"time"
 )
 
 type logData struct {
@@ -81,7 +82,7 @@ func extractQueryResult(e events.SNSEvent) (*timestreamquery.QueryOutput, error)
 	return result, err
 }
 
-//TODO: tests
+// TODO: tests
 func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoDBPlayerDamageDone, error) {
 	resp := golib.DynamoDBPlayerDamageDone{}
 
@@ -121,9 +122,9 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	if err != nil {
 		return resp, err
 	}
-	//converts duration to date 1970 + duration, of which I only display the minutes and seconds
-	//time duration, doesn't allow mixed formatting like min:seconds
-	t := time.Unix(0, durationInMilliseconds*1e6) //milliseconds > nanoseconds
+	// converts duration to date 1970 + duration, of which I only display the minutes and seconds
+	// time duration, doesn't allow mixed formatting like min:seconds
+	t := time.Unix(0, durationInMilliseconds*1e6) // milliseconds > nanoseconds
 
 	finished, err := strconv.Atoi(*queryResult.Rows[0].Data[8].ScalarValue)
 	if err != nil {
@@ -154,14 +155,14 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		Pk:            fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
 		Sk:            fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
 		Damage:        summaries,
-		Duration:      t.Format("04:05"), //formats to minutes:seconds
-		Deaths:        0,                 //TODO:
-		Affixes:       fmt.Sprintf("%v, %v, %v, %v", twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
+		Duration:      t.Format("04:05"), // formats to minutes:seconds
+		Deaths:        0,                 // TODO:
+		Affixes:       golib.AffixIDsToString(twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
 		Keylevel:      keyLevel,
 		DungeonName:   dungeonName,
 		DungeonID:     dungeonID,
 		CombatlogUUID: combatlogUUID,
-		Finished:      finished != 0, //if 0 false, else 1
+		Finished:      finished != 0, // if 0 false, else 1
 	}
 	return resp, err
 }

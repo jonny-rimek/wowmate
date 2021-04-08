@@ -3,6 +3,15 @@ package golib
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
+	"os"
+	"sort"
+	"strconv"
+	"time"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -13,17 +22,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"github.com/sirupsen/logrus"
-	"io"
-	"log"
-	"net/http"
-	"net/url"
-	"os"
-	"sort"
-	"strconv"
-	"time"
 )
 
-//rethink name
+// KeysResult rethink name
 type KeysResult struct {
 	Damage   int    `json:"damage"`
 	Name     string `json:"player_name"`
@@ -90,7 +91,7 @@ type JSONKeys struct {
 	CombatlogUUID string       `json:"combatlog_uuid"`
 }
 
-//AGW500 returns a error agi gw v2 response
+// AGW500 returns a error agi gw v2 response
 func AGW500() events.APIGatewayV2HTTPResponse {
 	return events.APIGatewayV2HTTPResponse{
 		StatusCode: 500,
@@ -98,7 +99,7 @@ func AGW500() events.APIGatewayV2HTTPResponse {
 	}
 }
 
-//AGW200 returns a agi gw v2 success reponse
+// AGW200 returns a agi gw v2 success response
 func AGW200(body string, headers map[string]string) events.APIGatewayV2HTTPResponse {
 	return events.APIGatewayV2HTTPResponse{
 		Headers:    headers,
@@ -120,8 +121,8 @@ type S3Event struct {
 	} `json:"Records"`
 }
 
-//SQSEvent is all the data that gets passed into the lambda from the q
-//IMPROVE: use events.SQSEvent, see summary lambda
+// SQSEvent is all the data that gets passed into the lambda from the q
+// IMPROVE: use events.SQSEvent, see summary lambda
 type SQSEvent struct {
 	Records []struct {
 		MessageID     string `json:"messageId"`
@@ -139,7 +140,7 @@ type SQSEvent struct {
 	} `json:"Records"`
 }
 
-//DynamoDBQuery is a helper to simplify querying a dynamo db table
+// DynamoDBQuery is a helper to simplify querying a dynamo db table
 func DynamoDBQuery(ctx aws.Context, svc *dynamodb.DynamoDB, input dynamodb.QueryInput) (*dynamodb.QueryOutput, error) {
 
 	result, err := svc.QueryWithContext(ctx, &input)
@@ -203,17 +204,17 @@ func DynamoDBPutItem2(client *dynamodb2.Client, ddbTableName *string, record int
 
 func KeysResponseToJson(result *dynamodb.QueryOutput, sorted, firstPage bool) (string, error) {
 	var items []DynamoDBKeys
-	var lastPage bool //controls if the next btn is shown
+	var lastPage bool // controls if the next btn is shown
 
 	err := dynamodbattribute.UnmarshalListOfMaps(result.Items, &items)
 	if err != nil {
 		return "", err
 	}
 	if result.LastEvaluatedKey != nil {
-		items = items[:len(items)-1] //we don't care about the last item
-		//getting 1 more item than we need and truncaten it off allows us to circumvent a dynamodb2 bug where
-		//if 5 items are left to return and you get exactly return 5 items the last evaluated key is not null,
-		//which leads to the next request being completely empty
+		items = items[:len(items)-1] // we don't care about the last item
+		// getting 1 more item than we need and truncaten it off allows us to circumvent a dynamodb2 bug where
+		// if 5 items are left to return and you get exactly return 5 items the last evaluated key is not null,
+		// which leads to the next request being completely empty
 		lastPage = false
 	} else if result.LastEvaluatedKey == nil && sorted == true {
 		firstPage = true
@@ -251,12 +252,12 @@ func KeysResponseToJson(result *dynamodb.QueryOutput, sorted, firstPage bool) (s
 	if sorted == false {
 		firstSk = *result.Items[0]["sk"].S
 		lastSk = *result.Items[len(items)-1]["sk"].S
-		//-1 would be the last item, which we truncated
-		//we need to 2nd last as last key, for the next page to not skip an item
+		// -1 would be the last item, which we truncated
+		// we need to 2nd last as last key, for the next page to not skip an item
 	} else {
-		//if we go back on the pagination the order is reveresed
-		//which causes last and first key to be switched, if we
-		//were to go back again, thing are messed up
+		// if we go back on the pagination the order is reversed
+		// which causes last and first key to be switched, if we
+		// were to go back again, thing are messed up
 		firstSk = *result.Items[len(items)-1]["sk"].S
 		lastSk = *result.Items[0]["sk"].S
 	}
@@ -355,8 +356,9 @@ func PlayerDamageSimpleResponseToJson2(result *dynamodb2.QueryOutput, sorted, fi
 	return string(b), err
 }
 */
+
 func PlayerDamageDoneToJson(result *dynamodb.GetItemOutput) (string, error) {
-	//TODO: update to dedicated struct
+	// TODO: update to dedicated struct
 	var item DynamoDBKeys
 
 	err := dynamodbattribute.UnmarshalMap(result.Item, &item)
@@ -413,7 +415,7 @@ func KeysToJson(result *dynamodb.QueryOutput) (string, error) {
 	return string(b), err
 }
 
-//InitLogging sets up the logging for every lambda and should be called before the handler
+// InitLogging sets up the logging for every lambda and should be called before the handler
 func InitLogging() {
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel == "debug" {
@@ -424,7 +426,7 @@ func InitLogging() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 }
 
-//CanonicalLog writes a structured message to stdout if the log level is atleast INFO
+// CanonicalLog writes a structured message to stdout if the log level is atleast INFO
 func CanonicalLog(msg map[string]interface{}) {
 	logrus.WithFields(msg).Info()
 }
@@ -476,7 +478,10 @@ func SNSPublishMsg2(client *sns2.Client, input string, topicArn *string) error {
 }
 */
 
-func TimestreamQuery(ctx aws.Context, query *string, querySvc *timestreamquery.TimestreamQuery) (result *timestreamquery.QueryOutput, err error) {
+func TimestreamQuery(ctx aws.Context, query *string, querySvc *timestreamquery.TimestreamQuery) (*timestreamquery.QueryOutput, error) {
+	var result *timestreamquery.QueryOutput
+	var err error
+
 	if os.Getenv("LOCAL") == "true" {
 		result, err = querySvc.Query(&timestreamquery.QueryInput{
 			QueryString: query,
@@ -492,24 +497,33 @@ func TimestreamQuery(ctx aws.Context, query *string, querySvc *timestreamquery.T
 	logrus.Debug(result)
 	logrus.Debug("after query")
 
-	//TODO: refactor^^
+	// TODO: refactor^^
 	if result.NextToken != nil {
 		result, err = querySvc.QueryWithContext(ctx, &timestreamquery.QueryInput{
 			QueryString: query,
 			NextToken:   result.NextToken,
 		})
+		if err != nil {
+			return nil, fmt.Errorf("failed querying timestream: %v", err.Error())
+		}
 	}
 	if result.NextToken != nil {
 		result, err = querySvc.QueryWithContext(ctx, &timestreamquery.QueryInput{
 			QueryString: query,
 			NextToken:   result.NextToken,
 		})
+		if err != nil {
+			return nil, fmt.Errorf("failed querying timestream: %v", err.Error())
+		}
 	}
 	if result.NextToken != nil {
 		result, err = querySvc.QueryWithContext(ctx, &timestreamquery.QueryInput{
 			QueryString: query,
 			NextToken:   result.NextToken,
 		})
+		if err != nil {
+			return nil, fmt.Errorf("failed querying timestream: %v", err.Error())
+		}
 	}
 	if len(result.Rows) == 0 {
 		return result, fmt.Errorf("query returned empty result")
@@ -545,8 +559,8 @@ func UploadToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWri
 
 	for i := 0; i < len(e); i += 100 {
 
-		//get the upper bound of the record to write, in case it is the
-		//last bit of records and i + 99 does not exist
+		// get the upper bound of the record to write, in case it is the
+		// last bit of records and i + 99 does not exist
 		j := 0
 		if i+99 > len(e) {
 			j = len(e)
@@ -554,12 +568,12 @@ func UploadToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWri
 			j = i + 99
 		}
 
-		//use common batching https://docs.aws.amazon.com/timestream/latest/developerguide/metering-and-pricing.writes.html#metering-and-pricing.writes.write-size-multiple-events
+		// use common batching https://docs.aws.amazon.com/timestream/latest/developerguide/metering-and-pricing.writes.html#metering-and-pricing.writes.write-size-multiple-events
 		writeRecordsInput := &timestreamwrite.WriteRecordsInput{
-			//TODO: add to and read from env
+			// TODO: add to and read from env
 			DatabaseName: aws.String("wowmate-analytics"),
 			TableName:    aws.String("combatlogs"),
-			Records:      e[i:j], //only upload a part of the records
+			Records:      e[i:j], // only upload a part of the records
 		}
 
 		var err error
@@ -612,6 +626,7 @@ func UploadToTimestream2(cfg aws2.Config, e []types2.Record) error {
 	return nil
 }
 */
+
 func PrettyStruct(input interface{}) (string, error) {
 	prettyJSON, err := json.MarshalIndent(input, "", "    ")
 	if err != nil {
@@ -673,7 +688,7 @@ func RenameFileS3(ctx aws.Context, s3Svc *s3.S3, oldName, newName, bucketName st
 		return err
 	}
 
-	s3Svc.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
+	_, err = s3Svc.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
 		Key:    &oldName,
 		Bucket: &bucketName,
 	})
@@ -684,11 +699,11 @@ func RenameFileS3(ctx aws.Context, s3Svc *s3.S3, oldName, newName, bucketName st
 	return nil
 }
 
-//checks the file size without actually downloading it in KB
+// SizeOfS3Object checks the file size without actually downloading it in KB
 func SizeOfS3Object(ctx aws.Context, s3Svc *s3.S3, bucketName string, objectKey string) (int, error) {
 	var output *s3.HeadObjectOutput
 	var err error
-	//if it's local do without context
+	// if it's local do without context
 	if os.Getenv("LOCAL") == "true" {
 		output, err = s3Svc.HeadObject(&s3.HeadObjectInput{
 			Bucket: aws.String(bucketName),
@@ -707,7 +722,7 @@ func SizeOfS3Object(ctx aws.Context, s3Svc *s3.S3, bucketName string, objectKey 
 	return int(*output.ContentLength / 1024), nil
 }
 
-//checks the file size without actually downloading it in MB
+// checks the file size without actually downloading it in MB
 /*
 func sizeOfS3Object2(cfg aws2.Config, bucketName string, objectKey string) (int, error) {
 	client := s32.NewFromConfig(cfg)
@@ -725,7 +740,8 @@ func sizeOfS3Object2(cfg aws2.Config, bucketName string, objectKey string) (int,
 }
 */
 
-//IMPROVE: only pass in pointer to SQSEvent
+// TimeMessageInQueue
+// IMPROVE: only pass in pointer to SQSEvent
 // we can see an overall trend of this in the SQS metrics, I created this to double check how fast messages are polled
 // with fargate, but since I use lambda the lambda service takes care of this and messages are usually only 10ms old
 // before they are pushed into lambda
@@ -748,7 +764,7 @@ func TimeMessageInQueue(e SQSEvent, i int) error {
 	return nil
 }
 
-//Atoi64 is just a small wrapper around ParseInt
+// Atoi64 is just a small wrapper around ParseInt
 func Atoi64(input string) (int64, error) {
 	num, err := strconv.ParseInt(input, 10, 64)
 	if err != nil {
@@ -756,4 +772,59 @@ func Atoi64(input string) (int64, error) {
 	}
 
 	return num, nil
+}
+
+var levelTwoAffixes = map[int]string{
+	9:  "Tyrannical",
+	10: "Fortified",
+}
+
+var levelFourAffixes = map[int]string{
+	123: "Spiteful",
+	7:   "Bolstering",
+	11:  "Bursting",
+	8:   "Sanguine",
+	6:   "Raging",
+	122: "Inspiring",
+}
+
+var levelSevenAffixes = map[int]string{
+	13:  "Explosive",
+	4:   "Necrotic",
+	3:   "Volcanic",
+	124: "Storming",
+	14:  "Quaking",
+	12:  "Grievous",
+}
+
+var levelTenAffixes = map[int]string{
+	121: "Prideful",
+}
+
+// AffixIDsToString takes an array of affix ids and converts them to a readable list of array names
+// separated by commas
+// TODO:
+// 	- rethink if I actually need this, displaying a list of affixes as string takes a lot of space, should just return an array of ids and display icons
+func AffixIDsToString(levelTwoID, levelFourID, levelSevenID, levelTenID int) string {
+	affixes := levelTwoAffixes[levelTwoID]
+
+	if levelFourID == 0 {
+		return affixes
+	}
+
+	affixes += ", " + levelFourAffixes[levelFourID]
+
+	if levelSevenID == 0 {
+		return affixes
+	}
+
+	affixes += ", " + levelSevenAffixes[levelSevenID]
+
+	if levelTenID == 0 {
+		return affixes
+	}
+
+	affixes += ", " + levelTenAffixes[levelTenID]
+
+	return affixes
 }
