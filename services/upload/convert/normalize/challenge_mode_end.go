@@ -23,6 +23,7 @@ func challengeModeEnd(params []string, uploadUUID string, combatlogUUID string) 
 		return nil, err
 	}
 
+	//in milli seconds
 	duration, err := Atoi64(params[4]) //2136094
 	if err != nil {
 		log.Printf("failed to convert challange mode end event, field duration. got: %v", params[4])

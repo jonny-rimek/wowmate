@@ -60,22 +60,6 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 
 	//NOTE: AND caster_id LIKE 'Player-%' doesnt work, sprintf tries to format the %
 	query := fmt.Sprintf(`
-	SELECT 
-		SUM(measure_value::bigint) AS damage,
-		caster_name,
-		caster_id,
-		combatlog_uuid
-	FROM 
-		"wowmate-analytics"."combatlogs" 
-	WHERE
-		combatlog_uuid = '%v' AND
-		(caster_type = '0x512' OR caster_type = '0x511')
-	GROUP BY
-		caster_name, caster_id, combatlog_uuid
-	ORDER BY
-		damage DESC
-	`, combatlogUUID)
-	/*
 		WITH dungeon AS (
 		    SELECT
 				dungeon_name,
@@ -84,7 +68,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '08408a8a-1c1d-4ded-9c8e-34a63ad7cdd5'  AND
+				combatlog_uuid = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'dungeon_id'
 		),
@@ -95,7 +79,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '08408a8a-1c1d-4ded-9c8e-34a63ad7cdd5'  AND
+				combatlog_uuid = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'key_level'
 		),
@@ -106,7 +90,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '08408a8a-1c1d-4ded-9c8e-34a63ad7cdd5'  AND
+				combatlog_uuid = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'duration'
 		),
@@ -117,10 +101,54 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '08408a8a-1c1d-4ded-9c8e-34a63ad7cdd5'  AND
+				combatlog_uuid = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'finished'
 		),
+        two_affix_id AS (
+		    SELECT
+		        measure_value::bigint AS two_affix_id,
+		        combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = '%v'  AND
+		        time between ago(15m) and now() AND
+		        measure_name = 'two_affix_id'
+		),
+        four_affix_id AS (
+		    SELECT
+		        measure_value::bigint AS four_affix_id,
+		        combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = '%v'  AND
+		        time between ago(15m) and now() AND
+		        measure_name = 'four_affix_id'
+		),
+        seven_affix_id AS (
+		    SELECT
+		        measure_value::bigint AS seven_affix_id,
+		        combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = '%v'  AND
+		        time between ago(15m) and now() AND
+		        measure_name = 'seven_affix_id'
+		),
+        ten_affix_id AS (
+		    SELECT
+		        measure_value::bigint AS ten_affix_id,
+		        combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = '%v'  AND
+		        time between ago(15m) and now() AND
+		        measure_name = 'ten_affix_id'
+		),        
 		damage as (
 			SELECT
 				SUM(measure_value::bigint) AS damage,
@@ -130,7 +158,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '08408a8a-1c1d-4ded-9c8e-34a63ad7cdd5' AND
+				combatlog_uuid = '%v' AND
 				(caster_type = '0x512' OR caster_type = '0x511') AND
 		  		time between ago(15m) and now()
 			GROUP BY
@@ -139,7 +167,19 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 				damage DESC
 		)
 		SELECT
-			*
+			damage, 
+			caster_name, 
+			caster_id, 
+			damage.combatlog_uuid, 
+			dungeon_name, 
+			dungeon_id,
+			key_level, 
+			duration, 
+			finished, 
+			two_affix_id, 
+			four_affix_id, 
+			seven_affix_id, 
+			ten_affix_id
 		FROM
 			damage
 		JOIN
@@ -154,9 +194,29 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		JOIN
 			finished
 		    ON finished.combatlog_uuid = dungeon.combatlog_uuid
-	*/
-
-	//CHALLENGE_MODE_END contains duration in milliseconds in the last field
+		JOIN
+			two_affix_id
+		    ON two_affix_id.combatlog_uuid = dungeon.combatlog_uuid
+        JOIN
+			four_affix_id
+		    ON four_affix_id.combatlog_uuid = dungeon.combatlog_uuid
+        JOIN
+			seven_affix_id
+		    ON seven_affix_id.combatlog_uuid = dungeon.combatlog_uuid
+        JOIN
+			ten_affix_id
+		    ON ten_affix_id.combatlog_uuid = dungeon.combatlog_uuid            
+		`,
+		combatlogUUID,
+		combatlogUUID,
+		combatlogUUID,
+		combatlogUUID,
+		combatlogUUID,
+		combatlogUUID,
+		combatlogUUID,
+		combatlogUUID,
+		combatlogUUID,
+	)
 
 	queryResult, err := golib.TimestreamQuery(ctx, &query, querySvc)
 	if err != nil {
@@ -192,12 +252,6 @@ func validateInput(e events.SNSEvent) (topicArn string, combatlogUUID string, er
 	logrus.Debug("topicArn: " + topicArn)
 
 	combatlogUUID = e.Records[0].SNS.Message
-	/*
-		if err != nil {
-			return topicArn, "", fmt.Errorf("json unmarschal of sns message failed: %v", err.Error())
-		}
-	*/
-
 	if combatlogUUID == "" {
 		return topicArn, "", fmt.Errorf("combatlog uuid is empty")
 	}
