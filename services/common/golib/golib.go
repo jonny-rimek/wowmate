@@ -40,6 +40,7 @@ type DynamoDBPlayerDamageDone struct {
 	DungeonName   string       `json:"dungeon_name"`
 	DungeonID     int          `json:"dungeon_id"`
 	CombatlogUUID string       `json:"combatlog_uuid"`
+	Finished      bool         `json:"finished"`
 }
 
 type DynamoDBKeys struct {

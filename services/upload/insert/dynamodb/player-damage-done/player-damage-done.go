@@ -13,10 +13,8 @@ import (
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 	"github.com/sirupsen/logrus"
 	"log"
-	"math/rand"
 	"os"
 	"strconv"
-	"time"
 )
 
 type logData struct {
@@ -50,12 +48,10 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		return logData, fmt.Errorf("dynamo db table name env var is empty")
 	}
 
-	summaries, combatlogUUID, err := extractInput(e)
+	record, err := extractInput(e)
 	if err != nil {
 		return logData, err
 	}
-
-	record := convertInput(combatlogUUID, summaries)
 
 	response, err := golib.DynamoDBPutItem(ctx, svc, &ddbTableName, record)
 	if err != nil {
@@ -68,33 +64,13 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 }
 
 //TODO: tests
-func convertInput(combatlogUUID string, summaries []golib.KeysResult) golib.DynamoDBPlayerDamageDone {
-	rand.Seed(time.Now().UnixNano())
-	min := 2
-	max := 26
-	keylevel := rand.Intn(max-min+1) + min
+func extractInput(e events.SNSEvent) (golib.DynamoDBPlayerDamageDone, error) {
+	resp := golib.DynamoDBPlayerDamageDone{}
 
-	record := golib.DynamoDBPlayerDamageDone{
-		Pk:            fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
-		Sk:            fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
-		Damage:        summaries,
-		Duration:      "34:59 +0:01",
-		Deaths:        1,
-		Affixes:       "tyrannical, explosive, storming, prideful",
-		Keylevel:      keylevel,
-		DungeonName:   "De Other Site",
-		DungeonID:     2291,
-		CombatlogUUID: combatlogUUID,
-		//TODO: get real keylevel, dungeon id, dungeon name, deaths, deplete, duration
-	}
-	return record
-}
-
-//TODO: tests
-func extractInput(e events.SNSEvent) ([]golib.KeysResult, string, error) {
+	//extract sns part into extra func
 	message := e.Records[0].SNS.Message
 	if message == "" {
-		return nil, "", fmt.Errorf("message is empty")
+		return resp, fmt.Errorf("message is empty")
 	}
 	logrus.Debug("message:" + message)
 
@@ -102,16 +78,15 @@ func extractInput(e events.SNSEvent) ([]golib.KeysResult, string, error) {
 
 	err := json.Unmarshal([]byte(message), &result)
 	if err != nil {
-		return nil, "", err
+		return resp, err
 	}
 
-	var combatlogUUID string
 	var summaries []golib.KeysResult
 
 	for i := 0; i < len(result.Rows); i++ {
 		dam, err := strconv.Atoi(*result.Rows[i].Data[0].ScalarValue)
 		if err != nil {
-			return nil, "", err
+			return resp, err
 		}
 
 		d := golib.KeysResult{
@@ -119,12 +94,61 @@ func extractInput(e events.SNSEvent) ([]golib.KeysResult, string, error) {
 			Name:     *result.Rows[i].Data[1].ScalarValue,
 			PlayerID: *result.Rows[i].Data[2].ScalarValue,
 		}
-		combatlogUUID = *result.Rows[i].Data[3].ScalarValue
+		//TODO:
+		//	- convert affix ids to values
+		//	- update query and insert keys
 
 		summaries = append(summaries, d)
 	}
+	combatlogUUID := *result.Rows[0].Data[3].ScalarValue
+	dungeonName := *result.Rows[0].Data[4].ScalarValue
+	dungeonID, err := strconv.Atoi(*result.Rows[0].Data[5].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+	keyLevel, err := strconv.Atoi(*result.Rows[0].Data[6].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+	durationInMilliseconds, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+	finished, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+	twoAffixID, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+	fourAffixID, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+	sevenAffixID, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+	tenAffixID, err := strconv.Atoi(*result.Rows[0].Data[7].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
 
-	return summaries, combatlogUUID, err
+	resp = golib.DynamoDBPlayerDamageDone{
+		Pk:            fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
+		Sk:            fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
+		Damage:        summaries,
+		Duration:      strconv.Itoa(durationInMilliseconds),
+		Deaths:        0, //TODO:
+		Affixes:       fmt.Sprintf("%v, %v, %v, %v", twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
+		Keylevel:      keyLevel,
+		DungeonName:   dungeonName,
+		DungeonID:     dungeonID,
+		CombatlogUUID: combatlogUUID,
+		Finished:      finished != 0, //if 0 false, else 1
+	}
+	return resp, err
 }
 
 func main() {
