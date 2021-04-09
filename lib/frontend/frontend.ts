@@ -54,6 +54,7 @@ export class Frontend extends cdk.Construct {
 				origin: new origins.S3Origin(bucket),
 				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
 				originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
+				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
 			},
             errorResponses: [{
 				httpStatus: 404,

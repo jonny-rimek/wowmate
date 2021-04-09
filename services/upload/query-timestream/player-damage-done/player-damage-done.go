@@ -30,6 +30,7 @@ type logData struct {
 func handler(ctx aws.Context, e events.SNSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
+		//goland:noinspection GoNilness
 		golib.CanonicalLog(map[string]interface{}{
 			"combatlog_uuid":    logData.CombatlogUUID,
 			"billed_megabytes":  logData.BilledMegabytes,
