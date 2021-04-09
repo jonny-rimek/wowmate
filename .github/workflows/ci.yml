@@ -26,6 +26,11 @@ jobs:
       - name: build
         run: ./misc/build.sh
 
+      - name: cfn_nag test
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: cdk.out/wm-dev.template.json
+
       - name: cdk diff
         uses: youyo/aws-cdk-github-actions@v2.0.0
         env:
