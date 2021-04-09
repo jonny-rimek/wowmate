@@ -54,7 +54,7 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 
 	combatlogUUID, err := checkInput(request.PathParameters)
 	if err != nil {
-		return golib.AGW500(), logData, err
+		return golib.AGW400(), logData, err
 	}
 	logData.CombatlogUUID = combatlogUUID
 
@@ -77,7 +77,7 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 
 	if result.Item == nil {
 		logData.EmptyQuery = true
-		return golib.AGW200("", nil), logData, nil
+		return golib.AGW404(), logData, nil
 	}
 	json, err := golib.PlayerDamageDoneToJson(result)
 	if err != nil {
