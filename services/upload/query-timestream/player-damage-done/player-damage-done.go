@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sns"
@@ -10,7 +12,6 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 	"github.com/sirupsen/logrus"
-	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -58,7 +59,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	}
 	logData.CombatlogUUID = combatlogUUID
 
-	//NOTE: AND caster_id LIKE 'Player-%' doesnt work, sprintf tries to format the %
+	// NOTE: AND caster_id LIKE 'Player-%' doesnt work, sprintf tries to format the %
 	query := fmt.Sprintf(`
 		WITH dungeon AS (
 		    SELECT
@@ -229,7 +230,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	}
 
 	logData.QueryID = *queryResult.QueryId
-	logData.BilledMegabytes = *queryResult.QueryStatus.CumulativeBytesMetered / 1e6 //1.000.000
+	logData.BilledMegabytes = *queryResult.QueryStatus.CumulativeBytesMetered / 1e6 // 1.000.000
 	logData.ScannedMegabytes = *queryResult.QueryStatus.CumulativeBytesScanned / 1e6
 
 	input, err := json.Marshal(queryResult)

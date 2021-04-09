@@ -3,6 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"math/rand"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,11 +17,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
-	"log"
-	"math/rand"
-	"os"
-	"strconv"
-	"time"
 )
 
 type logData struct {
@@ -66,7 +67,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	return logData, nil
 }
 
-//TODO: tests
+// TODO: tests
 func convertInput(combatlogUUID string, summaries []golib.KeysResult) golib.DynamoDBKeys {
 	rand.Seed(time.Now().UnixNano())
 	min := 2
@@ -78,7 +79,7 @@ func convertInput(combatlogUUID string, summaries []golib.KeysResult) golib.Dyna
 	timePercent := rand.Intn(max-min+1) + min
 
 	record := golib.DynamoDBKeys{
-		Pk:            "LOG#S2", //IMPROVE: dynamic season
+		Pk:            "LOG#S2", // IMPROVE: dynamic season
 		Sk:            fmt.Sprintf("%02d#%v#%v", keylevel, timePercent, combatlogUUID),
 		Damage:        summaries,
 		Gsi1pk:        "LOG#S2#2291",
@@ -90,7 +91,6 @@ func convertInput(combatlogUUID string, summaries []golib.KeysResult) golib.Dyna
 		DungeonName:   "De Other Site",
 		DungeonID:     2291,
 		CombatlogUUID: combatlogUUID,
-		//TODO: get real keylevel, dungeon id, dungeon name, deaths, deplete, duration
 	}
 	return record
 }
