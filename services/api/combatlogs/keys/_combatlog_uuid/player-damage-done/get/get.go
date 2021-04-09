@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -9,8 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
-	"log"
-	"os"
 )
 
 type logData struct {
@@ -62,10 +63,10 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 		TableName: &ddbTableName,
 		Key: map[string]*dynamodb.AttributeValue{
 			"pk": {
-				S: aws.String(fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID)),
+				S: aws.String(fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID)),
 			},
 			"sk": {
-				S: aws.String(fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID)),
+				S: aws.String(fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID)),
 			},
 		},
 		ReturnConsumedCapacity: aws.String("TOTAL"),
@@ -93,14 +94,13 @@ func checkInput(input map[string]string) (string, error) {
 	if input["combatlog_uuid"] == "" {
 		return "", fmt.Errorf("combatloguuid is empty")
 	}
-	//TODO: url query unconvert stuff, I don't think I need to do this as there is no hash in uuid
 	return input["combatlog_uuid"], nil
 }
 
 func init() {
-	//I don't get when it makes sense to use init the docs doesnt explain it
-	//I tried starting the session here, but no performance difference
-	//https://docs.aws.amazon.com/lambda/latest/dg/golang-handler.html#golang-handler-state
+	// I don't get when it makes sense to use init the docs doesnt explain it
+	// I tried starting the session here, but no performance difference
+	// https://docs.aws.amazon.com/lambda/latest/dg/golang-handler.html#golang-handler-state
 }
 
 func main() {

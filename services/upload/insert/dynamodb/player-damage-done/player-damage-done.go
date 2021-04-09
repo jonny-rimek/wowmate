@@ -152,8 +152,8 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	}
 
 	resp = golib.DynamoDBPlayerDamageDone{
-		Pk:            fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
-		Sk:            fmt.Sprintf("LOG#SPECIFIC#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
+		Pk:            fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
+		Sk:            fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
 		Damage:        summaries,
 		Duration:      t.Format("04:05"), // formats to minutes:seconds
 		Deaths:        0,                 // TODO:

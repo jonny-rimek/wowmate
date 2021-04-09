@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"net/url"
+	"os"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,9 +13,6 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 	"github.com/sirupsen/logrus"
-	"net/url"
-
-	"os"
 )
 
 //this could just be a map[string]interface{}, but I kinda prefer to have a set structure
@@ -117,10 +117,10 @@ func paginatedQuery(input paginatedQueryInput) (paginatedQueryOutput, error) {
 	var expressionAttributeValues = make(map[string]*dynamodb.AttributeValue)
 
 	expressionAttributeValues[":v1"] = &dynamodb.AttributeValue{
-		S: aws.String("LOG#S2"),
+		S: aws.String("LOG#KEY#S2"),
 	}
 
-	//this is the default query aka no pagination
+	// this is the default query aka no pagination
 	resp := paginatedQueryOutput{
 		queryInput: dynamodb.QueryInput{
 			ExpressionAttributeValues: expressionAttributeValues,
@@ -135,7 +135,7 @@ func paginatedQuery(input paginatedQueryInput) (paginatedQueryOutput, error) {
 		firstPage:     true,
 	}
 
-	//# becomes %23 inside the query parameter, needs to be transformed back
+	// # becomes %23 inside the query parameter, needs to be transformed back
 	next, err := url.QueryUnescape(input.request.QueryStringParameters["next"])
 	if err != nil {
 		return resp, err
@@ -147,7 +147,7 @@ func paginatedQuery(input paginatedQueryInput) (paginatedQueryOutput, error) {
 	resp.inputNextSK = next
 	resp.inputPrevSK = prev
 
-	if next != "" { //this is the next page
+	if next != "" { // this is the next page
 		resp.firstPage = false
 
 		resp.queryInput.KeyConditionExpression = aws.String("pk = :v1 AND sk < :v2")
@@ -155,7 +155,7 @@ func paginatedQuery(input paginatedQueryInput) (paginatedQueryOutput, error) {
 		expressionAttributeValues[":v2"] = &dynamodb.AttributeValue{
 			S: aws.String(next),
 		}
-	} else if prev != "" { //this is the previous page, note the reversed ordering
+	} else if prev != "" { // this is the previous page, note the reversed ordering
 		resp.firstPage = false
 		resp.sortAscending = true
 		resp.queryInput.ScanIndexForward = &resp.sortAscending
@@ -173,9 +173,9 @@ func paginatedQuery(input paginatedQueryInput) (paginatedQueryOutput, error) {
 }
 
 func init() {
-	//I don't get when it makes sense to use init the docs doesnt explain it
-	//I tried starting the session here, but no performance difference
-	//https://docs.aws.amazon.com/lambda/latest/dg/golang-handler.html#golang-handler-state
+	// I don't get when it makes sense to use init the docs doesnt explain it
+	// I tried starting the session here, but no performance difference
+	// https://docs.aws.amazon.com/lambda/latest/dg/golang-handler.html#golang-handler-state
 }
 
 func main() {
