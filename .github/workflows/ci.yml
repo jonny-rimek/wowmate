@@ -42,3 +42,8 @@ jobs:
           #actions_comment: # optional, default is true
           # Enable debug-log
           #debug_log: # optional
+
+#      - name: cfn_nag test
+#        uses: stelligent/cfn_nag@master
+#        with:
+#          input_path: cdk.out/wm-dev.template.json
