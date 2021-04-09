@@ -155,7 +155,9 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 				SUM(measure_value::bigint) AS damage,
 				caster_name,
 				caster_id,
-				combatlog_uuid
+				combatlog_uuid,
+				spell_id,
+				spell_name
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
@@ -163,7 +165,11 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 				(caster_type = '0x512' OR caster_type = '0x511') AND
 		  		time between ago(15m) and now()
 			GROUP BY
-				caster_name, caster_id, combatlog_uuid
+				caster_name, 
+				caster_id, 
+				combatlog_uuid, 
+				spell_id, 
+				spell_name
 			ORDER BY
 				damage DESC
 		)
@@ -180,7 +186,9 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			two_affix_id, 
 			four_affix_id, 
 			seven_affix_id, 
-			ten_affix_id
+			ten_affix_id,
+			spell_id,
+			spell_name
 		FROM
 			damage
 		JOIN
