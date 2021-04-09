@@ -155,7 +155,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	reverseDuration := maxMilliseconds - durationInMilliseconds
 
 	resp = golib.DynamoDBKeys{
-		Pk: "LOG#S2", // TODO: dynamic season
+		Pk: "LOG#KEY#S2", // TODO: dynamic season
 		Sk: fmt.Sprintf("%02d#%09d#%v", keyLevel, reverseDuration, combatlogUUID),
 		// sorting in dynamoDB is achieved via the sort key, in order to sort by key level and within the key level by
 		// time I'm printing the value as string and sort the string.
@@ -164,7 +164,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		// I subtract the duration from the max value 9times 9
 		// 999999999 milliseconds would be ~277h
 		Damage:        summaries,
-		Gsi1pk:        fmt.Sprintf("LOG#S2#%v", dungeonID), // TODO: dynamic season
+		Gsi1pk:        fmt.Sprintf("LOG#KEY#S2#%v", dungeonID), // TODO: dynamic season
 		Gsi1sk:        fmt.Sprintf("%02d#%09d#%v", keyLevel, reverseDuration, combatlogUUID),
 		Duration:      t.Format("04:05"), // formats to minutes:seconds
 		Deaths:        0,                 // TODO:
