@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -16,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
+	"github.com/sirupsen/logrus"
 )
 
 type logData struct {
@@ -172,7 +172,7 @@ func main() {
 
 	sess, err := session.NewSession()
 	if err != nil {
-		log.Printf("Error creating session: %v", err.Error())
+		logrus.Info(fmt.Sprintf("Error creating session: %v", err.Error()))
 		return
 	}
 
