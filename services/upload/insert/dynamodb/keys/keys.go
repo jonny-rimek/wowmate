@@ -3,6 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,11 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
-	"log"
-	"math/rand"
-	"os"
-	"strconv"
-	"time"
+	"github.com/sirupsen/logrus"
 )
 
 type logData struct {
@@ -28,8 +28,9 @@ func handler(ctx aws.Context, e events.SNSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
 		golib.CanonicalLog(map[string]interface{}{
-			"wcu": logData.Wcu,
-			"err": err.Error(),
+			"wcu":   logData.Wcu,
+			"err":   err.Error(),
+			"event": e,
 		})
 		return err
 	}
@@ -48,12 +49,12 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		return logData, fmt.Errorf("dynamo db table name env var is empty")
 	}
 
-	summaries, combatlogUUID, err := extractInput(e)
+	queryResult, err := extractQueryResult(e)
+
+	record, err := convertQueryResult(queryResult)
 	if err != nil {
 		return logData, err
 	}
-
-	record := convertInput(combatlogUUID, summaries)
 
 	response, err := golib.DynamoDBPutItem(ctx, svc, &ddbTableName, record)
 	if err != nil {
@@ -65,69 +66,116 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	return logData, nil
 }
 
-//TODO: tests
-func convertInput(combatlogUUID string, summaries []golib.KeysResult) golib.DynamoDBKeys {
-	rand.Seed(time.Now().UnixNano())
-	min := 2
-	max := 26
-	keylevel := rand.Intn(max-min+1) + min
-
-	min = 50
-	max = 150
-	timePercent := rand.Intn(max-min+1) + min
-
-	record := golib.DynamoDBKeys{
-		Pk:            "LOG#S2", //IMPROVE: dynamic season
-		Sk:            fmt.Sprintf("%02d#%v#%v", keylevel, timePercent, combatlogUUID),
-		Damage:        summaries,
-		Gsi1pk:        "LOG#S2#2291",
-		Gsi1sk:        fmt.Sprintf("%02d#%v#%v", keylevel, timePercent, combatlogUUID),
-		Duration:      "34:59 +0:01",
-		Deaths:        1,
-		Affixes:       "tyrannical, explosive, storming, prideful",
-		Keylevel:      keylevel,
-		DungeonName:   "De Other Site",
-		DungeonID:     2291,
-		CombatlogUUID: combatlogUUID,
-		//TODO: get real keylevel, dungeon id, dungeon name, deaths, deplete, duration
-	}
-	return record
-}
-
-//TODO: tests
-func extractInput(e events.SNSEvent) ([]golib.KeysResult, string, error) {
+func extractQueryResult(e events.SNSEvent) (*timestreamquery.QueryOutput, error) {
 	message := e.Records[0].SNS.Message
 	if message == "" {
-		return nil, "", fmt.Errorf("message is empty")
+		return nil, fmt.Errorf("message is empty")
 	}
 
-	var result timestreamquery.QueryOutput
+	var result *timestreamquery.QueryOutput
 
 	err := json.Unmarshal([]byte(message), &result)
 	if err != nil {
-		return nil, "", err
+		return nil, fmt.Errorf("failed to unmarshal sns message which contains the query result: %v", err)
 	}
 
-	var combatlogUUID string
+	return result, err
+}
+
+// TODO: tests
+func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoDBKeys, error) {
+	resp := golib.DynamoDBKeys{}
+
 	var summaries []golib.KeysResult
 
-	for i := 0; i < len(result.Rows); i++ {
-		dam, err := strconv.Atoi(*result.Rows[i].Data[0].ScalarValue)
+	for i := 0; i < len(queryResult.Rows); i++ {
+		dam, err := strconv.Atoi(*queryResult.Rows[i].Data[0].ScalarValue)
 		if err != nil {
-			return nil, "", err
+			return resp, err
 		}
 
 		d := golib.KeysResult{
 			Damage:   dam,
-			Name:     *result.Rows[i].Data[1].ScalarValue,
-			PlayerID: *result.Rows[i].Data[2].ScalarValue,
+			Name:     *queryResult.Rows[i].Data[1].ScalarValue,
+			PlayerID: *queryResult.Rows[i].Data[2].ScalarValue,
+			Class:    "unsupported",
+			Specc:    "unsupported",
 		}
-		combatlogUUID = *result.Rows[i].Data[3].ScalarValue
 
 		summaries = append(summaries, d)
 	}
+	combatlogUUID := *queryResult.Rows[0].Data[3].ScalarValue
 
-	return summaries, combatlogUUID, err
+	dungeonName := *queryResult.Rows[0].Data[4].ScalarValue
+
+	dungeonID, err := strconv.Atoi(*queryResult.Rows[0].Data[5].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+
+	keyLevel, err := strconv.Atoi(*queryResult.Rows[0].Data[6].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+
+	durationInMilliseconds, err := golib.Atoi64(*queryResult.Rows[0].Data[7].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+	// converts duration to date 1970 + duration, of which I only display the minutes and seconds
+	// time.Duration, doesn't allow mixed formatting like min:seconds
+	t := time.Unix(0, durationInMilliseconds*1e6) // milliseconds > nanoseconds
+
+	finished, err := strconv.Atoi(*queryResult.Rows[0].Data[8].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+
+	twoAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[9].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+
+	fourAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[10].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+
+	sevenAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[11].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+
+	tenAffixID, err := strconv.Atoi(*queryResult.Rows[0].Data[12].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+
+	maxMilliseconds := int64(999999999)
+	reverseDuration := maxMilliseconds - durationInMilliseconds
+
+	resp = golib.DynamoDBKeys{
+		Pk: "LOG#S2", // TODO: dynamic season
+		Sk: fmt.Sprintf("%02d#%09d#%v", keyLevel, reverseDuration, combatlogUUID),
+		// sorting in dynamoDB is achieved via the sort key, in order to sort by key level and within the key level by
+		// time I'm printing the value as string and sort the string.
+		// As I'm sorting descending I need to reverse the size of the duration, otherwise I would sort by
+		// highest key and always show the slowest highest key first. In order to make the fastest key the highest number
+		// I subtract the duration from the max value 9times 9
+		// 999999999 milliseconds would be ~277h
+		Damage:        summaries,
+		Gsi1pk:        fmt.Sprintf("LOG#S2#%v", dungeonID), // TODO: dynamic season
+		Gsi1sk:        fmt.Sprintf("%02d#%09d#%v", keyLevel, reverseDuration, combatlogUUID),
+		Duration:      t.Format("04:05"), // formats to minutes:seconds
+		Deaths:        0,                 // TODO:
+		Affixes:       golib.AffixIDsToString(twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
+		Keylevel:      keyLevel,
+		DungeonName:   dungeonName,
+		DungeonID:     dungeonID,
+		CombatlogUUID: combatlogUUID,
+		Finished:      finished != 0, // if 0 false, else 1
+	}
+	return resp, err
 }
 
 func main() {
@@ -135,7 +183,7 @@ func main() {
 
 	sess, err := session.NewSession()
 	if err != nil {
-		log.Printf("Error creating session: %v", err.Error())
+		logrus.Info(fmt.Sprintf("Error creating session: %v", err.Error()))
 		return
 	}
 

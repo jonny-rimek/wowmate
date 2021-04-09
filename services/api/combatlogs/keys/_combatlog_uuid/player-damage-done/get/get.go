@@ -29,6 +29,7 @@ func handler(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.AP
 			"combatlog_uuid": logData.CombatlogUUID,
 			"err":            err.Error(),
 			"empty_query":    logData.EmptyQuery,
+			"event":          request,
 		})
 		return response, err
 	}

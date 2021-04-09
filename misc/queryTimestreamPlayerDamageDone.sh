@@ -8,8 +8,8 @@ then
   ./misc/build.sh skipFrontend
 fi
 
-sam local invoke ConvertLambda3540DCCB \
+sam local invoke QueryPlayerDamageDoneLambda98AFC037 \
   --template cdk.out/wm-dev.template.json \
-  --event misc/convertInput.json \
+  --event misc/queryTimestreamInput.json \
   --profile default \
   --env-vars=misc/env.json

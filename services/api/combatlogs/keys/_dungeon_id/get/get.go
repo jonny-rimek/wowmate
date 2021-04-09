@@ -55,6 +55,7 @@ func handler(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.AP
 			"sort_ascending": logData.SortAscending,
 			"input_next_sk":  logData.InputNextSk,
 			"input_prev_sk":  logData.InputPrevSK,
+			"event":          request,
 		})
 		return response, err
 	}

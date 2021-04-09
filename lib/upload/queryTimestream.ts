@@ -40,6 +40,7 @@ export class QueryTimestream extends cdk.Construct {
 			timeout: cdk.Duration.seconds(40),
 			environment: {
 				TOPIC_ARN: this.topic.topicArn,
+				LOCAL: "false",
 				...props.envVars,
 			},
 			reservedConcurrentExecutions: 75,

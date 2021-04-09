@@ -236,12 +236,12 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	}
 	logData.CombatlogUUID = combatlogUUID
 
-	if os.Getenv("LOCAL") == "true" {
-		//uploading to timestream takes too long locally, turned off for productivity
-		//also there is an error with tracing in timestream locally
-		return logData, nil
-	}
-	logData.Records = len(combatEvents)
+	//if os.Getenv("LOCAL") == "true" {
+	//uploading to timestream takes too long locally, turned off for productivity
+	//also there is an error with tracing in timestream locally
+	//	return logData, nil
+	//}
+	//logData.Records = len(combatEvents)
 
 	err = golib.UploadToTimestream(ctx, writeSvc, combatEvents)
 	if err != nil {
@@ -344,12 +344,16 @@ func main() {
 	}
 
 	s3Svc = s3.New(sess)
-	xray.AWS(s3Svc.Client)
+	if os.Getenv("LOCAL") == "false" {
+		xray.AWS(s3Svc.Client)
+	}
 
 	downloader = s3manager.NewDownloaderWithClient(s3Svc)
 
 	snsSvc = sns.New(sess)
-	xray.AWS(snsSvc.Client)
+	if os.Getenv("LOCAL") == "false" {
+		xray.AWS(snsSvc.Client)
+	}
 
 	writeSvc = timestreamwrite.New(sess)
 
