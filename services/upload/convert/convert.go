@@ -7,6 +7,11 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -15,10 +20,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
-	"io/ioutil"
-	"log"
-	"os"
-	"strings"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/wowmate/jonny-rimek/wowmate/services/upload/convert/normalize"
@@ -94,7 +95,7 @@ CREATE TABLE IF NOT EXISTS combatlogs (
   --TODO: updated_at
 );
 */
-//https://mholt.github.io/json-to-go/ best tool EVER
+// https://mholt.github.io/json-to-go/ best tool EVER
 
 type logData struct {
 	CombatlogUUID string
@@ -131,7 +132,7 @@ func handler(ctx aws.Context, e golib.SQSEvent) error {
 				"bucket_name":     logData.BucketName,
 				"err":             err.Error(),
 				"err2":            err2.Error(),
-				"records":         logData.Records, //printing record in case of error to better debug
+				"records":         logData.Records, // printing record in case of error to better debug
 				"event":           e,
 			})
 			return err
@@ -144,7 +145,7 @@ func handler(ctx aws.Context, e golib.SQSEvent) error {
 			"object_key":      logData.ObjectKey,
 			"bucket_name":     logData.BucketName,
 			"err":             err.Error(),
-			"records":         logData.Records, //printing record in case of error to better debug
+			"records":         logData.Records, // printing record in case of error to better debug
 			"event":           e,
 		})
 		return err
@@ -176,7 +177,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		return logData, fmt.Errorf("the code only supports a batch size of 1. the current size of the batch is %v", len(e.Records))
 	}
 
-	//we only ever have 1 msg in the batch from sqs, that's why we dont need to loop through them, or above will return an err
+	// we only ever have 1 msg in the batch from sqs, that's why we dont need to loop through them, or above will return an err
 	msg := e.Records[0]
 	req := golib.S3Event{}
 	err := json.Unmarshal([]byte(msg.Body), &req)
@@ -204,7 +205,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		return logData, err
 	}
 
-	//zipped files are usually around 8% of the original size
+	// zipped files are usually around 8% of the original size
 	logData.FileSize, err = golib.SizeOfS3Object(ctx, s3Svc, bucketName, objectKey)
 	if err != nil {
 		return logData, fmt.Errorf("failed to get size of s3 object: %v", err.Error())
@@ -221,7 +222,6 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		return logData, fmt.Errorf("failed to download from s3: %v", err.Error())
 	}
 
-	//	var data []byte
 	data, err := readFileTypes(logData.FileType, fileContent)
 	if err != nil {
 		return logData, fmt.Errorf("failed to read file content for file type: %v error:%v", logData.FileType, err.Error())
@@ -229,19 +229,19 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	s := bufio.NewScanner(bytes.NewReader(data))
 
-	//TODO: this can't return a single combatlogUUID if I support multiple logs
+	// TODO: this can't return a single combatlogUUID if I support multiple logs
 	combatEvents, combatlogUUID, err := normalize.Normalize(s, uploadUUID)
 	if err != nil {
 		return logData, err
 	}
 	logData.CombatlogUUID = combatlogUUID
 
-	//if os.Getenv("LOCAL") == "true" {
-	//uploading to timestream takes too long locally, turned off for productivity
-	//also there is an error with tracing in timestream locally
+	// if os.Getenv("LOCAL") == "true" {
+	// uploading to timestream takes too long locally, turned off for productivity
+	// also there is an error with tracing in timestream locally
 	//	return logData, nil
-	//}
-	//logData.Records = len(combatEvents)
+	// }
+	// logData.Records = len(combatEvents)
 
 	err = golib.UploadToTimestream(ctx, writeSvc, combatEvents)
 	if err != nil {
@@ -256,7 +256,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	return logData, nil
 }
 
-//probably also reasonably testable, but file handling is always weird
+// probably also reasonably testable, but file handling is always weird
 func readFileTypes(fileType string, fileContent *aws.WriteAtBuffer) ([]byte, error) {
 	var data []byte
 
@@ -291,24 +291,24 @@ func readFileTypes(fileType string, fileContent *aws.WriteAtBuffer) ([]byte, err
 			data = append(data, unzippedFileBytes...)
 		}
 	} else {
-		//filetype txt
+		// filetype txt
 		data = fileContent.Bytes()
 	}
 	return data, nil
 }
 
-//TODO: ez test
+// TODO: ez test
 func fileType(objectKey string) (int, string, error) {
 	var fileType string
 	var maxSizeInKB int
 	if strings.HasSuffix(objectKey, ".txt") {
-		maxSizeInKB = 1000 * 1000 //1GB
+		maxSizeInKB = 1000 * 1000 // 1GB
 		fileType = "txt"
 	} else if strings.HasSuffix(objectKey, ".txt.gz") {
-		maxSizeInKB = 100 * 1000 //100MB
+		maxSizeInKB = 100 * 1000 // 100MB
 		fileType = "gz"
 	} else if strings.HasSuffix(objectKey, ".zip") {
-		maxSizeInKB = 100 * 1000 //100MB
+		maxSizeInKB = 100 * 1000 // 100MB
 		fileType = "zip"
 	} else {
 		return 0, "", fmt.Errorf("file suffix is not supported, s3 prefix filtering is broken")
@@ -326,7 +326,7 @@ func readZipFile(zf *zip.File) ([]byte, error) {
 }
 
 func uploadUUID(s string) string {
-	//TODO: check if string is empty and return error
+	// TODO: check if string is empty and return error
 	//	update test too
 	s = strings.TrimSuffix(s, ".txt")
 	s = strings.TrimSuffix(s, ".txt.gz")
@@ -360,9 +360,9 @@ func main() {
 	if os.Getenv("LOCAL") == "false" {
 		xray.AWS(writeSvc.Client)
 	}
-	//the aws docs recommend to set custom http settings see here:
-	//https://docs.aws.amazon.com/timestream/latest/developerguide/code-samples.write-client.html
-	//I'm choosing to ignore them and go with default, I'll observer if it leads to any problems
+	// the aws docs recommend to set custom http settings see here:
+	// https://docs.aws.amazon.com/timestream/latest/developerguide/code-samples.write-client.html
+	// I'm choosing to ignore them and go with default, I'll observer if it leads to any problems
 
 	lambda.Start(handler)
 }
