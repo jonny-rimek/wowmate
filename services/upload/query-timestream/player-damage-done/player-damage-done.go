@@ -246,6 +246,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		return logData, err
 	}
 
+	// if the event becomes to big to send over sns (256kb) convert it here, instead of saving it to s3
 	err = golib.SNSPublishMsg(ctx, snsSvc, string(input), &topicArn)
 	if err != nil {
 		return logData, err

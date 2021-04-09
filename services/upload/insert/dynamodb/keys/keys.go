@@ -86,7 +86,7 @@ func extractQueryResult(e events.SNSEvent) (*timestreamquery.QueryOutput, error)
 func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoDBKeys, error) {
 	resp := golib.DynamoDBKeys{}
 
-	var summaries []golib.KeysResult
+	var summaries []golib.PlayerDamage
 
 	for i := 0; i < len(queryResult.Rows); i++ {
 		dam, err := strconv.Atoi(*queryResult.Rows[i].Data[0].ScalarValue)
@@ -94,7 +94,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 			return resp, err
 		}
 
-		d := golib.KeysResult{
+		d := golib.PlayerDamage{
 			Damage:   dam,
 			Name:     *queryResult.Rows[i].Data[1].ScalarValue,
 			PlayerID: *queryResult.Rows[i].Data[2].ScalarValue,

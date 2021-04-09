@@ -27,6 +27,7 @@ var svc *dynamodb.DynamoDB
 func handler(ctx aws.Context, e events.SNSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
+		//goland:noinspection ALL
 		golib.CanonicalLog(map[string]interface{}{
 			"wcu":   logData.Wcu,
 			"err":   err.Error(),
@@ -86,7 +87,7 @@ func extractQueryResult(e events.SNSEvent) (*timestreamquery.QueryOutput, error)
 func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoDBPlayerDamageDone, error) {
 	resp := golib.DynamoDBPlayerDamageDone{}
 
-	var summaries []golib.KeysResult
+	var summaries []golib.PlayerDamagePerSpell
 
 	for i := 0; i < len(queryResult.Rows); i++ {
 		dam, err := strconv.Atoi(*queryResult.Rows[i].Data[0].ScalarValue)
@@ -94,7 +95,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 			return resp, err
 		}
 
-		d := golib.KeysResult{
+		d := golib.PlayerDamagePerSpell{
 			Damage:   dam,
 			Name:     *queryResult.Rows[i].Data[1].ScalarValue,
 			PlayerID: *queryResult.Rows[i].Data[2].ScalarValue,
@@ -156,7 +157,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		Sk:            fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
 		Damage:        summaries,
 		Duration:      t.Format("04:05"), // formats to minutes:seconds
-		Deaths:        0,                 // TODO:
+		Deaths:        0,
 		Affixes:       golib.AffixIDsToString(twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
 		Keylevel:      keyLevel,
 		DungeonName:   dungeonName,
@@ -177,7 +178,9 @@ func main() {
 	}
 
 	svc = dynamodb.New(sess)
-	xray.AWS(svc.Client)
+	if os.Getenv("LOCAL") == "false" {
+		xray.AWS(svc.Client)
+	}
 
 	lambda.Start(handler)
 }

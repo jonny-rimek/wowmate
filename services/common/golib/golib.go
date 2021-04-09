@@ -24,43 +24,70 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// KeysResult rethink name
-type KeysResult struct {
+// PlayerDamage contains player and damage info for the top keys view etc.
+type PlayerDamage struct {
 	Damage   int    `json:"damage"`
 	Name     string `json:"player_name"`
 	PlayerID string `json:"player_id"`
-	Class    string `json="class"`
-	Specc    string `json="specc"`
+	Class    string `json:"class"`
+	Specc    string `json:"specc"`
+}
+
+// DamagePerSpell is a part of PlayerDamagePerSpell and contains the breakdown of damage per spell
+type DamagePerSpell struct {
+	SpellID   int    `json:"spell_id"`
+	SpellName string `json:"spell_name"`
+	Damage    string `json:"damage"`
+}
+
+// PlayerDamagePerSpell contains player and damage per spell info for the log specific view
+type PlayerDamagePerSpell struct {
+	Damage         int              `json:"damage"`
+	DamagePerSpell []DamagePerSpell `json:"damage_per_spell"`
+	Name           string           `json:"player_name"`
+	PlayerID       string           `json:"player_id"`
+	Class          string           `json:"class"`
+	Specc          string           `json:"specc"`
+	/*
+	   TODO:
+	   	ItemLevel
+	   	Covenant
+	   	Traits
+	   	Conduits
+	   	Legendaries
+	   	Trinkets
+	   	Talents
+	*/
 }
 
 type DynamoDBPlayerDamageDone struct {
-	Pk            string       `json:"pk"`
-	Sk            string       `json:"sk"`
-	Damage        []KeysResult `json:"dmg"`
-	Duration      string       `json:"duration"`
-	Deaths        int          `json:"deaths"`
-	Affixes       string       `json:"affixes"`
-	Keylevel      int          `json:"keylevel"`
-	DungeonName   string       `json:"dungeon_name"`
-	DungeonID     int          `json:"dungeon_id"`
-	CombatlogUUID string       `json:"combatlog_uuid"`
-	Finished      bool         `json:"finished"`
+	Pk            string                 `json:"pk"`
+	Sk            string                 `json:"sk"`
+	Damage        []PlayerDamagePerSpell `json:"dmg"`
+	Duration      string                 `json:"duration"`
+	Deaths        int                    `json:"deaths"`
+	Affixes       string                 `json:"affixes"`
+	Keylevel      int                    `json:"keylevel"`
+	DungeonName   string                 `json:"dungeon_name"`
+	DungeonID     int                    `json:"dungeon_id"`
+	CombatlogUUID string                 `json:"combatlog_uuid"`
+	Finished      bool                   `json:"finished"`
 }
 
 type DynamoDBKeys struct {
-	Pk            string       `json:"pk"`
-	Sk            string       `json:"sk"`
-	Damage        []KeysResult `json:"dmg"`
-	Gsi1pk        string       `json:"gsi1pk"`
-	Gsi1sk        string       `json:"gsi1sk"`
-	Duration      string       `json:"duration"`
-	Deaths        int          `json:"deaths"`
-	Affixes       string       `json:"affixes"`
-	Keylevel      int          `json:"keylevel"`
-	DungeonName   string       `json:"dungeon_name"`
-	DungeonID     int          `json:"dungeon_id"`
-	CombatlogUUID string       `json:"combatlog_uuid"`
-	Finished      bool         `json:"finished"`
+	Pk            string         `json:"pk"`
+	Sk            string         `json:"sk"`
+	Damage        []PlayerDamage `json:"dmg"`
+	Gsi1pk        string         `json:"gsi1pk"`
+	Gsi1sk        string         `json:"gsi1sk"`
+	Duration      string         `json:"duration"`
+	Deaths        int            `json:"deaths"`
+	Affixes       string         `json:"affixes"`
+	Keylevel      int            `json:"keylevel"`
+	DungeonName   string         `json:"dungeon_name"`
+	DungeonID     int            `json:"dungeon_id"`
+	CombatlogUUID string         `json:"combatlog_uuid"`
+	Finished      bool           `json:"finished"`
 }
 
 type JSONKeysResponse struct {
@@ -82,14 +109,14 @@ type JSONPlayerDamageSimpleResponse2 struct {
 */
 
 type JSONKeys struct {
-	Damage        []KeysResult `json:"dmg"` //TODO: rename mb smth like entries
-	Duration      string       `json:"duration"`
-	Deaths        int          `json:"deaths"`
-	Affixes       string       `json:"affixes"`
-	Keylevel      int          `json:"keylevel"`
-	DungeonName   string       `json:"dungeon_name"`
-	DungeonID     int          `json:"dungeon_id"`
-	CombatlogUUID string       `json:"combatlog_uuid"`
+	Damage        []PlayerDamage `json:"dmg"` //TODO: rename mb smth like entries
+	Duration      string         `json:"duration"`
+	Deaths        int            `json:"deaths"`
+	Affixes       string         `json:"affixes"`
+	Keylevel      int            `json:"keylevel"`
+	DungeonName   string         `json:"dungeon_name"`
+	DungeonID     int            `json:"dungeon_id"`
+	CombatlogUUID string         `json:"combatlog_uuid"`
 }
 
 // AGW404 returns a error agi gw v2 response
@@ -187,13 +214,22 @@ func DynamoDBPutItem(ctx aws.Context, svc *dynamodb.DynamoDB, ddbTableName *stri
 		return nil, err
 	}
 
-	response, err := svc.PutItemWithContext(ctx, &dynamodb.PutItemInput{
-		Item:                   av,
-		TableName:              ddbTableName,
-		ReturnConsumedCapacity: aws.String("TOTAL"),
-	})
+	var response *dynamodb.PutItemOutput
+	if os.Getenv("LOCAL") == "true" {
+		response, err = svc.PutItem(&dynamodb.PutItemInput{
+			Item:                   av,
+			TableName:              ddbTableName,
+			ReturnConsumedCapacity: aws.String("TOTAL"),
+		})
+	} else {
+		response, err = svc.PutItemWithContext(ctx, &dynamodb.PutItemInput{
+			Item:                   av,
+			TableName:              ddbTableName,
+			ReturnConsumedCapacity: aws.String("TOTAL"),
+		})
+	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to put item to dynamodb: %v", err)
 	}
 
 	return response, nil

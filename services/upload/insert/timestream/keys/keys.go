@@ -3,14 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"strconv"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/timestreamquery"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
-	"log"
-	"strconv"
 )
 
 var client *dynamodb.Client
@@ -62,10 +63,10 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	return logData, nil
 }
 
-func convertInput(combatlogUUID string, summaries []golib.KeysResult) {
+func convertInput(combatlogUUID string, summaries []golib.PlayerDamage) {
 }
 
-func extractInput(e events.SNSEvent) ([]golib.KeysResult, string, error) {
+func extractInput(e events.SNSEvent) ([]golib.PlayerDamage, string, error) {
 	message := e.Records[0].SNS.Message
 	if message == "" {
 		return nil, "", fmt.Errorf("message is empty")
@@ -80,7 +81,7 @@ func extractInput(e events.SNSEvent) ([]golib.KeysResult, string, error) {
 	}
 
 	var combatlogUUID string
-	var summaries []golib.KeysResult
+	var summaries []golib.PlayerDamage
 
 	for i := 0; i < len(result.Rows); i++ {
 		dam, err := strconv.Atoi(*result.Rows[i].Data[0].ScalarValue)
@@ -88,7 +89,7 @@ func extractInput(e events.SNSEvent) ([]golib.KeysResult, string, error) {
 			return nil, "", err
 		}
 
-		d := golib.KeysResult{
+		d := golib.PlayerDamage{
 			Damage:   dam,
 			Name:     *result.Rows[i].Data[1].ScalarValue,
 			PlayerID: *result.Rows[i].Data[2].ScalarValue,
