@@ -118,13 +118,13 @@
               <tbody class="divide-y border-gray-500 ">
                 <tr
                   class="border-gray-500 "
-                  v-for="entry in log.dmg"
+                  v-for="entry in log.player_damage"
                   :key="entry.player_id"
                 >
                   <td
                     class="px-2 sm:px-6 py-4 whitespace-no-wrap text-sm capitalize leading-5 font-medium text-gray-200 "
                   >
-                    {{ entry.player_name }}
+                    {{ entry.damage }}
                   </td>
                   <td
                     class="sm:px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-400"

@@ -83,7 +83,7 @@
                   class="px-2 md:px-6 py-4 whitespace-no-wrap border-b border-gray-500 "
                 >
                   <div
-                    v-for="player in log.dmg"
+                    v-for="player in log.player_damage"
                     :key="player.player_name"
                     class="text-sm capitalize leading-5 text-gray-200"
                   >
@@ -94,7 +94,7 @@
                   class="px-2 md:px-6 py-4 whitespace-no-wrap border-b border-gray-500 "
                 >
                   <div
-                    v-for="player in log.dmg"
+                    v-for="player in log.player_damage"
                     :key="player.player_name"
                     class="block overflow-hidden text-sm text-gray-400"
                   >

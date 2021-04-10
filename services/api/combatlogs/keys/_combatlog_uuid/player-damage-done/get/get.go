@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -12,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
+	"github.com/sirupsen/logrus"
 )
 
 type logData struct {
@@ -25,6 +25,7 @@ var svc *dynamodb.DynamoDB
 func handler(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	response, logData, err := handle(ctx, request)
 	if err != nil {
+		//goland:noinspection GoNilness
 		golib.CanonicalLog(map[string]interface{}{
 			"rcu":            logData.Rcu,
 			"combatlog_uuid": logData.CombatlogUUID,
@@ -51,7 +52,6 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 		return golib.AGW500(),
 			logData, fmt.Errorf("failed dynamodb table name env var is empty")
 	}
-	log.Print("ddb: " + ddbTableName)
 
 	combatlogUUID, err := checkInput(request.PathParameters)
 	if err != nil {
@@ -76,10 +76,12 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 	}
 	logData.Rcu = *result.ConsumedCapacity.CapacityUnits //
 
+	// check if query from dynamodb is empty and return 404
 	if result.Item == nil {
 		logData.EmptyQuery = true
 		return golib.AGW404(), logData, nil
 	}
+
 	json, err := golib.PlayerDamageDoneToJson(result)
 	if err != nil {
 		return golib.AGW500(), logData, err
@@ -108,6 +110,7 @@ func main() {
 
 	sess, err := session.NewSession()
 	if err != nil {
+		logrus.Infof("failed to start a session: %v", err)
 		return
 	}
 	svc = dynamodb.New(sess)

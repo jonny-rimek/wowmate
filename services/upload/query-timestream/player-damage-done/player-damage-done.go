@@ -30,6 +30,7 @@ type logData struct {
 func handler(ctx aws.Context, e events.SNSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
+		//goland:noinspection GoNilness
 		golib.CanonicalLog(map[string]interface{}{
 			"combatlog_uuid":    logData.CombatlogUUID,
 			"billed_megabytes":  logData.BilledMegabytes,
@@ -59,8 +60,52 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	}
 	logData.CombatlogUUID = combatlogUUID
 
-	// NOTE: AND caster_id LIKE 'Player-%' doesnt work, sprintf tries to format the %
-	query := fmt.Sprintf(`
+	queryResult, err := golib.TimestreamQuery(ctx, query(combatlogUUID), querySvc)
+	if err != nil {
+		if queryResult == nil {
+			logData.QueryID = "queryResult=nil"
+			return logData, err
+		}
+		logData.QueryID = *queryResult.QueryId
+		return logData, err
+	}
+
+	logData.QueryID = *queryResult.QueryId
+	logData.BilledMegabytes = *queryResult.QueryStatus.CumulativeBytesMetered / 1e6 // 1.000.000
+	logData.ScannedMegabytes = *queryResult.QueryStatus.CumulativeBytesScanned / 1e6
+
+	input, err := json.Marshal(queryResult)
+	if err != nil {
+		return logData, fmt.Errorf("failed to unmarshal query result to json: %v", err.Error())
+	}
+
+	// if the event becomes to big to send over sns (256kb) convert it here, instead of saving it to s3
+	err = golib.SNSPublishMsg(ctx, snsSvc, string(input), &topicArn)
+	if err != nil {
+		return logData, fmt.Errorf("failed to publish message to SNS: %v", err.Error())
+	}
+	return logData, nil
+}
+
+func validateInput(e events.SNSEvent) (topicArn string, combatlogUUID string, err error) {
+	topicArn = os.Getenv("TOPIC_ARN")
+	if topicArn == "" {
+		return "", "", fmt.Errorf("arn topic env var is empty")
+	}
+	logrus.Debug("topicArn: " + topicArn)
+
+	combatlogUUID = e.Records[0].SNS.Message
+	if combatlogUUID == "" {
+		return topicArn, "", fmt.Errorf("combatlog uuid is empty")
+	}
+
+	return topicArn, combatlogUUID, nil
+}
+
+// query returns query to run against timestream
+// NOTE: AND caster_id LIKE 'Player-%' doesnt work, sprintf tries to format the %
+func query(combatlogUUID string) *string {
+	return aws.String(fmt.Sprintf(`
 		WITH dungeon AS (
 		    SELECT
 				dungeon_name,
@@ -155,15 +200,22 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 				SUM(measure_value::bigint) AS damage,
 				caster_name,
 				caster_id,
-				combatlog_uuid
+				combatlog_uuid,
+				spell_id,
+				spell_name
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
 				combatlog_uuid = '%v' AND
 				(caster_type = '0x512' OR caster_type = '0x511') AND
 		  		time between ago(15m) and now()
+		-- TODO: I should only group by spell name, but I need one of the spell ids, to show an icon, might be easier to do in golang
 			GROUP BY
-				caster_name, caster_id, combatlog_uuid
+				caster_name, 
+				caster_id, 
+				combatlog_uuid, 
+				spell_id, 
+				spell_name
 			ORDER BY
 				damage DESC
 		)
@@ -180,7 +232,9 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			two_affix_id, 
 			four_affix_id, 
 			seven_affix_id, 
-			ten_affix_id
+			ten_affix_id,
+			spell_id,
+			spell_name
 		FROM
 			damage
 		JOIN
@@ -217,47 +271,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		combatlogUUID,
 		combatlogUUID,
 		combatlogUUID,
-	)
-
-	queryResult, err := golib.TimestreamQuery(ctx, &query, querySvc)
-	if err != nil {
-		if queryResult == nil {
-			logData.QueryID = "queryResult=nil"
-			return logData, err
-		}
-		logData.QueryID = *queryResult.QueryId
-		return logData, err
-	}
-
-	logData.QueryID = *queryResult.QueryId
-	logData.BilledMegabytes = *queryResult.QueryStatus.CumulativeBytesMetered / 1e6 // 1.000.000
-	logData.ScannedMegabytes = *queryResult.QueryStatus.CumulativeBytesScanned / 1e6
-
-	input, err := json.Marshal(queryResult)
-	if err != nil {
-		return logData, err
-	}
-
-	err = golib.SNSPublishMsg(ctx, snsSvc, string(input), &topicArn)
-	if err != nil {
-		return logData, err
-	}
-	return logData, nil
-}
-
-func validateInput(e events.SNSEvent) (topicArn string, combatlogUUID string, err error) {
-	topicArn = os.Getenv("TOPIC_ARN")
-	if topicArn == "" {
-		return "", "", fmt.Errorf("arn topic env var is empty")
-	}
-	logrus.Debug("topicArn: " + topicArn)
-
-	combatlogUUID = e.Records[0].SNS.Message
-	if combatlogUUID == "" {
-		return topicArn, "", fmt.Errorf("combatlog uuid is empty")
-	}
-
-	return topicArn, combatlogUUID, nil
+	))
 }
 
 func main() {
