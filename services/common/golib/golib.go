@@ -26,7 +26,7 @@ import (
 
 // PlayerDamage contains player and damage info for the top keys view etc.
 type PlayerDamage struct {
-	Damage   int    `json:"damage"`
+	Damage   int    `json:"damage"` // TODO: convert to int64
 	Name     string `json:"player_name"`
 	PlayerID string `json:"player_id"`
 	Class    string `json:"class"`
@@ -37,12 +37,12 @@ type PlayerDamage struct {
 type DamagePerSpell struct {
 	SpellID   int    `json:"spell_id"`
 	SpellName string `json:"spell_name"`
-	Damage    string `json:"damage"`
+	Damage    int64  `json:"damage"`
 }
 
 // PlayerDamagePerSpell contains player and damage per spell info for the log specific view
 type PlayerDamagePerSpell struct {
-	Damage         int              `json:"damage"`
+	Damage         int64            `json:"damage"`
 	DamagePerSpell []DamagePerSpell `json:"damage_per_spell"`
 	Name           string           `json:"player_name"`
 	PlayerID       string           `json:"player_id"`

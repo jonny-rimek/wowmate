@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -88,56 +87,59 @@ func extractQueryResult(e events.SNSEvent) (*timestreamquery.QueryOutput, error)
 func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoDBPlayerDamageDone, error) {
 	resp := golib.DynamoDBPlayerDamageDone{}
 
-	var summaries []golib.PlayerDamagePerSpell
-
 	players := getPlayers(queryResult)
 
-	// TODO:
-	// 	- go through records and add data for the user
 	m := make(map[string]golib.PlayerDamagePerSpell)
 
 	for _, row := range queryResult.Rows {
 		for _, player := range players {
 			if player == *row.Data[1].ScalarValue {
 
+				dam, err := golib.Atoi64(*row.Data[0].ScalarValue)
+				if err != nil {
+					return resp, fmt.Errorf("failed to convert time damage cell to int for first entry in map: %v", err.Error())
+				}
+				spellID, err := strconv.Atoi(*row.Data[13].ScalarValue)
+				if err != nil {
+					return resp, fmt.Errorf("failed to convert time damage cell to int for first entry in map: %v", err.Error())
+				}
+
 				// check if map has entry with the name of the player
 				if val, ok := m[player]; ok {
-					// log.Println("map does contain player")
-					dam, err := strconv.Atoi(*row.Data[0].ScalarValue)
-					if err != nil {
-						return resp, fmt.Errorf("failed to convert timestream damage cell to int: %v", err.Error())
+					// yes, map contains player
+					// add damage value to existing struct in map
+					d := golib.DamagePerSpell{
+						SpellID:   spellID,
+						SpellName: *row.Data[14].ScalarValue,
+						Damage:    dam,
 					}
 
+					val.DamagePerSpell = append(val.DamagePerSpell, d)
 					val.Damage += dam
 					m[player] = val
 
 				} else {
-					dam, err := strconv.Atoi(*row.Data[0].ScalarValue)
-					if err != nil {
-						return resp, err
-					}
-
+					// no, map does not contain player as key > initialize
 					d := golib.PlayerDamagePerSpell{
 						Damage:   dam,
 						Name:     *row.Data[1].ScalarValue,
 						PlayerID: *row.Data[2].ScalarValue,
 						Class:    "unsupported",
 						Specc:    "unsupported",
+						DamagePerSpell: []golib.DamagePerSpell{
+							{
+								SpellID:   spellID,
+								SpellName: *row.Data[14].ScalarValue,
+								Damage:    dam,
+							},
+						},
 					}
 
 					m[player] = d
 				}
-
-				// summaries = append(summaries, d)
 			}
 		}
 	}
-
-	prettyStruct, err := golib.PrettyStruct(m)
-	if err != nil {
-		return golib.DynamoDBPlayerDamageDone{}, err
-	}
-	log.Println(prettyStruct)
 
 	combatlogUUID := *queryResult.Rows[0].Data[3].ScalarValue
 
@@ -189,7 +191,6 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	resp = golib.DynamoDBPlayerDamageDone{
 		Pk:            fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
 		Sk:            fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
-		Damage:        summaries,
 		Duration:      t.Format("04:05"), // formats to minutes:seconds
 		Deaths:        0,
 		Affixes:       golib.AffixIDsToString(twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
@@ -199,6 +200,17 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		CombatlogUUID: combatlogUUID,
 		Finished:      finished != 0, // if 0 false, else 1
 	}
+
+	for _, el := range m {
+		resp.Damage = append(resp.Damage, el)
+	}
+
+	// prettyStruct, err := golib.PrettyStruct(resp)
+	// if err != nil {
+	// 	return golib.DynamoDBPlayerDamageDone{}, err
+	// }
+	// log.Println(prettyStruct)
+
 	return resp, err
 }
 
