@@ -4,12 +4,12 @@ import (
 	"bufio"
 
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
-
 	"github.com/gofrs/uuid"
 )
 
 // Normalize converts the combatlog to a slice of Event structs
-func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Record, string, error) {
+func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestreamwrite.Record, error) {
+	rec := make(map[string][]*timestreamwrite.Record)
 	var combatEvents []*timestreamwrite.Record
 	combatlogUUID := "" // after every COMBAT_LOG_VERSION
 	// BossFightUUID := ""
@@ -54,16 +54,14 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Re
 		// 	// EventType:      params[0],
 		// }
 
-		// TODO: never add anything if CombatlogUUID is empty, same logic as m+uuid
-		// if MythicplusUUID == "" && params[0] != "CHALLENGE_MODE_START" {
 		// I don't want to add events if they are outside of a combatlog
-		// 	continue
-		// }
+		if combatlogUUID == "" && params[0] != "CHALLENGE_MODE_START" {
+			continue
+		}
 
 		switch params[0] {
 		case "COMBAT_LOG_VERSION":
 			// TODO: get patch info from here
-			combatlogUUID = uuid.Must(uuid.NewV4()).String()
 			// e.CombatlogUUID = CombatlogUUID
 			// err = e.combatLogVersion(params)
 			// if err != nil {
@@ -91,26 +89,28 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Re
 			// }
 
 		case "CHALLENGE_MODE_START":
-			// MythicplusUUID = uuid.Must(uuid.NewV4()).String()
-			// e.MythicplusUUID = MythicplusUUID
-			// err = e.challengeModeStart(params)
-			// if err != nil {
-			// 	return err
-			// }
+			// COMBAT_LOG_VERSION is not a good place to create this, because after this event, a new
+			// COMBAT_LOG_VERSION is always part of the log, but there are a couple of lines in between
+			// which would mean those wouldn't have the combatlog_uuid info
+			combatlogUUID = uuid.Must(uuid.NewV4()).String()
+			combatEvents = nil
+
 			// 	TODO: fail if either uuid is empty
 			//		 I had another combatlog version after this event, check other logs
 			e, err := challengeModeStart(params, uploadUUID, combatlogUUID)
 			if err != nil {
-				return nil, "", err
+				return rec, err
 			}
 			combatEvents = append(combatEvents, e...)
+			rec[combatlogUUID] = combatEvents
 
 		case "CHALLENGE_MODE_END":
 			e, err := challengeModeEnd(params, uploadUUID, combatlogUUID)
 			if err != nil {
-				return nil, "", err
+				return rec, err
 			}
 			combatEvents = append(combatEvents, e...)
+			rec[combatlogUUID] = combatEvents
 
 			// err = uploadS3(&r, sess, e.MythicplusUUID, csvBucket)
 			// if err != nil {
@@ -122,9 +122,10 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Re
 		case "SPELL_DAMAGE":
 			e, err := spellDamage(params, &uploadUUID, &combatlogUUID)
 			if err != nil {
-				return nil, "", err
+				return rec, err
 			}
 			combatEvents = append(combatEvents, e)
+			rec[combatlogUUID] = combatEvents
 
 		default:
 			// e.Unsupported = true
@@ -135,5 +136,5 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Re
 		// }
 	}
 
-	return combatEvents, combatlogUUID, nil
+	return rec, nil
 }
