@@ -24,14 +24,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// PlayerDamage contains player and damage info for the top keys view etc.
-type PlayerDamage struct {
-	Damage   int    `json:"damage"` // TODO: convert to int64
-	Name     string `json:"player_name"`
-	PlayerID string `json:"player_id"`
-	Class    string `json:"class"`
-	Specc    string `json:"specc"`
-}
+// ++++++++++++++++++++++++
+// PlayerDamageDone Structs
+// ++++++++++++++++++++++++
 
 // DamagePerSpell is a part of PlayerDamageDone and contains the breakdown of damage per spell
 type DamagePerSpell struct {
@@ -75,6 +70,19 @@ type DynamoDBPlayerDamageDone struct {
 	Finished      bool               `json:"finished"`
 }
 
+// ++++++++++++++++++++++++
+// Keys Structs
+// ++++++++++++++++++++++++
+
+// PlayerDamage contains player and damage info for the top keys view etc.
+type PlayerDamage struct {
+	Damage   int    `json:"damage"` // TODO: convert to int64
+	Name     string `json:"player_name"`
+	PlayerID string `json:"player_id"`
+	Class    string `json:"class"`
+	Specc    string `json:"specc"`
+}
+
 type DynamoDBKeys struct {
 	Pk            string         `json:"pk"`
 	Sk            string         `json:"sk"`
@@ -110,7 +118,7 @@ type JSONPlayerDamageSimpleResponse2 struct {
 */
 
 type JSONKeys struct {
-	Damage        []PlayerDamage `json:"dmg"` //TODO: rename mb smth like entries
+	Damage        []PlayerDamage `json:"player_damage"`
 	Duration      string         `json:"duration"`
 	Deaths        int            `json:"deaths"`
 	Affixes       string         `json:"affixes"`
@@ -411,27 +419,20 @@ func PlayerDamageSimpleResponseToJson2(result *dynamodb2.QueryOutput, sorted, fi
 }
 */
 
+// PlayerDamageDoneToJson returns the log specific damage result, including damage
+// per spell breakdown, both damage per player and per spell are sorted before saving
+// to the db.
+// We don't need an extra JSON struct, like for keys, because there is no
+// pagination etc.
 func PlayerDamageDoneToJson(result *dynamodb.GetItemOutput) (string, error) {
-	// TODO: update to dedicated struct
-	var item DynamoDBKeys
+	var item DynamoDBPlayerDamageDone
 
 	err := dynamodbattribute.UnmarshalMap(result.Item, &item)
 	if err != nil {
 		return "", err
 	}
 
-	resp := JSONKeys{
-		Damage:        item.Damage,
-		Duration:      item.Duration,
-		Deaths:        item.Deaths,
-		Affixes:       item.Affixes,
-		Keylevel:      item.Keylevel,
-		DungeonName:   item.DungeonName,
-		DungeonID:     item.DungeonID,
-		CombatlogUUID: item.CombatlogUUID,
-	}
-
-	b, err := json.Marshal(resp)
+	b, err := json.Marshal(item)
 	if err != nil {
 		return "", err
 	}
