@@ -244,18 +244,16 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	// }
 	// logData.Records = len(combatEvents)
 
-	for _, e := range rec {
-		err = golib.UploadToTimestream(ctx, writeSvc, e)
-	}
-	if err != nil {
-		return logData, err
-	}
+	for input, e := range rec {
+		err = golib.WriteToTimestream(ctx, writeSvc, e)
+		if err != nil {
+			return logData, err
+		}
 
-	for input := range rec {
 		err = golib.SNSPublishMsg(ctx, snsSvc, input, &topicArn)
-	}
-	if err != nil {
-		return logData, err
+		if err != nil {
+			return logData, err
+		}
 	}
 
 	return logData, nil

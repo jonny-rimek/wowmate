@@ -54,11 +54,10 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 		// 	// EventType:      params[0],
 		// }
 
-		// TODO: never add anything if CombatlogUUID is empty, same logic as m+uuid
-		// if MythicplusUUID == "" && params[0] != "CHALLENGE_MODE_START" {
 		// I don't want to add events if they are outside of a combatlog
-		// 	continue
-		// }
+		if combatlogUUID == "" && params[0] != "CHALLENGE_MODE_START" {
+			continue
+		}
 
 		switch params[0] {
 		case "COMBAT_LOG_VERSION":
