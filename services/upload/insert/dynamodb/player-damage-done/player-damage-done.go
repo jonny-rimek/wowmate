@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -89,22 +90,55 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 
 	var summaries []golib.PlayerDamagePerSpell
 
-	for i := 0; i < len(queryResult.Rows); i++ {
-		dam, err := strconv.Atoi(*queryResult.Rows[i].Data[0].ScalarValue)
-		if err != nil {
-			return resp, err
-		}
+	players := getPlayers(queryResult)
 
-		d := golib.PlayerDamagePerSpell{
-			Damage:   dam,
-			Name:     *queryResult.Rows[i].Data[1].ScalarValue,
-			PlayerID: *queryResult.Rows[i].Data[2].ScalarValue,
-			Class:    "unsupported",
-			Specc:    "unsupported",
-		}
+	// TODO:
+	// 	- go through records and add data for the user
+	m := make(map[string]golib.PlayerDamagePerSpell)
 
-		summaries = append(summaries, d)
+	for _, row := range queryResult.Rows {
+		for _, player := range players {
+			if player == *row.Data[1].ScalarValue {
+
+				// check if map has entry with the name of the player
+				if val, ok := m[player]; ok {
+					// log.Println("map does contain player")
+					dam, err := strconv.Atoi(*row.Data[0].ScalarValue)
+					if err != nil {
+						return resp, fmt.Errorf("failed to convert timestream damage cell to int: %v", err.Error())
+					}
+
+					val.Damage += dam
+					m[player] = val
+
+				} else {
+					dam, err := strconv.Atoi(*row.Data[0].ScalarValue)
+					if err != nil {
+						return resp, err
+					}
+
+					d := golib.PlayerDamagePerSpell{
+						Damage:   dam,
+						Name:     *row.Data[1].ScalarValue,
+						PlayerID: *row.Data[2].ScalarValue,
+						Class:    "unsupported",
+						Specc:    "unsupported",
+					}
+
+					m[player] = d
+				}
+
+				// summaries = append(summaries, d)
+			}
+		}
 	}
+
+	prettyStruct, err := golib.PrettyStruct(m)
+	if err != nil {
+		return golib.DynamoDBPlayerDamageDone{}, err
+	}
+	log.Println(prettyStruct)
+
 	combatlogUUID := *queryResult.Rows[0].Data[3].ScalarValue
 
 	dungeonName := *queryResult.Rows[0].Data[4].ScalarValue
@@ -124,7 +158,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		return resp, err
 	}
 	// converts duration to date 1970 + duration, of which I only display the minutes and seconds
-	// time duration, doesn't allow mixed formatting like min:seconds
+	// time.Duration, doesn't allow mixed formatting like min:seconds
 	t := time.Unix(0, durationInMilliseconds*1e6) // milliseconds > nanoseconds
 
 	finished, err := strconv.Atoi(*queryResult.Rows[0].Data[8].ScalarValue)
@@ -166,6 +200,29 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		Finished:      finished != 0, // if 0 false, else 1
 	}
 	return resp, err
+}
+
+// getPlayers checks the query output and returns a list of all players that are in it
+func getPlayers(result *timestreamquery.QueryOutput) []string {
+	var players []string
+
+	for _, el := range result.Rows {
+		player := *el.Data[1].ScalarValue
+		if contains(players, player) == false {
+			players = append(players, player)
+		}
+	}
+
+	return players
+}
+
+func contains(slice []string, el string) bool {
+	for _, a := range slice {
+		if a == el {
+			return true
+		}
+	}
+	return false
 }
 
 func main() {
