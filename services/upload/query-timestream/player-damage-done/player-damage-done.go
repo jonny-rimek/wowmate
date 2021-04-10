@@ -244,13 +244,13 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 
 	input, err := json.Marshal(queryResult)
 	if err != nil {
-		return logData, err
+		return logData, fmt.Errorf("failed to unmarshal query result to json: %v", err.Error())
 	}
 
 	// if the event becomes to big to send over sns (256kb) convert it here, instead of saving it to s3
 	err = golib.SNSPublishMsg(ctx, snsSvc, string(input), &topicArn)
 	if err != nil {
-		return logData, err
+		return logData, fmt.Errorf("failed to publish message to SNS: %v", err.Error())
 	}
 	return logData, nil
 }
