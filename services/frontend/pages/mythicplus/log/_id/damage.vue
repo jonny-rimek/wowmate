@@ -131,7 +131,7 @@
                   >
                     TODO: graph
                     <span class="text-gray-200 float-right">
-                      {{ entry.damage }}</span
+                      {{ entry.player_damage }}</span
                     >
                   </td>
                   <td
