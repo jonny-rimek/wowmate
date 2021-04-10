@@ -1,16 +1,18 @@
 package normalize
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 )
 
-//1/24 16:47:38.068  CHALLENGE_MODE_START,"De Other Side",2291,377,10,[10,123,3,121]
-//NOTE: the array is definitely the affixes
+// challengeModeStart gets the dungeonID, keyLevel and affixes
+// v17
+// 1/24 16:47:38.068  CHALLENGE_MODE_START,"De Other Side",2291,377,10,[10,123,3,121]
 func challengeModeStart(params []string, uploadUUID string, combatlogUUID string) ([]*timestreamwrite.Record, error) {
 	dungeonID, err := Atoi64(params[2]) //2291
 	if err != nil {

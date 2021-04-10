@@ -4,7 +4,6 @@ import (
 	"bufio"
 
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
-
 	"github.com/gofrs/uuid"
 )
 
@@ -64,7 +63,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 		switch params[0] {
 		case "COMBAT_LOG_VERSION":
 			// TODO: get patch info from here
-			combatlogUUID = uuid.Must(uuid.NewV4()).String()
 			// e.CombatlogUUID = CombatlogUUID
 			// err = e.combatLogVersion(params)
 			// if err != nil {
@@ -92,12 +90,12 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 			// }
 
 		case "CHALLENGE_MODE_START":
-			// MythicplusUUID = uuid.Must(uuid.NewV4()).String()
-			// e.MythicplusUUID = MythicplusUUID
-			// err = e.challengeModeStart(params)
-			// if err != nil {
-			// 	return err
-			// }
+			// COMBAT_LOG_VERSION is not a good place to create this, because after this event, a new
+			// COMBAT_LOG_VERSION is always part of the log, but there are a couple of lines in between
+			// which would mean those wouldn't have the combatlog_uuid info
+			combatlogUUID = uuid.Must(uuid.NewV4()).String()
+			combatEvents = nil
+
 			// 	TODO: fail if either uuid is empty
 			//		 I had another combatlog version after this event, check other logs
 			e, err := challengeModeStart(params, uploadUUID, combatlogUUID)
@@ -105,6 +103,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 				return rec, err
 			}
 			combatEvents = append(combatEvents, e...)
+			rec[combatlogUUID] = combatEvents
 
 		case "CHALLENGE_MODE_END":
 			e, err := challengeModeEnd(params, uploadUUID, combatlogUUID)
@@ -112,6 +111,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 				return rec, err
 			}
 			combatEvents = append(combatEvents, e...)
+			rec[combatlogUUID] = combatEvents
 
 			// err = uploadS3(&r, sess, e.MythicplusUUID, csvBucket)
 			// if err != nil {
@@ -126,6 +126,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 				return rec, err
 			}
 			combatEvents = append(combatEvents, e)
+			rec[combatlogUUID] = combatEvents
 
 		default:
 			// e.Unsupported = true
@@ -135,7 +136,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 		// 	continue
 		// }
 	}
-	rec[combatlogUUID] = combatEvents
 
 	return rec, nil
 }
