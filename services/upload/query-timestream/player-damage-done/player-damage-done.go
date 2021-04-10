@@ -209,6 +209,7 @@ func query(combatlogUUID string) *string {
 				combatlog_uuid = '%v' AND
 				(caster_type = '0x512' OR caster_type = '0x511') AND
 		  		time between ago(15m) and now()
+		-- TODO: I should only group by spell name, but I need one of the spell ids, to show an icon, might be easier to do in golang
 			GROUP BY
 				caster_name, 
 				caster_id, 

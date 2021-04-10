@@ -33,15 +33,15 @@ type PlayerDamage struct {
 	Specc    string `json:"specc"`
 }
 
-// DamagePerSpell is a part of PlayerDamagePerSpell and contains the breakdown of damage per spell
+// DamagePerSpell is a part of PlayerDamageDone and contains the breakdown of damage per spell
 type DamagePerSpell struct {
 	SpellID   int    `json:"spell_id"`
 	SpellName string `json:"spell_name"`
 	Damage    int64  `json:"damage"`
 }
 
-// PlayerDamagePerSpell contains player and damage per spell info for the log specific view
-type PlayerDamagePerSpell struct {
+// PlayerDamageDone contains player and damage per spell info for the log specific view
+type PlayerDamageDone struct {
 	Damage         int64            `json:"damage"`
 	DamagePerSpell []DamagePerSpell `json:"damage_per_spell"`
 	Name           string           `json:"player_name"`
@@ -60,24 +60,25 @@ type PlayerDamagePerSpell struct {
 	*/
 }
 
+// DynamoDBPlayerDamageDone is used to save player damage done to dynamodb, log specific view
 type DynamoDBPlayerDamageDone struct {
-	Pk            string                 `json:"pk"`
-	Sk            string                 `json:"sk"`
-	Damage        []PlayerDamagePerSpell `json:"dmg"`
-	Duration      string                 `json:"duration"`
-	Deaths        int                    `json:"deaths"`
-	Affixes       string                 `json:"affixes"`
-	Keylevel      int                    `json:"keylevel"`
-	DungeonName   string                 `json:"dungeon_name"`
-	DungeonID     int                    `json:"dungeon_id"`
-	CombatlogUUID string                 `json:"combatlog_uuid"`
-	Finished      bool                   `json:"finished"`
+	Pk            string             `json:"pk"`
+	Sk            string             `json:"sk"`
+	Damage        []PlayerDamageDone `json:"player_damage"`
+	Duration      string             `json:"duration"`
+	Deaths        int                `json:"deaths"`
+	Affixes       string             `json:"affixes"`
+	Keylevel      int                `json:"keylevel"`
+	DungeonName   string             `json:"dungeon_name"`
+	DungeonID     int                `json:"dungeon_id"`
+	CombatlogUUID string             `json:"combatlog_uuid"`
+	Finished      bool               `json:"finished"`
 }
 
 type DynamoDBKeys struct {
 	Pk            string         `json:"pk"`
 	Sk            string         `json:"sk"`
-	Damage        []PlayerDamage `json:"dmg"`
+	Damage        []PlayerDamage `json:"player_damage"`
 	Gsi1pk        string         `json:"gsi1pk"`
 	Gsi1sk        string         `json:"gsi1sk"`
 	Duration      string         `json:"duration"`

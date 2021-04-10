@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 
@@ -89,7 +90,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 
 	players := getPlayers(queryResult)
 
-	m := make(map[string]golib.PlayerDamagePerSpell)
+	m := make(map[string]golib.PlayerDamageDone)
 
 	for _, row := range queryResult.Rows {
 		for _, player := range players {
@@ -120,7 +121,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 
 				} else {
 					// no, map does not contain player as key > initialize
-					d := golib.PlayerDamagePerSpell{
+					d := golib.PlayerDamageDone{
 						Damage:   dam,
 						Name:     *row.Data[1].ScalarValue,
 						PlayerID: *row.Data[2].ScalarValue,
@@ -204,6 +205,19 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	for _, el := range m {
 		resp.Damage = append(resp.Damage, el)
 	}
+	// sort player damage desc
+	sort.Slice(resp.Damage, func(i, j int) bool {
+		return resp.Damage[i].Damage > resp.Damage[j].Damage // order descending
+	})
+
+	// sort spell damage desc
+	for _, el := range resp.Damage {
+		sort.Slice(el.DamagePerSpell, func(i, j int) bool {
+			return el.Damage > el.Damage // order descending
+		})
+	}
+
+	// TODO: merge arrays of DamagePerSpell by name and keep one id
 
 	// prettyStruct, err := golib.PrettyStruct(resp)
 	// if err != nil {
@@ -228,6 +242,7 @@ func getPlayers(result *timestreamquery.QueryOutput) []string {
 	return players
 }
 
+// contains dd slice
 func contains(slice []string, el string) bool {
 	for _, a := range slice {
 		if a == el {
