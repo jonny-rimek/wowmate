@@ -1,3 +1,5 @@
+// noinspection EqualityComparisonWithCoercionJS
+
 'use strict';
 
 const AWS = require('aws-sdk');
@@ -21,7 +23,7 @@ exports.handler = (event, context, callback) => {
 		//ignore IDE warning this needs to be == instead of ===, cus js is fucking garbage
 		fileEnding = '.txt.gz';
 		//there might be a difference between convert lambda limits and these, because of megabyte vs mebibyte
-		filesize = 100*1024*1024; //100Mebibyte
+		filesize = 40*1024*1024; //100Mebibyte
 		//gzipped files are smaller, but we still can't process larger files in the lambda
 		//once it's uncompressed
 		//a 300mb file is around 30mb gzipped, but it still has to be unpacked and processed,
@@ -29,10 +31,10 @@ exports.handler = (event, context, callback) => {
 		//the size of the file we can handle is limited by the RAM available inside the lambda
 	} else if (path.match(/\.txt/) == '.txt') {
 		fileEnding = '.txt';
-		filesize = 1000*1024*1024; //1000Mebibyte
+		filesize = 450*1024*1024; //1000Mebibyte
 	} else if (path.match(/\.zip/) == '.zip') {
 		fileEnding = '.zip';
-		filesize = 100*1024*1024; //100Mebibyte
+		filesize = 40*1024*1024; //100Mebibyte
 	} else {
 		callback(null, {
 			statusCode: 500,
@@ -45,7 +47,6 @@ exports.handler = (event, context, callback) => {
 
 	const currentTime = new Date()
 
-    //TODO: add upload/ at the front
 	const key = `upload/${currentTime.getUTCFullYear()}/${currentTime.getUTCMonth() + 1}/${currentTime.getUTCDay()}/${currentTime.getUTCHours()}/${uuidV4()}${fileEnding}`;
 
 	const res = s3.createPresignedPost({

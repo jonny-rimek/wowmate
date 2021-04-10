@@ -238,8 +238,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	// logData.CombatlogUUID = combatlogUUID
 
 	// if os.Getenv("LOCAL") == "true" {
-	// uploading to timestream takes too long locally, turned off for productivity
-	// also there is an error with tracing in timestream locally
+	// uploading to timestream takes too long locally, option to not run it
 	//	return logData, nil
 	// }
 	// logData.Records = len(combatEvents)
@@ -305,13 +304,13 @@ func fileType(objectKey string) (int, string, error) {
 	var fileType string
 	var maxSizeInKB int
 	if strings.HasSuffix(objectKey, ".txt") {
-		maxSizeInKB = 1000 * 1000 // 1GB
+		maxSizeInKB = 450 * 1000 // 1GB
 		fileType = "txt"
 	} else if strings.HasSuffix(objectKey, ".txt.gz") {
-		maxSizeInKB = 100 * 1000 // 100MB
+		maxSizeInKB = 40 * 1000 // 100MB
 		fileType = "gz"
 	} else if strings.HasSuffix(objectKey, ".zip") {
-		maxSizeInKB = 100 * 1000 // 100MB
+		maxSizeInKB = 40 * 1000 // 100MB
 		fileType = "zip"
 	} else {
 		return 0, "", fmt.Errorf("file suffix is not supported, s3 prefix filtering is broken")
