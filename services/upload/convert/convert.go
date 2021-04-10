@@ -112,6 +112,7 @@ var snsSvc *sns.SNS
 var downloader *s3manager.Downloader
 var writeSvc *timestreamwrite.TimestreamWrite
 
+//goland:noinspection GoNilness
 func handler(ctx aws.Context, e golib.SQSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
@@ -229,12 +230,12 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	s := bufio.NewScanner(bytes.NewReader(data))
 
-	// TODO: this can't return a single combatlogUUID if I support multiple logs
-	combatEvents, combatlogUUID, err := normalize.Normalize(s, uploadUUID)
+	rec, err := normalize.Normalize(s, uploadUUID)
 	if err != nil {
 		return logData, err
 	}
-	logData.CombatlogUUID = combatlogUUID
+	// TODO
+	// logData.CombatlogUUID = combatlogUUID
 
 	// if os.Getenv("LOCAL") == "true" {
 	// uploading to timestream takes too long locally, turned off for productivity
@@ -243,12 +244,16 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	// }
 	// logData.Records = len(combatEvents)
 
-	err = golib.UploadToTimestream(ctx, writeSvc, combatEvents)
+	for _, e := range rec {
+		err = golib.UploadToTimestream(ctx, writeSvc, e)
+	}
 	if err != nil {
 		return logData, err
 	}
 
-	err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
+	for input := range rec {
+		err = golib.SNSPublishMsg(ctx, snsSvc, input, &topicArn)
+	}
 	if err != nil {
 		return logData, err
 	}

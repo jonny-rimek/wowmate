@@ -9,7 +9,8 @@ import (
 )
 
 // Normalize converts the combatlog to a slice of Event structs
-func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Record, string, error) {
+func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestreamwrite.Record, error) {
+	rec := make(map[string][]*timestreamwrite.Record)
 	var combatEvents []*timestreamwrite.Record
 	combatlogUUID := "" // after every COMBAT_LOG_VERSION
 	// BossFightUUID := ""
@@ -101,14 +102,14 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Re
 			//		 I had another combatlog version after this event, check other logs
 			e, err := challengeModeStart(params, uploadUUID, combatlogUUID)
 			if err != nil {
-				return nil, "", err
+				return rec, err
 			}
 			combatEvents = append(combatEvents, e...)
 
 		case "CHALLENGE_MODE_END":
 			e, err := challengeModeEnd(params, uploadUUID, combatlogUUID)
 			if err != nil {
-				return nil, "", err
+				return rec, err
 			}
 			combatEvents = append(combatEvents, e...)
 
@@ -122,7 +123,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Re
 		case "SPELL_DAMAGE":
 			e, err := spellDamage(params, &uploadUUID, &combatlogUUID)
 			if err != nil {
-				return nil, "", err
+				return rec, err
 			}
 			combatEvents = append(combatEvents, e)
 
@@ -134,6 +135,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) ([]*timestreamwrite.Re
 		// 	continue
 		// }
 	}
+	rec[combatlogUUID] = combatEvents
 
-	return combatEvents, combatlogUUID, nil
+	return rec, nil
 }

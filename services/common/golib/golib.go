@@ -486,6 +486,7 @@ func CanonicalLog(msg map[string]interface{}) {
 	logrus.WithFields(msg).Info()
 }
 
+// SNSPublishMsg publishes a message to an SNS topic
 func SNSPublishMsg(ctx aws.Context, snsSvc *sns.SNS, input string, topicArn *string) error {
 	if input == "" {
 		return fmt.Errorf("input can't be empty")
@@ -610,8 +611,8 @@ func TimestreamQuery2(query *string, client *timestreamquery2.Client) (*timestre
 }
 */
 
+// UploadToTimestream takes a slice of records to write and writes batches of 100 records to timestream
 func UploadToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWrite, e []*timestreamwrite.Record) error {
-
 	for i := 0; i < len(e); i += 100 {
 
 		// get the upper bound of the record to write, in case it is the
