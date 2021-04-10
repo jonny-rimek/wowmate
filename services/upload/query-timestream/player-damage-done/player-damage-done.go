@@ -60,8 +60,52 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	}
 	logData.CombatlogUUID = combatlogUUID
 
-	// NOTE: AND caster_id LIKE 'Player-%' doesnt work, sprintf tries to format the %
-	query := fmt.Sprintf(`
+	queryResult, err := golib.TimestreamQuery(ctx, query(combatlogUUID), querySvc)
+	if err != nil {
+		if queryResult == nil {
+			logData.QueryID = "queryResult=nil"
+			return logData, err
+		}
+		logData.QueryID = *queryResult.QueryId
+		return logData, err
+	}
+
+	logData.QueryID = *queryResult.QueryId
+	logData.BilledMegabytes = *queryResult.QueryStatus.CumulativeBytesMetered / 1e6 // 1.000.000
+	logData.ScannedMegabytes = *queryResult.QueryStatus.CumulativeBytesScanned / 1e6
+
+	input, err := json.Marshal(queryResult)
+	if err != nil {
+		return logData, fmt.Errorf("failed to unmarshal query result to json: %v", err.Error())
+	}
+
+	// if the event becomes to big to send over sns (256kb) convert it here, instead of saving it to s3
+	err = golib.SNSPublishMsg(ctx, snsSvc, string(input), &topicArn)
+	if err != nil {
+		return logData, fmt.Errorf("failed to publish message to SNS: %v", err.Error())
+	}
+	return logData, nil
+}
+
+func validateInput(e events.SNSEvent) (topicArn string, combatlogUUID string, err error) {
+	topicArn = os.Getenv("TOPIC_ARN")
+	if topicArn == "" {
+		return "", "", fmt.Errorf("arn topic env var is empty")
+	}
+	logrus.Debug("topicArn: " + topicArn)
+
+	combatlogUUID = e.Records[0].SNS.Message
+	if combatlogUUID == "" {
+		return topicArn, "", fmt.Errorf("combatlog uuid is empty")
+	}
+
+	return topicArn, combatlogUUID, nil
+}
+
+// query returns query to run against timestream
+// NOTE: AND caster_id LIKE 'Player-%' doesnt work, sprintf tries to format the %
+func query(combatlogUUID string) *string {
+	return aws.String(fmt.Sprintf(`
 		WITH dungeon AS (
 		    SELECT
 				dungeon_name,
@@ -226,48 +270,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		combatlogUUID,
 		combatlogUUID,
 		combatlogUUID,
-	)
-
-	queryResult, err := golib.TimestreamQuery(ctx, &query, querySvc)
-	if err != nil {
-		if queryResult == nil {
-			logData.QueryID = "queryResult=nil"
-			return logData, err
-		}
-		logData.QueryID = *queryResult.QueryId
-		return logData, err
-	}
-
-	logData.QueryID = *queryResult.QueryId
-	logData.BilledMegabytes = *queryResult.QueryStatus.CumulativeBytesMetered / 1e6 // 1.000.000
-	logData.ScannedMegabytes = *queryResult.QueryStatus.CumulativeBytesScanned / 1e6
-
-	input, err := json.Marshal(queryResult)
-	if err != nil {
-		return logData, fmt.Errorf("failed to unmarshal query result to json: %v", err.Error())
-	}
-
-	// if the event becomes to big to send over sns (256kb) convert it here, instead of saving it to s3
-	err = golib.SNSPublishMsg(ctx, snsSvc, string(input), &topicArn)
-	if err != nil {
-		return logData, fmt.Errorf("failed to publish message to SNS: %v", err.Error())
-	}
-	return logData, nil
-}
-
-func validateInput(e events.SNSEvent) (topicArn string, combatlogUUID string, err error) {
-	topicArn = os.Getenv("TOPIC_ARN")
-	if topicArn == "" {
-		return "", "", fmt.Errorf("arn topic env var is empty")
-	}
-	logrus.Debug("topicArn: " + topicArn)
-
-	combatlogUUID = e.Records[0].SNS.Message
-	if combatlogUUID == "" {
-		return topicArn, "", fmt.Errorf("combatlog uuid is empty")
-	}
-
-	return topicArn, combatlogUUID, nil
+	))
 }
 
 func main() {
