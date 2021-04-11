@@ -2,6 +2,7 @@ package normalize
 
 import (
 	"bufio"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"github.com/gofrs/uuid"
@@ -11,8 +12,11 @@ import (
 func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestreamwrite.Record, error) {
 	rec := make(map[string][]*timestreamwrite.Record)
 	var combatEvents []*timestreamwrite.Record
-	combatlogUUID := "" // after every COMBAT_LOG_VERSION
-	// BossFightUUID := ""
+	var combatlogUUID string
+
+	if uploadUUID == "" {
+		return nil, fmt.Errorf("can't provide an empty uploadUUID")
+	}
 
 	// combatEvents2 = make([]Event, 0, 100000) //100.000 is an arbitrary value
 	// initialising the slice with a capacity to reduce the amount reallocation
