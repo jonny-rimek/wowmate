@@ -15,13 +15,13 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 	// BossFightUUID := ""
 
 	// combatEvents2 = make([]Event, 0, 100000) //100.000 is an arbitrary value
-	// initialising the slice with a capacity to reduce the amount reallocations
+	// initialising the slice with a capacity to reduce the amount reallocation
 	// the difference in a small log was <1sec -> not worth
 
 	for scanner.Scan() {
 		// 4/24 10:42:30.561  COMBAT_LOG_VERSION
-		// every line starts with the date followed by the rest seperated with 2 spaces.
-		// the rest is seperated with commas
+		// every line starts with the date followed by the rest separated with 2 spaces.
+		// the rest is separated with commas
 
 		// IMPROVE:
 		// write version of .Split that accepts a pointer to the string
@@ -93,7 +93,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 			// COMBAT_LOG_VERSION is always part of the log, but there are a couple of lines in between
 			// which would mean those wouldn't have the combatlog_uuid info
 			combatlogUUID = uuid.Must(uuid.NewV4()).String()
-			combatEvents = nil
 
 			// 	TODO: fail if either uuid is empty
 			//		 I had another combatlog version after this event, check other logs
@@ -112,11 +111,8 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 			combatEvents = append(combatEvents, e...)
 			rec[combatlogUUID] = combatEvents
 
-			// err = uploadS3(&r, sess, e.MythicplusUUID, csvBucket)
-			// if err != nil {
-			// 	return err
-			// }
-
+			combatlogUUID = ""
+			combatEvents = nil
 		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
 		// 	err = e.importHeal(params)
 		case "SPELL_DAMAGE":

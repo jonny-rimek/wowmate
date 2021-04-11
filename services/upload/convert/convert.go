@@ -304,13 +304,13 @@ func fileType(objectKey string) (int, string, error) {
 	var fileType string
 	var maxSizeInKB int
 	if strings.HasSuffix(objectKey, ".txt") {
-		maxSizeInKB = 450 * 1000 // 1GB
+		maxSizeInKB = 450 * 1024 // 1GB
 		fileType = "txt"
 	} else if strings.HasSuffix(objectKey, ".txt.gz") {
-		maxSizeInKB = 40 * 1000 // 100MB
+		maxSizeInKB = 40 * 1024 // 100MB
 		fileType = "gz"
 	} else if strings.HasSuffix(objectKey, ".zip") {
-		maxSizeInKB = 40 * 1000 // 100MB
+		maxSizeInKB = 40 * 1024 // 100MB
 		fileType = "zip"
 	} else {
 		return 0, "", fmt.Errorf("file suffix is not supported, s3 prefix filtering is broken")
