@@ -183,7 +183,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	req := golib.S3Event{}
 	err := json.Unmarshal([]byte(msg.Body), &req)
 	if err != nil {
-		return logData, err
+		return logData, fmt.Errorf("failed to unmarshal s3 event from message body to json: %v", err)
 	}
 
 	if len(req.Records) != 1 {
@@ -232,7 +232,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	nestedRecord, err := normalize.Normalize(s, uploadUUID)
 	if err != nil {
-		return logData, err
+		return logData, fmt.Errorf("normalizing failed: %v", err)
 	}
 
 	// if os.Getenv("LOCAL") == "true" {
@@ -241,22 +241,21 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	// }
 	// logData.Records = len(combatEvents)
 
-	for _, record := range nestedRecord {
-		for combatlogUUID, writeRecordsInputs := range record {
+	for combatlogUUID, record := range nestedRecord {
+		for _, writeRecordsInputs := range record {
+
 			for _, e := range writeRecordsInputs {
 				err = golib.WriteToTimestream(ctx, writeSvc, e)
 				if err != nil {
 					return logData, err
 				}
 			}
+		}
+		logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
 
-			// fix logic, its logging smth different atm
-			logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
-
-			err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
-			if err != nil {
-				return logData, err
-			}
+		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
+		if err != nil {
+			return logData, err
 		}
 	}
 

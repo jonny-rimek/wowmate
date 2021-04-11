@@ -50,8 +50,9 @@ export class Convert extends cdk.Construct {
 			code: lambda.Code.fromAsset('services/upload/convert'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 1792, //exactly 1 core
-			timeout: cdk.Duration.minutes(15),
+			memorySize: 3584, //exactly 2 core
+			// memorySize: 1792, //exactly 1 core
+			timeout: cdk.Duration.minutes(5),
 			environment: {
 				TOPIC_ARN: topic.topicArn,
 				LOCAL: "false",

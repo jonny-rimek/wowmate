@@ -1,6 +1,7 @@
 package normalize
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
@@ -42,7 +43,9 @@ func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec
 	currentTimeInSeconds := time.Now().Unix()
 	rand.Seed(time.Now().UnixNano())
 
-	key := fmt.Sprintf("%s_%d", casterID, spellID)
+	key := strconv.Itoa(spellID)
+
+	// key := fmt.Sprintf("%s_%d", casterID, spellID)
 
 	val, exists := rec[*combatlogUUID][key]
 	if exists == true {
@@ -59,18 +62,50 @@ func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec
 					MeasureValue: aws.String(strconv.FormatInt(actualAmount, 10)),
 				})
 			} else {
-				/*
-					writeInput := &timestreamwrite.WriteRecordsInput{
-						DatabaseName: aws.String("wowmate-analytics"),
-						TableName:    aws.String("combatlogs"),
-						CommonAttributes: &timestreamwrite.Record{
+				// records are full, need to create new writeRecordsInput for key
+				_ = &timestreamwrite.WriteRecordsInput{
+					DatabaseName: aws.String("wowmate-analytics"),
+					TableName:    aws.String("combatlogs"),
+					CommonAttributes: &timestreamwrite.Record{
+						Dimensions: []*timestreamwrite.Dimension{
+							{
+								Name:  aws.String("spell_id"),
+								Value: aws.String(strconv.Itoa(spellID)),
+							},
+							{
+								Name:  aws.String("spell_name"),
+								Value: aws.String(spellName),
+							},
+							{
+								Name:  aws.String("spell_type"),
+								Value: aws.String(spellType),
+							},
+							{
+								Name:  aws.String("upload_uuid"),
+								Value: aws.String(*uploadUUID),
+							},
+							{
+								Name:  aws.String("combatlog_uuid"),
+								Value: aws.String(*combatlogUUID),
+							},
+						},
+						MeasureName:      aws.String("damage"),
+						MeasureValueType: aws.String("BIGINT"),
+						TimeUnit:         aws.String("SECONDS"), // can specify seconds as rec for timestream instead of ms!
+						Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
+						// I don't care about this time, it just the time we create this entry, not the time of the combatlog event
+						// I also don't care about the exact time this is written, so I always use the time the first record is created
+						// and reuse it for the subsequent ones
+					},
+					Records: []*timestreamwrite.Record{
+						{
 							Dimensions: []*timestreamwrite.Dimension{
 								{
 									Name:  aws.String("caster_id"),
 									Value: aws.String(casterID),
 								},
 								{
-									Name:  aws.String("caster_name"),
+									Name:  aws.String("caster_name"), //
 									Value: aws.String(casterName),
 								},
 								{
@@ -78,52 +113,25 @@ func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec
 									Value: aws.String(casterType),
 								},
 								{
-									Name:  aws.String("spell_id"),
-									Value: aws.String(strconv.Itoa(spellID)),
-								},
-								{
-									Name:  aws.String("spell_name"),
-									Value: aws.String(spellName),
-								},
-								{
-									Name:  aws.String("spell_type"),
-									Value: aws.String(spellType),
-								},
-								{
-									Name:  aws.String("upload_uuid"),
-									Value: aws.String(*uploadUUID),
-								},
-								{
-									Name:  aws.String("combatlog_uuid"),
-									Value: aws.String(*combatlogUUID),
+									Name:  aws.String("rnd"),
+									Value: aws.String(strconv.Itoa(rand.Int())),
+									// replace with time from log
 								},
 							},
-							MeasureName:      aws.String("damage"),
-							MeasureValueType: aws.String("BIGINT"),
-							TimeUnit:         aws.String("SECONDS"), // can specify seconds as rec for timestream instead of ms!
-							Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
-							// I don't care about this time, it just the time we create this entry, not the time of the combatlog event
-							// I also don't care about the exact time this is written, so I always use the time the first record is created
-							// and reuse it for the subsequent ones
+							MeasureValue: aws.String(strconv.FormatInt(actualAmount, 10)),
 						},
-						Records: []*timestreamwrite.Record{
-							{
-								Dimensions: []*timestreamwrite.Dimension{
-									{
-										Name:  aws.String("rnd"),
-										Value: aws.String(strconv.Itoa(rand.Int())),
-										// replace with time from log
-									},
-								},
-								MeasureValue: aws.String(strconv.FormatInt(actualAmount, 10)),
-							},
-						},
-					}
+					},
+				}
 
-					writeRecordsInputs := rec[*combatlogUUID][key]
-					writeRecordsInputs = append(writeRecordsInputs, writeInput)
+				writeRecordsInputs := rec[*combatlogUUID][key]
+				// writeRecordsInputs = append(writeRecordsInputs, writeInput)
+				// prettyStruct, err := PrettyStruct(writeRecordsInputs)
+				// if err != nil {
+				// 	return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
+				// }
+				// log.Println(prettyStruct)
 
-					rec[*combatlogUUID][key] = writeRecordsInputs*/
+				rec[*combatlogUUID][key] = writeRecordsInputs
 			}
 		}
 		return nil
@@ -131,23 +139,10 @@ func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec
 
 	writeRecordsInputs := []*timestreamwrite.WriteRecordsInput{
 		{
-
 			DatabaseName: aws.String("wowmate-analytics"),
 			TableName:    aws.String("combatlogs"),
 			CommonAttributes: &timestreamwrite.Record{
 				Dimensions: []*timestreamwrite.Dimension{
-					{
-						Name:  aws.String("caster_id"),
-						Value: aws.String(casterID),
-					},
-					{
-						Name:  aws.String("caster_name"),
-						Value: aws.String(casterName),
-					},
-					{
-						Name:  aws.String("caster_type"),
-						Value: aws.String(casterType),
-					},
 					{
 						Name:  aws.String("spell_id"),
 						Value: aws.String(strconv.Itoa(spellID)),
@@ -181,6 +176,18 @@ func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec
 				{
 					Dimensions: []*timestreamwrite.Dimension{
 						{
+							Name:  aws.String("caster_id"),
+							Value: aws.String(casterID),
+						},
+						{
+							Name:  aws.String("caster_name"),
+							Value: aws.String(casterName),
+						},
+						{
+							Name:  aws.String("caster_type"),
+							Value: aws.String(casterType),
+						},
+						{
 							Name:  aws.String("rnd"),
 							Value: aws.String(strconv.Itoa(rand.Int())),
 							// replace with time from log
@@ -191,8 +198,17 @@ func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec
 			},
 		},
 	}
-
 	rec[*combatlogUUID][key] = writeRecordsInputs
+	// writeRecordsInputs := rec[*combatlogUUID][key]
+	// writeRecordsInputs = append(writeRecordsInputs, writeRecordsInputs[0])
 
 	return nil
+}
+
+func PrettyStruct(input interface{}) (string, error) {
+	prettyJSON, err := json.MarshalIndent(input, "", "    ")
+	if err != nil {
+		return "", err
+	}
+	return string(prettyJSON), nil
 }
