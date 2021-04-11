@@ -58,7 +58,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 		// 	// EventType:      params[0],
 		// }
 
-		// I don't want to add events if they are outside of a combatlog
+		// don' add events if they are outside of a combatlog
 		if combatlogUUID == "" && params[0] != "CHALLENGE_MODE_START" {
 			continue
 		}
