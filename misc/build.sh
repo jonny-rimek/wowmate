@@ -26,6 +26,7 @@ do
   pwd
   go mod tidy
   gofmt -w -s .
+# running fmt in the IDE
   go test .
   go build -ldflags='-s -w' -o main .
   echo "compiled go"

@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS combatlogs (
 // https://mholt.github.io/json-to-go/ best tool EVER
 
 type logData struct {
-	CombatlogUUID string
+	CombatlogUUID []string
 	UploadUUID    string
 	BucketName    string
 	ObjectKey     string
@@ -183,11 +183,11 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	req := golib.S3Event{}
 	err := json.Unmarshal([]byte(msg.Body), &req)
 	if err != nil {
-		return logData, err
+		return logData, fmt.Errorf("failed to unmarshal s3 event from message body to json: %v", err)
 	}
 
 	if len(req.Records) != 1 {
-		//had some cases where the len of records was 0, should keep an eye on that
+		// had some cases where the len of records was 0, should keep an eye on that
 		return logData, fmt.Errorf("s3 event contains %v elements instead of 1", len(req.Records))
 	}
 
@@ -230,12 +230,10 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	s := bufio.NewScanner(bytes.NewReader(data))
 
-	rec, err := normalize.Normalize(s, uploadUUID)
+	nestedRecord, err := normalize.Normalize(s, uploadUUID)
 	if err != nil {
-		return logData, err
+		return logData, fmt.Errorf("normalizing failed: %v", err)
 	}
-	// TODO
-	// logData.CombatlogUUID = combatlogUUID
 
 	// if os.Getenv("LOCAL") == "true" {
 	// uploading to timestream takes too long locally, option to not run it
@@ -243,13 +241,19 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	// }
 	// logData.Records = len(combatEvents)
 
-	for input, e := range rec {
-		err = golib.WriteToTimestream(ctx, writeSvc, e)
-		if err != nil {
-			return logData, err
-		}
+	for combatlogUUID, record := range nestedRecord {
+		for _, writeRecordsInputs := range record {
 
-		err = golib.SNSPublishMsg(ctx, snsSvc, input, &topicArn)
+			for _, e := range writeRecordsInputs {
+				err = golib.WriteToTimestream(ctx, writeSvc, e)
+				if err != nil {
+					return logData, err
+				}
+			}
+		}
+		logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
+
+		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
 		if err != nil {
 			return logData, err
 		}
@@ -304,13 +308,13 @@ func fileType(objectKey string) (int, string, error) {
 	var fileType string
 	var maxSizeInKB int
 	if strings.HasSuffix(objectKey, ".txt") {
-		maxSizeInKB = 450 * 1000 // 1GB
+		maxSizeInKB = 450 * 1024 // 1GB
 		fileType = "txt"
 	} else if strings.HasSuffix(objectKey, ".txt.gz") {
-		maxSizeInKB = 40 * 1000 // 100MB
+		maxSizeInKB = 40 * 1024 // 100MB
 		fileType = "gz"
 	} else if strings.HasSuffix(objectKey, ".zip") {
-		maxSizeInKB = 40 * 1000 // 100MB
+		maxSizeInKB = 40 * 1024 // 100MB
 		fileType = "zip"
 	} else {
 		return 0, "", fmt.Errorf("file suffix is not supported, s3 prefix filtering is broken")

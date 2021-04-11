@@ -2,32 +2,34 @@ package normalize
 
 import (
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"log"
+	"math/rand"
 	"strconv"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 )
 
-//1/24 17:23:07.443  CHALLENGE_MODE_END,2291,1,10,2136094
-//1/24 16:47:37.880  CHALLENGE_MODE_END,2291,0,0,0
-//if it's not a finish [2] is 0 and the other two aswell
-func challengeModeEnd(params []string, uploadUUID string, combatlogUUID string) ([]*timestreamwrite.Record, error) {
+// 1/24 17:23:07.443  CHALLENGE_MODE_END,2291,1,10,2136094
+// 1/24 16:47:37.880  CHALLENGE_MODE_END,2291,0,0,0
+// if it's not a finish [2] is 0 and the other two as well
+func challengeModeEnd(params []string, uploadUUID string, combatlogUUID string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput) error {
 	if len(params) != 5 {
-		return nil, fmt.Errorf("combatlog version should have 5 columns, it has %v: %v", len(params), params)
+		return fmt.Errorf("combatlog version should have 5 columns, it has %v: %v", len(params), params)
 	}
 
-	finished, err := Atoi64(params[2]) //2136094
+	finished, err := Atoi64(params[2]) // 2136094
 	if err != nil {
 		log.Printf("failed to convert challange mode end event, field finished. got: %v", params[2])
-		return nil, err
+		return err
 	}
 
-	//in milli seconds
-	duration, err := Atoi64(params[4]) //2136094
+	// in milli seconds
+	duration, err := Atoi64(params[4]) // 2136094
 	if err != nil {
 		log.Printf("failed to convert challange mode end event, field duration. got: %v", params[4])
-		return nil, err
+		return err
 	}
 
 	currentTimeInSeconds := time.Now().Unix()
@@ -69,5 +71,20 @@ func challengeModeEnd(params []string, uploadUUID string, combatlogUUID string) 
 		},
 	}
 
-	return e, nil
+	rand.Seed(time.Now().UnixNano())
+	key := strconv.Itoa(rand.Int())
+
+	writeRecordsInputs := []*timestreamwrite.WriteRecordsInput{
+		{
+			// common attributes don't matter here, because this is a very rare
+			// event
+			CommonAttributes: &timestreamwrite.Record{
+				Dimensions: []*timestreamwrite.Dimension{},
+			},
+			Records: e,
+		},
+	}
+	rec[combatlogUUID][key] = writeRecordsInputs
+
+	return nil
 }

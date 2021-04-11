@@ -161,6 +161,7 @@ func AGW200(body string, headers map[string]string) events.APIGatewayV2HTTPRespo
 	}
 }
 
+// S3Event base structure for an s3 event, to unmarshal a json into it
 type S3Event struct {
 	Records []struct {
 		S3 struct {
@@ -217,6 +218,7 @@ func DynamoDBQuery2(client *dynamodb2.Client, input dynamodb2.QueryInput) (*dyna
 }
 */
 
+// DynamoDBPutItem writes a single item to dynamodb and always returns consumed capacity
 func DynamoDBPutItem(ctx aws.Context, svc *dynamodb.DynamoDB, ddbTableName *string, record interface{}) (*dynamodb.PutItemOutput, error) {
 	av, err := dynamodbattribute.MarshalMap(record)
 	if err != nil {
@@ -264,6 +266,9 @@ func DynamoDBPutItem2(client *dynamodb2.Client, ddbTableName *string, record int
 }
 */
 
+// KeysResponseToJson takes a dynamodb query output and converts it to be consumed by the frontend
+// mostly it makes sure the pagination works correctly
+// this is used for top keys and top keys per dungeon
 func KeysResponseToJson(result *dynamodb.QueryOutput, sorted, firstPage bool) (string, error) {
 	var items []DynamoDBKeys
 	var lastPage bool // controls if the next btn is shown
@@ -274,7 +279,7 @@ func KeysResponseToJson(result *dynamodb.QueryOutput, sorted, firstPage bool) (s
 	}
 	if result.LastEvaluatedKey != nil {
 		items = items[:len(items)-1] // we don't care about the last item
-		// getting 1 more item than we need and truncaten it off allows us to circumvent a dynamodb2 bug where
+		// getting 1 more item than we need and truncate it off allows us to circumvent a dynamodb2 bug where
 		// if 5 items are left to return and you get exactly return 5 items the last evaluated key is not null,
 		// which leads to the next request being completely empty
 		lastPage = false
@@ -439,6 +444,7 @@ func PlayerDamageDoneToJson(result *dynamodb.GetItemOutput) (string, error) {
 	return string(b), err
 }
 
+// KeysToJson is unused right now, I think it was the predecessor of KeysResponseToJson
 func KeysToJson(result *dynamodb.QueryOutput) (string, error) {
 	var items []DynamoDBKeys
 
@@ -534,6 +540,9 @@ func SNSPublishMsg2(client *sns2.Client, input string, topicArn *string) error {
 }
 */
 
+// TimestreamQuery runs a query against timestream and checks if the query is already finished.
+// timestream returns a response after ~6 seconds even if it is not finished. It checks the NextToken
+// and reruns the query if need be
 func TimestreamQuery(ctx aws.Context, query *string, querySvc *timestreamquery.TimestreamQuery) (*timestreamquery.QueryOutput, error) {
 	var result *timestreamquery.QueryOutput
 	var err error
@@ -612,43 +621,50 @@ func TimestreamQuery2(query *string, client *timestreamquery2.Client) (*timestre
 */
 
 // WriteToTimestream takes a slice of records to write and writes batches of 100 records to timestream
-func WriteToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWrite, e []*timestreamwrite.Record) error {
-	for i := 0; i < len(e); i += 100 {
+func WriteToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWrite, e *timestreamwrite.WriteRecordsInput) error {
+	// for i := 0; i < len(e); i += 100 {
+	e.DatabaseName = aws.String("wowmate-analytics")
+	e.TableName = aws.String("combatlogs")
 
-		// get the upper bound of the record to write, in case it is the
-		// last bit of records and i + 99 does not exist
-		j := 0
-		if i+99 > len(e) {
-			j = len(e)
-		} else {
-			j = i + 99
-		}
+	// get the upper bound of the record to write, in case it is the
+	// last bit of records and i + 99 does not exist
+	// j := 0
+	// if i+99 > len(e) {
+	// 	j = len(e)
+	// } else {
+	// 	j = i + 99
+	// }
 
-		// use common batching https://docs.aws.amazon.com/timestream/latest/developerguide/metering-and-pricing.writes.html#metering-and-pricing.writes.write-size-multiple-events
-		writeRecordsInput := &timestreamwrite.WriteRecordsInput{
-			// TODO: add to and read from env
-			DatabaseName: aws.String("wowmate-analytics"),
-			TableName:    aws.String("combatlogs"),
-			Records:      e[i:j], // only upload a part of the records
-		}
+	// use common batching https://docs.aws.amazon.com/timestream/latest/developerguide/metering-and-pricing.writes.html#metering-and-pricing.writes.write-size-multiple-events
+	// writeRecordsInput := &timestreamwrite.WriteRecordsInput{
+	// 	// TODO: add to and read from env
+	// 	DatabaseName: aws.String("wowmate-analytics"),
+	// 	TableName:    aws.String("combatlogs"),
+	// 	Records:      e[i:j], // only upload a part of the records
+	// }
+	var err error
 
-		var err error
+	// prettyStruct, err := PrettyStruct(e)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
+	// }
+	// log.Println(prettyStruct)
+	log.Println(len(e.Records))
 
-		if os.Getenv("LOCAL") == "true" {
-			_, err = writeSvc.WriteRecords(writeRecordsInput)
-		} else {
-			_, err = writeSvc.WriteRecordsWithContext(ctx, writeRecordsInput)
-		}
+	if os.Getenv("LOCAL") == "true" {
+		_, err = writeSvc.WriteRecords(e)
+	} else {
+		_, err = writeSvc.WriteRecordsWithContext(ctx, e)
+	}
+	if err != nil {
+		// debug info
+		prettyStruct, err := PrettyStruct(e)
 		if err != nil {
-			// debug info
-			// prettyStruct, err := PrettyStruct(e)
-			// if err != nil {
-			// 	return err
-			// }
-			// log.Println(prettyStruct)
-
-			return fmt.Errorf("failed to write to timestream: %v", err)
+			return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
 		}
+		log.Println(prettyStruct)
+
+		return fmt.Errorf("failed to write to timestream: %v", err)
 	}
 	return nil
 }
@@ -690,6 +706,7 @@ func UploadToTimestream2(cfg aws2.Config, e []types2.Record) error {
 }
 */
 
+// PrettyStruct converts a struct, slice of a struct or map into a readable string
 func PrettyStruct(input interface{}) (string, error) {
 	prettyJSON, err := json.MarshalIndent(input, "", "    ")
 	if err != nil {
@@ -698,6 +715,7 @@ func PrettyStruct(input interface{}) (string, error) {
 	return string(prettyJSON), nil
 }
 
+// DownloadS3 downloads a file from s3
 func DownloadS3(ctx aws.Context, downloader *s3manager.Downloader, bucketName string, objectKey string, fileContent io.WriterAt) error {
 	var err error
 
@@ -738,6 +756,7 @@ func downloadS32(cfg aws2.Config, bucketName string, objectKey string, fileConte
 }
 */
 
+// RenameFileS3 creates a copy of a file and deletes the old one, because you can't rename files =(
 func RenameFileS3(ctx aws.Context, s3Svc *s3.S3, oldName, newName, bucketName string) error {
 	source := fmt.Sprintf("%s/%s", bucketName, oldName)
 	escapedSource := url.PathEscape(source)

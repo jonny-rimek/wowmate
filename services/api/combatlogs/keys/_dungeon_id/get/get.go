@@ -46,6 +46,7 @@ var svc *dynamodb.DynamoDB
 func handler(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	response, logData, err := handle(ctx, request)
 	if err != nil {
+		//goland:noinspection GoNilness
 		golib.CanonicalLog(map[string]interface{}{
 			"rcu":            logData.Rcu,
 			"dungeon_id":     logData.DungeonID,
@@ -138,7 +139,7 @@ func paginatedQuery(input paginatedQueryInput) (paginatedQueryOutput, error) {
 			TableName:                 input.ddbTableName,
 			ScanIndexForward:          aws.Bool(false),
 			ReturnConsumedCapacity:    aws.String("TOTAL"),
-			Limit:                     aws.Int64(5 + 1),
+			Limit:                     aws.Int64(20 + 1),
 		},
 		sortAscending: false,
 		firstPage:     true,

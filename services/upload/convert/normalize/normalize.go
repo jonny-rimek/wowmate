@@ -2,26 +2,31 @@ package normalize
 
 import (
 	"bufio"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"github.com/gofrs/uuid"
 )
 
 // Normalize converts the combatlog to a slice of Event structs
-func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestreamwrite.Record, error) {
-	rec := make(map[string][]*timestreamwrite.Record)
-	var combatEvents []*timestreamwrite.Record
-	combatlogUUID := "" // after every COMBAT_LOG_VERSION
-	// BossFightUUID := ""
+func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string][]*timestreamwrite.WriteRecordsInput, error) {
+	// var combatEvents []*timestreamwrite.Record
+	var combatlogUUID string
+
+	rec := make(map[string]map[string][]*timestreamwrite.WriteRecordsInput)
+
+	if uploadUUID == "" {
+		return nil, fmt.Errorf("can't provide an empty uploadUUID")
+	}
 
 	// combatEvents2 = make([]Event, 0, 100000) //100.000 is an arbitrary value
-	// initialising the slice with a capacity to reduce the amount reallocations
+	// initialising the slice with a capacity to reduce the amount reallocation
 	// the difference in a small log was <1sec -> not worth
 
 	for scanner.Scan() {
 		// 4/24 10:42:30.561  COMBAT_LOG_VERSION
-		// every line starts with the date followed by the rest seperated with 2 spaces.
-		// the rest is seperated with commas
+		// every line starts with the date followed by the rest separated with 2 spaces.
+		// the rest is separated with commas
 
 		// IMPROVE:
 		// write version of .Split that accepts a pointer to the string
@@ -54,7 +59,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 		// 	// EventType:      params[0],
 		// }
 
-		// I don't want to add events if they are outside of a combatlog
+		// don' add events if they are outside of a combatlog
 		if combatlogUUID == "" && params[0] != "CHALLENGE_MODE_START" {
 			continue
 		}
@@ -93,39 +98,31 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 			// COMBAT_LOG_VERSION is always part of the log, but there are a couple of lines in between
 			// which would mean those wouldn't have the combatlog_uuid info
 			combatlogUUID = uuid.Must(uuid.NewV4()).String()
-			combatEvents = nil
+			rec[combatlogUUID] = make(map[string][]*timestreamwrite.WriteRecordsInput)
 
-			// 	TODO: fail if either uuid is empty
-			//		 I had another combatlog version after this event, check other logs
-			e, err := challengeModeStart(params, uploadUUID, combatlogUUID)
+			err := challengeModeStart(params, uploadUUID, combatlogUUID, rec)
 			if err != nil {
 				return rec, err
 			}
-			combatEvents = append(combatEvents, e...)
-			rec[combatlogUUID] = combatEvents
 
 		case "CHALLENGE_MODE_END":
-			e, err := challengeModeEnd(params, uploadUUID, combatlogUUID)
+			err := challengeModeEnd(params, uploadUUID, combatlogUUID, rec)
 			if err != nil {
 				return rec, err
 			}
-			combatEvents = append(combatEvents, e...)
-			rec[combatlogUUID] = combatEvents
 
-			// err = uploadS3(&r, sess, e.MythicplusUUID, csvBucket)
-			// if err != nil {
-			// 	return err
-			// }
+			combatlogUUID = ""
 
 		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
 		// 	err = e.importHeal(params)
 		case "SPELL_DAMAGE":
-			e, err := spellDamage(params, &uploadUUID, &combatlogUUID)
+			err := spellDamage(params, &uploadUUID, &combatlogUUID, rec)
 			if err != nil {
-				return rec, err
+				return nil, err
 			}
-			combatEvents = append(combatEvents, e)
-			rec[combatlogUUID] = combatEvents
+
+			// combatEvents = append(combatEvents, e)
+			// rec[combatlogUUID] = combatEvents
 
 		default:
 			// e.Unsupported = true

@@ -15,8 +15,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//this could just be a map[string]interface{}, but I kinda prefer to have a set structure
-//also I prefer to always have all fields availabe even if they have the null value
+// this could just be a map[string]interface{}, but I kinda prefer to have a set structure
+// also I prefer to always have all fields availabe even if they have the null value
 type logData struct {
 	Rcu           float64
 	EmptyQuery    bool
@@ -44,6 +44,7 @@ var svc *dynamodb.DynamoDB
 func handler(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
 	response, logData, err := handle(ctx, request)
 	if err != nil {
+		//goland:noinspection GoNilness
 		golib.CanonicalLog(map[string]interface{}{
 			"rcu":            logData.Rcu,
 			"err":            err.Error(),
@@ -98,7 +99,7 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 	if len(result.Items) == 0 {
 		logData.EmptyQuery = true
 		return golib.AGW200("", nil), logData, nil
-		//return golib.AGW404(), logData, nil
+		// return golib.AGW404(), logData, nil
 	}
 
 	logrus.Debug(result.Items)
@@ -125,11 +126,11 @@ func paginatedQuery(input paginatedQueryInput) (paginatedQueryOutput, error) {
 		queryInput: dynamodb.QueryInput{
 			ExpressionAttributeValues: expressionAttributeValues,
 			KeyConditionExpression:    aws.String("pk = :v1"),
-			IndexName:                 nil, //to use PK instead of GSI
+			IndexName:                 nil, // to use PK instead of GSI
 			TableName:                 input.ddbTableName,
 			ScanIndexForward:          aws.Bool(false),
 			ReturnConsumedCapacity:    aws.String("TOTAL"),
-			Limit:                     aws.Int64(5 + 1),
+			Limit:                     aws.Int64(20 + 1),
 		},
 		sortAscending: false,
 		firstPage:     true,
