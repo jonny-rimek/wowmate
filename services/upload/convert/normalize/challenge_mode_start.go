@@ -14,13 +14,13 @@ import (
 // v17
 // 1/24 16:47:38.068  CHALLENGE_MODE_START,"De Other Side",2291,377,10,[10,123,3,121]
 func challengeModeStart(params []string, uploadUUID string, combatlogUUID string) ([]*timestreamwrite.Record, error) {
-	dungeonID, err := Atoi64(params[2]) //2291
+	dungeonID, err := Atoi64(params[2]) // 2291
 	if err != nil {
 		log.Printf("failed to convert challange mode start event, field dungeon id. got: %v", params[2])
 		return nil, err
 	}
 
-	keyLevel, err := Atoi64(params[4]) //10
+	keyLevel, err := Atoi64(params[4]) // 10
 	if err != nil {
 		log.Printf("failed to convert challange mode start event, field key level. got: %v", params[4])
 		return nil, err

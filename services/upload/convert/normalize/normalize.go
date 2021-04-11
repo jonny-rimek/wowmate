@@ -9,10 +9,11 @@ import (
 )
 
 // Normalize converts the combatlog to a slice of Event structs
-func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestreamwrite.Record, error) {
-	rec := make(map[string][]*timestreamwrite.Record)
-	var combatEvents []*timestreamwrite.Record
+func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string][]*timestreamwrite.WriteRecordsInput, error) {
+	// var combatEvents []*timestreamwrite.Record
 	var combatlogUUID string
+
+	rec := make(map[string]map[string][]*timestreamwrite.WriteRecordsInput)
 
 	if uploadUUID == "" {
 		return nil, fmt.Errorf("can't provide an empty uploadUUID")
@@ -98,35 +99,39 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 			// which would mean those wouldn't have the combatlog_uuid info
 			combatlogUUID = uuid.Must(uuid.NewV4()).String()
 
-			// 	TODO: fail if either uuid is empty
-			//		 I had another combatlog version after this event, check other logs
-			e, err := challengeModeStart(params, uploadUUID, combatlogUUID)
-			if err != nil {
-				return rec, err
-			}
-			combatEvents = append(combatEvents, e...)
-			rec[combatlogUUID] = combatEvents
+			// bla = []*timestreamwrite.WriteRecordsInput{}
+			// rec[combatlogUUID] = []*timestreamwrite.WriteRecordsInput{}
+
+			// TODO: temp
+			// e, err := challengeModeStart(params, uploadUUID, combatlogUUID)
+			// if err != nil {
+			// 	return rec, err
+			// }
+			// combatEvents = append(combatEvents, e...)
+			// rec[combatlogUUID] = combatEvents
 
 		case "CHALLENGE_MODE_END":
-			e, err := challengeModeEnd(params, uploadUUID, combatlogUUID)
-			if err != nil {
-				return rec, err
-			}
-			combatEvents = append(combatEvents, e...)
-			rec[combatlogUUID] = combatEvents
+			// TODO: temp
+			// e, err := challengeModeEnd(params, uploadUUID, combatlogUUID)
+			// if err != nil {
+			// 	return rec, err
+			// }
+			// combatEvents = append(combatEvents, e...)
+			// rec[combatlogUUID] = combatEvents
 
 			combatlogUUID = ""
-			combatEvents = nil
+			// combatEvents = nil
+
 		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
 		// 	err = e.importHeal(params)
 		case "SPELL_DAMAGE":
-			e, err := spellDamage(params, &uploadUUID, &combatlogUUID)
+			err := spellDamage(params, &uploadUUID, &combatlogUUID, rec)
 			if err != nil {
-				return rec, err
+				return nil, err
 			}
 
-			combatEvents = append(combatEvents, e)
-			rec[combatlogUUID] = combatEvents
+			// combatEvents = append(combatEvents, e)
+			// rec[combatlogUUID] = combatEvents
 
 		default:
 			// e.Unsupported = true

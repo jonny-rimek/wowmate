@@ -621,44 +621,43 @@ func TimestreamQuery2(query *string, client *timestreamquery2.Client) (*timestre
 */
 
 // WriteToTimestream takes a slice of records to write and writes batches of 100 records to timestream
-func WriteToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWrite, e []*timestreamwrite.Record) error {
-	for i := 0; i < len(e); i += 100 {
+func WriteToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWrite, e *timestreamwrite.WriteRecordsInput) error {
+	// for i := 0; i < len(e); i += 100 {
 
-		// get the upper bound of the record to write, in case it is the
-		// last bit of records and i + 99 does not exist
-		j := 0
-		if i+99 > len(e) {
-			j = len(e)
-		} else {
-			j = i + 99
-		}
+	// get the upper bound of the record to write, in case it is the
+	// last bit of records and i + 99 does not exist
+	// j := 0
+	// if i+99 > len(e) {
+	// 	j = len(e)
+	// } else {
+	// 	j = i + 99
+	// }
 
-		// use common batching https://docs.aws.amazon.com/timestream/latest/developerguide/metering-and-pricing.writes.html#metering-and-pricing.writes.write-size-multiple-events
-		writeRecordsInput := &timestreamwrite.WriteRecordsInput{
-			// TODO: add to and read from env
-			DatabaseName: aws.String("wowmate-analytics"),
-			TableName:    aws.String("combatlogs"),
-			Records:      e[i:j], // only upload a part of the records
-		}
+	// use common batching https://docs.aws.amazon.com/timestream/latest/developerguide/metering-and-pricing.writes.html#metering-and-pricing.writes.write-size-multiple-events
+	// writeRecordsInput := &timestreamwrite.WriteRecordsInput{
+	// 	// TODO: add to and read from env
+	// 	DatabaseName: aws.String("wowmate-analytics"),
+	// 	TableName:    aws.String("combatlogs"),
+	// 	Records:      e[i:j], // only upload a part of the records
+	// }
 
-		var err error
-
-		if os.Getenv("LOCAL") == "true" {
-			_, err = writeSvc.WriteRecords(writeRecordsInput)
-		} else {
-			_, err = writeSvc.WriteRecordsWithContext(ctx, writeRecordsInput)
-		}
-		if err != nil {
-			// debug info
-			prettyStruct, err := PrettyStruct(e)
-			if err != nil {
-				return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
-			}
-			log.Println(prettyStruct)
-
-			return fmt.Errorf("failed to write to timestream: %v", err)
-		}
+	prettyStruct, err := PrettyStruct(e)
+	if err != nil {
+		return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
 	}
+	log.Println(prettyStruct)
+
+	if os.Getenv("LOCAL") == "true" {
+		_, err = writeSvc.WriteRecords(e)
+	} else {
+		_, err = writeSvc.WriteRecordsWithContext(ctx, e)
+	}
+	if err != nil {
+		// debug info
+
+		return fmt.Errorf("failed to write to timestream: %v", err)
+	}
+	// }
 	return nil
 }
 

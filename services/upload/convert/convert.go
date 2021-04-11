@@ -230,7 +230,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	s := bufio.NewScanner(bytes.NewReader(data))
 
-	rec, err := normalize.Normalize(s, uploadUUID)
+	nestedRecord, err := normalize.Normalize(s, uploadUUID)
 	if err != nil {
 		return logData, err
 	}
@@ -241,17 +241,21 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	// }
 	// logData.Records = len(combatEvents)
 
-	for combatlogUUID, e := range rec {
-		err = golib.WriteToTimestream(ctx, writeSvc, e)
-		if err != nil {
-			return logData, err
-		}
+	for _, record := range nestedRecord {
+		for combatlogUUID, writeRecordsInputs := range record {
+			for _, e := range writeRecordsInputs {
+				err = golib.WriteToTimestream(ctx, writeSvc, e)
+				if err != nil {
+					return logData, err
+				}
+			}
 
-		logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
+			logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
 
-		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
-		if err != nil {
-			return logData, err
+			err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
+			if err != nil {
+				return logData, err
+			}
 		}
 	}
 
