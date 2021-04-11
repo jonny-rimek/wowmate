@@ -2,6 +2,7 @@ package normalize
 
 import (
 	"log"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -13,19 +14,20 @@ import (
 // challengeModeStart gets the dungeonID, keyLevel and affixes
 // v17
 // 1/24 16:47:38.068  CHALLENGE_MODE_START,"De Other Side",2291,377,10,[10,123,3,121]
-func challengeModeStart(params []string, uploadUUID string, combatlogUUID string) ([]*timestreamwrite.Record, error) {
+func challengeModeStart(params []string, uploadUUID string, combatlogUUID string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput) error {
 	dungeonID, err := Atoi64(params[2]) // 2291
 	if err != nil {
 		log.Printf("failed to convert challange mode start event, field dungeon id. got: %v", params[2])
-		return nil, err
+		return err
 	}
 
 	keyLevel, err := Atoi64(params[4]) // 10
 	if err != nil {
 		log.Printf("failed to convert challange mode start event, field key level. got: %v", params[4])
-		return nil, err
+		return err
 	}
 
+	dungeonName := strings.Trim(params[1], "\"")
 	currentTimeInSeconds := time.Now().Unix()
 
 	var e = []*timestreamwrite.Record{
@@ -33,7 +35,7 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 			Dimensions: []*timestreamwrite.Dimension{
 				{
 					Name:  aws.String("dungeon_name"),
-					Value: aws.String(strings.Trim(params[1], "\"")),
+					Value: aws.String(dungeonName),
 				},
 				{
 					Name:  aws.String("upload_uuid"),
@@ -70,10 +72,10 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 	}
 
 	if len(params) >= 6 {
-		twoAffixID, err := Atoi64(strings.Trim(strings.Trim(params[5], "["), "]")) //10
+		twoAffixID, err := Atoi64(strings.Trim(strings.Trim(params[5], "["), "]")) // 10
 		if err != nil {
 			log.Printf("failed to convert challange mode start event, field level 2 affix. got: %v", params[5])
-			return nil, err
+			return err
 		}
 		r := &timestreamwrite.Record{
 			Dimensions: []*timestreamwrite.Dimension{
@@ -95,10 +97,10 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 		e = append(e, r)
 	}
 	if len(params) >= 7 {
-		fourAffixID, err := Atoi64(strings.Trim(params[6], "]")) //123
+		fourAffixID, err := Atoi64(strings.Trim(params[6], "]")) // 123
 		if err != nil {
 			log.Printf("failed to convert challange mode start event, field level 4 affix. got: %v", params[6])
-			return nil, err
+			return err
 		}
 		r := &timestreamwrite.Record{
 			Dimensions: []*timestreamwrite.Dimension{
@@ -120,10 +122,10 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 		e = append(e, r)
 	}
 	if len(params) >= 8 {
-		sevenAffixID, err := Atoi64(strings.Trim(params[7], "]")) //3
+		sevenAffixID, err := Atoi64(strings.Trim(params[7], "]")) // 3
 		if err != nil {
 			log.Printf("failed to convert challange mode start event, field level 7 affix. got: %v", params[7])
-			return nil, err
+			return err
 		}
 		r := &timestreamwrite.Record{
 			Dimensions: []*timestreamwrite.Dimension{
@@ -145,10 +147,10 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 		e = append(e, r)
 	}
 	if len(params) == 9 {
-		tenAffixID, err := Atoi64(strings.Trim(params[8], "]")) //121
+		tenAffixID, err := Atoi64(strings.Trim(params[8], "]")) // 121
 		if err != nil {
 			log.Printf("failed to convert challange mode start event, field level 10 affix. got: %v", params[8])
-			return nil, err
+			return err
 		}
 		r := &timestreamwrite.Record{
 			Dimensions: []*timestreamwrite.Dimension{
@@ -169,5 +171,21 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 		}
 		e = append(e, r)
 	}
-	return e, nil
+
+	rand.Seed(time.Now().UnixNano())
+	key := strconv.Itoa(rand.Int())
+
+	writeRecordsInputs := []*timestreamwrite.WriteRecordsInput{
+		{
+			// common attributes don't matter here, because this is a very rare
+			// event
+			CommonAttributes: &timestreamwrite.Record{
+				Dimensions: []*timestreamwrite.Dimension{},
+			},
+			Records: e,
+		},
+	}
+	rec[combatlogUUID][key] = writeRecordsInputs
+
+	return nil
 }

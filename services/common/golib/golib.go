@@ -623,6 +623,8 @@ func TimestreamQuery2(query *string, client *timestreamquery2.Client) (*timestre
 // WriteToTimestream takes a slice of records to write and writes batches of 100 records to timestream
 func WriteToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWrite, e *timestreamwrite.WriteRecordsInput) error {
 	// for i := 0; i < len(e); i += 100 {
+	e.DatabaseName = aws.String("wowmate-analytics")
+	e.TableName = aws.String("combatlogs")
 
 	// get the upper bound of the record to write, in case it is the
 	// last bit of records and i + 99 does not exist

@@ -58,6 +58,18 @@ func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec
 			rec[*combatlogUUID][key][last].Records = append(rec[*combatlogUUID][key][last].Records, &timestreamwrite.Record{
 				Dimensions: []*timestreamwrite.Dimension{
 					{
+						Name:  aws.String("caster_id"),
+						Value: aws.String(casterID),
+					},
+					{
+						Name:  aws.String("caster_name"), //
+						Value: aws.String(casterName),
+					},
+					{
+						Name:  aws.String("caster_type"),
+						Value: aws.String(casterType),
+					},
+					{
 						Name:  aws.String("rnd"),
 						Value: aws.String(strconv.Itoa(rand.Int())),
 						// replace with time from log
@@ -67,8 +79,6 @@ func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec
 			})
 		} else {
 			writeInput := &timestreamwrite.WriteRecordsInput{
-				DatabaseName: aws.String("wowmate-analytics"),
-				TableName:    aws.String("combatlogs"),
 				CommonAttributes: &timestreamwrite.Record{
 					Dimensions: []*timestreamwrite.Dimension{
 						{
@@ -94,7 +104,7 @@ func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec
 					},
 					MeasureName:      aws.String("damage"),
 					MeasureValueType: aws.String("BIGINT"),
-					TimeUnit:         aws.String("SECONDS"), // can specify seconds as rec for timestream instead of ms!
+					TimeUnit:         aws.String("SECONDS"), // can specify seconds for timestream instead of ms!
 					Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
 					// I don't care about this time, it just the time we create this entry, not the time of the combatlog event
 					// I also don't care about the exact time this is written, so I always use the time the first record is created
@@ -133,8 +143,6 @@ func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec
 
 	writeRecordsInputs := []*timestreamwrite.WriteRecordsInput{
 		{
-			DatabaseName: aws.String("wowmate-analytics"),
-			TableName:    aws.String("combatlogs"),
 			CommonAttributes: &timestreamwrite.Record{
 				Dimensions: []*timestreamwrite.Dimension{
 					{

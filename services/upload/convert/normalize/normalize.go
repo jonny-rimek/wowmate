@@ -98,31 +98,20 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 			// COMBAT_LOG_VERSION is always part of the log, but there are a couple of lines in between
 			// which would mean those wouldn't have the combatlog_uuid info
 			combatlogUUID = uuid.Must(uuid.NewV4()).String()
-
 			rec[combatlogUUID] = make(map[string][]*timestreamwrite.WriteRecordsInput)
 
-			// bla = []*timestreamwrite.WriteRecordsInput{}
-			// rec[combatlogUUID] = []*timestreamwrite.WriteRecordsInput{}
-
-			// TODO: temp
-			// e, err := challengeModeStart(params, uploadUUID, combatlogUUID)
-			// if err != nil {
-			// 	return rec, err
-			// }
-			// combatEvents = append(combatEvents, e...)
-			// rec[combatlogUUID] = combatEvents
+			err := challengeModeStart(params, uploadUUID, combatlogUUID, rec)
+			if err != nil {
+				return rec, err
+			}
 
 		case "CHALLENGE_MODE_END":
-			// TODO: temp
-			// e, err := challengeModeEnd(params, uploadUUID, combatlogUUID)
-			// if err != nil {
-			// 	return rec, err
-			// }
-			// combatEvents = append(combatEvents, e...)
-			// rec[combatlogUUID] = combatEvents
+			err := challengeModeEnd(params, uploadUUID, combatlogUUID, rec)
+			if err != nil {
+				return rec, err
+			}
 
 			combatlogUUID = ""
-			// combatEvents = nil
 
 		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
 		// 	err = e.importHeal(params)
