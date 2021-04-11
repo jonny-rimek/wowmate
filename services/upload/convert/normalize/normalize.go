@@ -124,6 +124,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string][]*timestr
 			if err != nil {
 				return rec, err
 			}
+
 			combatEvents = append(combatEvents, e)
 			rec[combatlogUUID] = combatEvents
 

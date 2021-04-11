@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS combatlogs (
 // https://mholt.github.io/json-to-go/ best tool EVER
 
 type logData struct {
-	CombatlogUUID string
+	CombatlogUUID []string
 	UploadUUID    string
 	BucketName    string
 	ObjectKey     string
@@ -187,7 +187,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	}
 
 	if len(req.Records) != 1 {
-		//had some cases where the len of records was 0, should keep an eye on that
+		// had some cases where the len of records was 0, should keep an eye on that
 		return logData, fmt.Errorf("s3 event contains %v elements instead of 1", len(req.Records))
 	}
 
@@ -234,8 +234,6 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	if err != nil {
 		return logData, err
 	}
-	// TODO
-	// logData.CombatlogUUID = combatlogUUID
 
 	// if os.Getenv("LOCAL") == "true" {
 	// uploading to timestream takes too long locally, option to not run it
@@ -243,13 +241,15 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	// }
 	// logData.Records = len(combatEvents)
 
-	for input, e := range rec {
+	for combatlogUUID, e := range rec {
 		err = golib.WriteToTimestream(ctx, writeSvc, e)
 		if err != nil {
 			return logData, err
 		}
 
-		err = golib.SNSPublishMsg(ctx, snsSvc, input, &topicArn)
+		logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
+
+		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
 		if err != nil {
 			return logData, err
 		}
