@@ -250,6 +250,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 				}
 			}
 
+			// fix logic, its logging smth different atm
 			logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
 
 			err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)

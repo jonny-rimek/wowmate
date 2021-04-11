@@ -99,6 +99,9 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 			// which would mean those wouldn't have the combatlog_uuid info
 			combatlogUUID = uuid.Must(uuid.NewV4()).String()
 
+			var t = make(map[string][]*timestreamwrite.WriteRecordsInput)
+			rec[combatlogUUID] = t
+
 			// bla = []*timestreamwrite.WriteRecordsInput{}
 			// rec[combatlogUUID] = []*timestreamwrite.WriteRecordsInput{}
 

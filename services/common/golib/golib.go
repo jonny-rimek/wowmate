@@ -640,12 +640,14 @@ func WriteToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWrit
 	// 	TableName:    aws.String("combatlogs"),
 	// 	Records:      e[i:j], // only upload a part of the records
 	// }
+	var err error
 
-	prettyStruct, err := PrettyStruct(e)
-	if err != nil {
-		return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
-	}
-	log.Println(prettyStruct)
+	// prettyStruct, err := PrettyStruct(e)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
+	// }
+	// log.Println(prettyStruct)
+	log.Println(len(e.Records))
 
 	if os.Getenv("LOCAL") == "true" {
 		_, err = writeSvc.WriteRecords(e)
@@ -654,10 +656,14 @@ func WriteToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWrit
 	}
 	if err != nil {
 		// debug info
+		prettyStruct, err := PrettyStruct(e)
+		if err != nil {
+			return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
+		}
+		log.Println(prettyStruct)
 
 		return fmt.Errorf("failed to write to timestream: %v", err)
 	}
-	// }
 	return nil
 }
 
