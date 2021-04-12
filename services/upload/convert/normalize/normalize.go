@@ -114,7 +114,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 			combatlogUUID = ""
 
 		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
-		case "SPELL_DAMAGE", "SPELL_PERIODIC_DAMAGE", "RANGE_DAMAGE":
+		case "SPELL_DAMAGE", "SPELL_PERIODIC_DAMAGE", "RANGE_DAMAGE", "SWING_DAMAGE":
 			err := spellDamage(params, &uploadUUID, &combatlogUUID, rec)
 			if err != nil {
 				return nil, err
