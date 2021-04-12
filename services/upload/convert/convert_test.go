@@ -15,33 +15,33 @@ func Test_uploadUUID(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "get upload uuid from s3 key with .txt",
-			args: args{s: "upload/2020/10/7/23/e894fa50-c4ba-42e3-ae87-b9076630f2b6.txt"},
-			want: "e894fa50-c4ba-42e3-ae87-b9076630f2b6",
+			name:    "get upload uuid from s3 key with .txt",
+			args:    args{s: "upload/2020/10/7/23/e894fa50-c4ba-42e3-ae87-b9076630f2b6.txt"},
+			want:    "e894fa50-c4ba-42e3-ae87-b9076630f2b6",
 			wantErr: false,
 		},
 		{
-			name: "get upload uuid from s3 key with .zip",
-			args: args{s: "upload/2020/10/7/23/e894fa50-c4ba-42e3-ae87-b9076630f2b6.zip"},
-			want: "e894fa50-c4ba-42e3-ae87-b9076630f2b6",
+			name:    "get upload uuid from s3 key with .zip",
+			args:    args{s: "upload/2020/10/7/23/e894fa50-c4ba-42e3-ae87-b9076630f2b6.zip"},
+			want:    "e894fa50-c4ba-42e3-ae87-b9076630f2b6",
 			wantErr: false,
 		},
 		{
-			name: "get upload uuid from s3 key with .txt.gz",
-			args: args{s: "upload/2020/10/7/23/e894fa50-c4ba-42e3-ae87-b9076630f2b6.txt.gz"},
-			want: "e894fa50-c4ba-42e3-ae87-b9076630f2b6",
+			name:    "get upload uuid from s3 key with .txt.gz",
+			args:    args{s: "upload/2020/10/7/23/e894fa50-c4ba-42e3-ae87-b9076630f2b6.txt.gz"},
+			want:    "e894fa50-c4ba-42e3-ae87-b9076630f2b6",
 			wantErr: false,
 		},
 		{
-			name: "fail if input is empty",
-			args: args{s: ""},
-			want: "",
+			name:    "fail if input is empty",
+			args:    args{s: ""},
+			want:    "",
 			wantErr: true,
 		},
 		{
-			name: "get upload uuid from s3 key with .txt",
-			args: args{s: "upload/2020/10/7/e894fa50-c4ba-42e3-ae87-b9076630f2b6.txt"}, // hour part is missing
-			want: "",
+			name:    "get upload uuid from s3 key with .txt",
+			args:    args{s: "upload/2020/10/7/e894fa50-c4ba-42e3-ae87-b9076630f2b6.txt"}, // hour part is missing
+			want:    "",
 			wantErr: true,
 		},
 	}

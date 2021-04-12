@@ -209,8 +209,6 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	logData.ObjectKey = objectKey
 	logData.UploadUUID = uploadUUID
 
-
-
 	// zipped files are usually around 8% of the original size
 	logData.FileSize, err = golib.SizeOfS3Object(ctx, s3Svc, bucketName, objectKey)
 	if err != nil {

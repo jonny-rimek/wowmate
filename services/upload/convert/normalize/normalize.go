@@ -108,14 +108,13 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 		case "CHALLENGE_MODE_END":
 			err := challengeModeEnd(params, uploadUUID, combatlogUUID, rec)
 			if err != nil {
-				return rec, err
+				return nil, err
 			}
 
 			combatlogUUID = ""
 
 		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
-		// 	err = e.importHeal(params)
-		case "SPELL_DAMAGE":
+		case "SPELL_DAMAGE", "SPELL_PERIODIC_DAMAGE":
 			err := spellDamage(params, &uploadUUID, &combatlogUUID, rec)
 			if err != nil {
 				return nil, err
