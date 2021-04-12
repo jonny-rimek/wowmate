@@ -193,7 +193,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	bucketName := req.Records[0].S3.Bucket.Name
 	objectKey := req.Records[0].S3.Object.Key
-	uploadUUID := uploadUUID(objectKey)
+	uploadUUID, _ := uploadUUID(objectKey)
 
 	logData.BucketName = bucketName
 	logData.ObjectKey = objectKey
@@ -331,14 +331,22 @@ func readZipFile(zf *zip.File) ([]byte, error) {
 	return ioutil.ReadAll(f)
 }
 
-func uploadUUID(s string) string {
-	// TODO: check if string is empty and return error
-	//	update test too
+func uploadUUID(s string) (string, error) {
+	if s == "" {
+		return "", fmt.Errorf("input can't be empty")
+	}
 	s = strings.TrimSuffix(s, ".txt")
 	s = strings.TrimSuffix(s, ".txt.gz")
 	s = strings.TrimSuffix(s, ".zip")
 
-	return strings.Split(s, "/")[5]
+	split := strings.Split(s, "/")
+	correctLength := 6
+	if len(split) != correctLength {
+		return "", fmt.Errorf("input has the wrong length, got %d want %d", len(split), correctLength)
+	}
+
+	lastElement := split[correctLength-1]
+	return lastElement, nil
 }
 
 func main() {
