@@ -37,13 +37,13 @@ export class QueryTimestream extends cdk.Construct {
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 128,
-			timeout: cdk.Duration.seconds(40),
+			timeout: cdk.Duration.seconds(10),
 			environment: {
 				TOPIC_ARN: this.topic.topicArn,
 				LOCAL: "false",
 				...props.envVars,
 			},
-			reservedConcurrentExecutions: 75,
+			reservedConcurrentExecutions: 60,
 			logRetention: RetentionDays.ONE_MONTH,
 			tracing: lambda.Tracing.ACTIVE,
 			retryAttempts: 2, //default
