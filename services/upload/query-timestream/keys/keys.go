@@ -161,6 +161,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			WHERE
 				combatlog_uuid = '%v' AND
 				(caster_type = '0x512' OR caster_type = '0x511') AND
+				caster_id != '0000000000000000' AND -- sometime the caster_id is empty, dunno why
 		  		time between ago(15m) and now()
 			GROUP BY
 				caster_name, caster_id, combatlog_uuid
