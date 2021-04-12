@@ -121,9 +121,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 				return nil, err
 			}
 
-			// combatEvents = append(combatEvents, e)
-			// rec[combatlogUUID] = combatEvents
-
 		default:
 			// e.Unsupported = true
 		}

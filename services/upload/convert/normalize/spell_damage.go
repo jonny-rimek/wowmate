@@ -16,19 +16,22 @@ import (
 // "Risen Cultist",0x10a48,0x0,50842,"Blood Boil", 0x20,Creature-0-4234-2291-11942-168992-00000DA4A7,0000000000000000,177038,177822,
 // 0,0,1071,0,0,2434,2434,0,2943.32,-2219.79,1680,3.6342,60,784,783,-1,32,0,0,0,nil,nil,nil
 //
+//
+// 1/24 16:47:51.662  SPELL_DAMAGE,Player-581-04A01EDA,"Ayléén-Blackrock",0x511,0x0,Creature-0-4234-2291-11942-168992-00000DA4A7,"Risen Cultist",0x10a48,0x0,50842,"Blood Boil", 0x20,Creature-0-4234-2291-11942-168992-00000DA4A7,0000000000000000,177038,177822,0,0,1071,0,0,2434,2434,0,2943.32,-2219.79,1680,3.6342,60,784,783,-1,32,0,0,0,nil,nil,nil
+// 1/24 16:48:17.916  SPELL_PERIODIC_DAMAGE,Player-3674-0906D09A,"Bihla-TwistingNether",0x512,0x0,Creature-0-4234-2291-11942-168992-00020DA4A7,"Risen Cultist",0xa48,0x0,204213,"Purge the Wicked",0x4,Creature-0-4234-2291-11942-168992-00020DA4A7,0000000000000000,748,177822,0,0,1071,0,0,2434,2434,0,2903.19,-2224.57,1680,4.6220,60,483,241,-1,4,0,0,0,1,nil,nil
 // passing in the uuids as a pointer to the string reduced the mb usage by a couple MB
 func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput) error {
 	if len(params) != 39 {
 		return fmt.Errorf("combatlog version should have 39 columns, it has %v: %v", len(params), params)
 	}
 
-	actualAmount, err := Atoi64(params[29]) // 1287
+	actualAmount, err := Atoi64(params[29]) // 783
 	if err != nil {
-		log.Printf("failed to convert damage event, field actual amount. got: %v", params[27])
+		log.Printf("failed to convert damage event, field actual amount. got: %v", params[29])
 		return err
 	}
 
-	spellID, err := strconv.Atoi(params[9]) // 283810
+	spellID, err := strconv.Atoi(params[9]) // 50842
 	if err != nil {
 		log.Printf("failed to convert damage event, field spell id. got: %v", params[9])
 		return err

@@ -193,18 +193,23 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	bucketName := req.Records[0].S3.Bucket.Name
 	objectKey := req.Records[0].S3.Object.Key
-	uploadUUID, _ := uploadUUID(objectKey)
+
+	var maxSizeInKB int
+	maxSizeInKB, logData.FileType, err = fileType(objectKey)
+	if err != nil {
+		return logData, err
+	}
+
+	uploadUUID, err := uploadUUID(objectKey)
+	if err != nil {
+		return logData, fmt.Errorf("failed to extract the uploadUUID: %v", err.Error())
+	}
 
 	logData.BucketName = bucketName
 	logData.ObjectKey = objectKey
 	logData.UploadUUID = uploadUUID
 
-	var maxSizeInKB int
 
-	maxSizeInKB, logData.FileType, err = fileType(objectKey)
-	if err != nil {
-		return logData, err
-	}
 
 	// zipped files are usually around 8% of the original size
 	logData.FileSize, err = golib.SizeOfS3Object(ctx, s3Svc, bucketName, objectKey)
@@ -303,7 +308,6 @@ func readFileTypes(fileType string, fileContent *aws.WriteAtBuffer) ([]byte, err
 	return data, nil
 }
 
-// TODO: ez test
 func fileType(objectKey string) (int, string, error) {
 	var fileType string
 	var maxSizeInKB int
