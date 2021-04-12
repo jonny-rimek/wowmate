@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -58,7 +59,19 @@ func main() {
 	queueURL := "https://sqs.us-east-1.amazonaws.com/461497339039/wm-dev-ConvertProcessingQueueE8D6E023-17QQELE95GJC8"
 
 	// one batch contains 10 messages, to send 7,5k events set amount to 750
-	err = sendMessage(sqsBatchMessageSender, svc, &s3Event, &queueURL, 10)
+	var amount int
+	arg := os.Args
+	log.Println(arg)
+	if len(arg) == 1 {
+		amount = 5 // 5*10
+	}
+	amount, err = strconv.Atoi(arg[1])
+	if err != nil {
+		log.Println("failed to convert cli argument to int")
+		return
+	}
+
+	err = sendMessage(sqsBatchMessageSender, svc, &s3Event, &queueURL, amount)
 	if err != nil {
 		log.Println(err)
 		return
