@@ -2,7 +2,6 @@ package normalize
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"strconv"
 	"time"
@@ -54,14 +53,12 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 		if params[0] != "SWING_DAMAGE" {
 			actualAmount, err = Atoi64(params[29]) // 783
 			if err != nil {
-				log.Printf("failed to convert damage event, field actual amount. got: %v", params[29])
-				return err
+				return fmt.Errorf("failed to convert damage event, field actual amount. got: %v. error %v", params[29], err)
 			}
 		} else {
 			actualAmount, err = Atoi64(params[26])
 			if err != nil {
-				log.Printf("failed to convert damage event, field actual amount. got: %v", params[26])
-				return err
+				return fmt.Errorf("failed to convert damage event, field actual amount. got: %v. error: %v", params[26], err)
 			}
 		}
 	} else {
@@ -74,29 +71,25 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 
 			actualAmount, err = Atoi64(params[29]) // 783
 			if err != nil {
-				log.Printf("failed to convert damage event, field actual amount. got: %v", params[29])
-				return err
+				return fmt.Errorf("failed to convert damage event, field actual amount. got: %v. error: %v", params[29], err)
 			}
 
 			spellID, err = strconv.Atoi(params[9]) // 50842
 			if err != nil {
-				log.Printf("failed to convert damage event, field spell id. got: %v", params[9])
-				return err
+				return fmt.Errorf("failed to convert damage event, field spell id. got: %v. error %v", params[9], err)
 			}
 			spellName = trimQuotes(params[10])
 		} else {
 			if len(params) != 36 {
-				return fmt.Errorf("SWING_DAMAGE should have 36 columns, it has %v: %v", len(params), params)
+				return fmt.Errorf("SWING_DAMAGE should have 36 columns, it has %v: %v. error: %v", len(params), params, err)
 			}
 
 			actualAmount, err = Atoi64(params[26])
 			if err != nil {
-				log.Printf("failed to convert damage event, field actual amount. got: %v", params[26])
-				return err
+				return fmt.Errorf("failed to convert damage event, field actual amount. got: %v. error: %v", params[26], err)
 			}
 
 			spellID = 42013370310 // just a random number
-			// TODO: use different name if a pet auto attacks
 			spellName = "Auto Attack"
 		}
 
@@ -121,7 +114,6 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 
 		if len(tmp[last].Records) < 100 {
 			rec[*combatlogUUID][key][last].Records = append(rec[*combatlogUUID][key][last].Records, &timestreamwrite.Record{
-				// TODO: extra dimensions and common attribute to vars and reuse
 				Dimensions: []*timestreamwrite.Dimension{
 					{
 						Name:  aws.String("caster_id"),
