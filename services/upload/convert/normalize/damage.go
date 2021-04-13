@@ -108,10 +108,6 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 	currentTimeInSeconds = time.Now().Unix()
 	rand.Seed(time.Now().UnixNano())
 
-	if exists == true {
-		log.Printf("caster id %s, caster name %s caster type %s spell id %d spell name %s actual amount %d ", casterID, casterName, casterType, spellID, spellName, actualAmount)
-	}
-
 	key := strconv.Itoa(spellID)
 
 	_, exists = rec[*combatlogUUID][key]

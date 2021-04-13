@@ -242,12 +242,12 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	// uploading to timestream takes too long locally, option to not run it
 	//	return logData, nil
 	// }
-	// logData.Records = len(combatEvents)
 
 	for combatlogUUID, record := range nestedRecord {
 		for _, writeRecordsInputs := range record {
 
 			for _, e := range writeRecordsInputs {
+				logData.Records += len(e.Records)
 				err = golib.WriteToTimestream(ctx, writeSvc, e)
 				if err != nil {
 					return logData, err
