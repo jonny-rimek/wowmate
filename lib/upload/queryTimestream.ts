@@ -43,7 +43,7 @@ export class QueryTimestream extends cdk.Construct {
 				LOCAL: "false",
 				...props.envVars,
 			},
-			reservedConcurrentExecutions: 60,
+			reservedConcurrentExecutions: 15,
 			logRetention: RetentionDays.ONE_MONTH,
 			tracing: lambda.Tracing.ACTIVE,
 			retryAttempts: 2, //default

@@ -641,9 +641,10 @@ func WriteToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWrit
 		// 	return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
 		// }
 		// log.Println(prettyStruct)
-		log.Println(err)
+		log.Printf("failed to write to timestream: %v", err)
+		panic(err)
 
-		return fmt.Errorf("failed to write to timestream: %v", err)
+		// return fmt.Errorf("failed to write to timestream: %v", err)
 	}
 	// log.Println("inside done")
 	return nil

@@ -35,7 +35,7 @@ export class Convert extends cdk.Construct {
 				//maxReceiveCount: 3,
 				maxReceiveCount: 1, //no need during dev
 			},
-			visibilityTimeout: cdk.Duration.minutes(18) //6x lambda duration
+			visibilityTimeout: cdk.Duration.seconds(360) //6x lambda duration
 		});
 
         const topic = new sns.Topic(this, 'Topic', {})
@@ -52,13 +52,13 @@ export class Convert extends cdk.Construct {
 			runtime: lambda.Runtime.GO_1_X,
 			// memorySize: 3584, //exactly 2 core
 			memorySize: 1792, //exactly 1 core
-			timeout: cdk.Duration.seconds(30),
+			timeout: cdk.Duration.seconds(60),
 			environment: {
 				TOPIC_ARN: topic.topicArn,
 				LOCAL: "false",
 				...props.envVars,
 			},
-			reservedConcurrentExecutions: 60,
+			reservedConcurrentExecutions: 15,
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			retryAttempts: 0, 	//0 in dev, but it has sqs as target, afaik this is only for async.

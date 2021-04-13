@@ -244,8 +244,8 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		return logData, fmt.Errorf("normalizing failed: %v", err)
 	}
 
-	maxGoroutines := 100
-	var ch = make(chan *timestreamwrite.WriteRecordsInput, 200) // This number 200 can be anything as long as it's larger than maxGoroutines
+	maxGoroutines := 15
+	var ch = make(chan *timestreamwrite.WriteRecordsInput, 300) // This number 200 can be anything as long as it's larger than maxGoroutines
 	var wg sync.WaitGroup
 	// errorChannel := make(chan error)
 
