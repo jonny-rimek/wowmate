@@ -249,6 +249,8 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	var wg sync.WaitGroup
 	// errorChannel := make(chan error)
 
+	var writeErr error
+
 	wg.Add(maxGoroutines) // this start maxGoroutines number of goroutines that wait for something to do
 	for i := 0; i < maxGoroutines; i++ {
 		go func() {
@@ -258,8 +260,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 					wg.Done()
 					return
 				}
-				// TODO: handle error
-				golib.WriteToTimestream(ctx, writeSvc, a)
+				writeErr = golib.WriteToTimestream(ctx, writeSvc, a)
 				// errorChannel <- golib.WriteToTimestream(ctx, writeSvc, a)
 			}
 		}()
@@ -271,30 +272,21 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 			for _, e := range writeRecordsInputs { // array of TimestreamWriteInputs
 				ch <- e                           // add i to the queue
 				logData.Records += len(e.Records) // not sure if this is problematic or I should use channels
+
+				// <-errorChannel
+				// err := <-errorChannel
+				// errs = append(errs, err)
 			}
 		}
 	}
 
-	// var errs []error
-	//
-	// for _, record := range nestedRecord { // group by different keys
-	// 	for _, writeRecordsInputs := range record { // grouped by key to use common attribute
-	// 		for range writeRecordsInputs { // array of TimestreamWriteInputs
-	// 			err := <-errorChannel
-	// 			errs = append(errs, err)
-	// 		}
-	// 	}
-	// }
-	//
-	// for _, err := range errs {
-	// 	if err != nil {
-	// 		return logData, err
-	// 	}
-	// }
-	//
 	// close(errorChannel)
 	close(ch) // This tells the goroutines there's nothing else to do
 	wg.Wait() // Wait for the threads to finish
+
+	if writeErr != nil {
+		return logData, writeErr
+	}
 
 	for combatlogUUID := range nestedRecord { // group by different keys
 		logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
