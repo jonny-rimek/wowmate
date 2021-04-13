@@ -49,7 +49,9 @@ func main() {
 
 	svc := sqs.New(sess)
 
-	data, err := ioutil.ReadFile("../s3event.json")
+	arg := os.Args
+
+	data, err := ioutil.ReadFile(arg[1])
 	if err != nil {
 		log.Println("File reading error", err)
 		return
@@ -60,16 +62,18 @@ func main() {
 
 	// one batch contains 10 messages, to send 7,5k events set amount to 750
 	var amount int
-	arg := os.Args
-	log.Println(arg)
-	if len(arg) == 1 {
-		amount = 5 // 5*10
+
+	// if no argument is provided to the cli send 1 batch of messages aka 10
+	if len(arg) == 2 {
+		amount = 1
+	} else {
+		amount, err = strconv.Atoi(arg[2])
+		if err != nil {
+			log.Println("failed to convert cli argument to int")
+			return
+		}
 	}
-	amount, err = strconv.Atoi(arg[1])
-	if err != nil {
-		log.Println("failed to convert cli argument to int")
-		return
-	}
+
 
 	err = sendMessage(sqsBatchMessageSender, svc, &s3Event, &queueURL, amount)
 	if err != nil {

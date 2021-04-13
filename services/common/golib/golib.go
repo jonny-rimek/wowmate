@@ -622,25 +622,30 @@ func TimestreamQuery2(query *string, client *timestreamquery2.Client) (*timestre
 
 // WriteToTimestream takes a slice of records to write and writes batches of 100 records to timestream
 func WriteToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWrite, e *timestreamwrite.WriteRecordsInput) error {
+	// log.Println("inside")
 	e.DatabaseName = aws.String("wowmate-analytics")
 	e.TableName = aws.String("combatlogs")
 
 	var err error
 	if os.Getenv("LOCAL") == "true" {
 		_, err = writeSvc.WriteRecords(e)
+		// log.Println("local")
 	} else {
 		_, err = writeSvc.WriteRecordsWithContext(ctx, e)
+		// log.Println("not local")
 	}
 	if err != nil {
 		// debug info
-		prettyStruct, err := PrettyStruct(e)
-		if err != nil {
-			return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
-		}
-		log.Println(prettyStruct)
+		// prettyStruct, err := PrettyStruct(e)
+		// if err != nil {
+		// 	return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
+		// }
+		// log.Println(prettyStruct)
+		log.Println(err)
 
 		return fmt.Errorf("failed to write to timestream: %v", err)
 	}
+	// log.Println("inside done")
 	return nil
 }
 

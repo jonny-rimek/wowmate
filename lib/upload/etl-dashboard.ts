@@ -198,6 +198,20 @@ all combatlog data is ingested into timestream to process.
 					height: 6,
 				}),
 				new GraphWidget({
+					title: 'Number of WriteRecords',
+					left: [
+						new cloudwatch.Metric({
+							metricName: 'SuccessfulRequestLatency',
+							namespace: 'AWS/Timestream',
+							dimensions: { DatabaseName: 'wowmate-analytics', TableName: 'combatlogs', Operation: 'WriteRecords' },
+							statistic: 'SampleCount',
+							period: cdk.Duration.minutes(1),
+						}),
+					],
+					stacked: false,
+					width: 4
+				}),
+				new GraphWidget({
 					title: 'WriteRecords Latency',
 					left: [
 						new cloudwatch.Metric({
@@ -234,20 +248,6 @@ all combatlog data is ingested into timestream to process.
 							dimensions: { Operation: 'Query' },
 							statistic: 'SampleCount',
 							label: 'Query',
-							period: cdk.Duration.minutes(1),
-						}),
-					],
-					stacked: false,
-					width: 4
-				}),
-				new GraphWidget({
-					title: 'Number of WriteRecords',
-					left: [
-						new cloudwatch.Metric({
-							metricName: 'SuccessfulRequestLatency',
-							namespace: 'AWS/Timestream',
-							dimensions: { DatabaseName: 'wowmate-analytics', TableName: 'combatlogs', Operation: 'WriteRecords' },
-							statistic: 'SampleCount',
 							period: cdk.Duration.minutes(1),
 						}),
 					],

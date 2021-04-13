@@ -35,7 +35,7 @@ export class Convert extends cdk.Construct {
 				//maxReceiveCount: 3,
 				maxReceiveCount: 1, //no need during dev
 			},
-			visibilityTimeout: cdk.Duration.minutes(90) //6x lambda duration
+			visibilityTimeout: cdk.Duration.minutes(18) //6x lambda duration
 		});
 
         const topic = new sns.Topic(this, 'Topic', {})
@@ -52,16 +52,17 @@ export class Convert extends cdk.Construct {
 			runtime: lambda.Runtime.GO_1_X,
 			// memorySize: 3584, //exactly 2 core
 			memorySize: 1792, //exactly 1 core
-			timeout: cdk.Duration.minutes(5),
+			timeout: cdk.Duration.minutes(3),
 			environment: {
 				TOPIC_ARN: topic.topicArn,
 				LOCAL: "false",
 				...props.envVars,
 			},
-			reservedConcurrentExecutions: 150,
+			reservedConcurrentExecutions: 2,
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
-			retryAttempts: 2, //default
+			retryAttempts: 0, 	//0 in dev, but it has sqs as target, afaik this is only for async.
+								// sqs invokes would be retried via the sqs maxReceiveCount
 			/* the source is sqs, which invokes the lambda synchronously, ergo no onFailure or onSuccess =(
             onFailure
 			onSuccess:

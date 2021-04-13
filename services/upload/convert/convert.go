@@ -116,28 +116,29 @@ var writeSvc *timestreamwrite.TimestreamWrite
 func handler(ctx aws.Context, e golib.SQSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
-		err2 := golib.RenameFileS3(
-			ctx,
-			s3Svc,
-			logData.ObjectKey,
-			fmt.Sprintf("error/%v", logData.UploadUUID),
-			logData.BucketName,
-		)
-		if err2 != nil {
-			golib.CanonicalLog(map[string]interface{}{
-				"combatlog_uuid":  logData.CombatlogUUID,
-				"file_size_in_kb": logData.FileSize,
-				"file_type":       logData.FileType,
-				"upload_uuid":     logData.UploadUUID,
-				"object_key":      logData.ObjectKey,
-				"bucket_name":     logData.BucketName,
-				"err":             err.Error(),
-				"err2":            err2.Error(),
-				"records":         logData.Records, // printing record in case of error to better debug
-				"event":           e,
-			})
-			return err
-		}
+		// reactivate to release, ruins my load tests
+		// err2 := golib.RenameFileS3(
+		// 	ctx,
+		// 	s3Svc,
+		// 	logData.ObjectKey,
+		// 	fmt.Sprintf("error/%v", logData.UploadUUID),
+		// 	logData.BucketName,
+		// )
+		// if err2 != nil {
+		// 	golib.CanonicalLog(map[string]interface{}{
+		// 		"combatlog_uuid":  logData.CombatlogUUID,
+		// 		"file_size_in_kb": logData.FileSize,
+		// 		"file_type":       logData.FileType,
+		// 		"upload_uuid":     logData.UploadUUID,
+		// 		"object_key":      logData.ObjectKey,
+		// 		"bucket_name":     logData.BucketName,
+		// 		"err":             err.Error(),
+		// 		"err2":            err2.Error(),
+		// 		"records":         logData.Records, // printing record in case of error to better debug
+		// 		"event":           e,
+		// 	})
+		// 	return err
+		// }
 		golib.CanonicalLog(map[string]interface{}{
 			"combatlog_uuid":  logData.CombatlogUUID,
 			"file_size_in_kb": logData.FileSize,
@@ -242,26 +243,44 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	// uploading to timestream takes too long locally, option to not run it
 	//	return logData, nil
 	// }
+	errorChannel := make(chan error)
 
-	for combatlogUUID, record := range nestedRecord {
-		for _, writeRecordsInputs := range record {
-
-			for _, e := range writeRecordsInputs {
-				logData.Records += len(e.Records)
-				err = golib.WriteToTimestream(ctx, writeSvc, e)
-				if err != nil {
-					return logData, err
-				}
+	for _, record := range nestedRecord { // group by different keys
+		for _, writeRecordsInputs := range record { // grouped by key to use common attribute
+			for _, e := range writeRecordsInputs { // array of TimestreamWriteInputs
+				// logData.Records += len(e.Records)
+				go func() {
+					// log.Println("debug, yo")
+					errorChannel <- golib.WriteToTimestream(ctx, writeSvc, e)
+				}()
 			}
 		}
-		logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
+		// logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
+	}
+	var errs []error
 
+	for _, record := range nestedRecord { // group by different keys
+		for _, writeRecordsInputs := range record { // grouped by key to use common attribute
+			for range writeRecordsInputs { // array of TimestreamWriteInputs
+				err := <-errorChannel
+				errs = append(errs, err)
+			}
+		}
+	}
+
+	for _, err := range errs {
+		if err != nil {
+			return logData, err
+		}
+	}
+	log.Println("lol2")
+
+	for combatlogUUID := range nestedRecord { // group by different keys
 		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
 		if err != nil {
 			return logData, err
 		}
 	}
-
 	return logData, nil
 }
 

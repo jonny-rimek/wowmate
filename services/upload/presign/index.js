@@ -47,7 +47,7 @@ exports.handler = (event, context, callback) => {
 
 	const currentTime = new Date()
 
-	const key = `upload/${currentTime.getUTCFullYear()}/${currentTime.getUTCMonth() + 1}/${currentTime.getUTCDay()}/${currentTime.getUTCHours()}/${uuidV4()}${fileEnding}`;
+	const key = `upload/${currentTime.getUTCFullYear()}/${currentTime.getUTCMonth() + 1}/${currentTime.getUTCDate()}/${currentTime.getUTCHours()}/${uuidV4()}${fileEnding}`;
 
 	const res = s3.createPresignedPost({
 		Bucket: bucket,
