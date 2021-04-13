@@ -248,14 +248,12 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	for _, record := range nestedRecord { // group by different keys
 		for _, writeRecordsInputs := range record { // grouped by key to use common attribute
 			for _, e := range writeRecordsInputs { // array of TimestreamWriteInputs
-				// logData.Records += len(e.Records)
+				logData.Records += len(e.Records) // not sure if this is problematic or I should use channels
 				go func() {
-					// log.Println("debug, yo")
 					errorChannel <- golib.WriteToTimestream(ctx, writeSvc, e)
 				}()
 			}
 		}
-		// logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
 	}
 	var errs []error
 
@@ -273,9 +271,9 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 			return logData, err
 		}
 	}
-	log.Println("lol2")
 
 	for combatlogUUID := range nestedRecord { // group by different keys
+		logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
 		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
 		if err != nil {
 			return logData, err
