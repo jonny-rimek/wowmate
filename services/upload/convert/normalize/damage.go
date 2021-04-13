@@ -24,58 +24,97 @@ import (
 // pet event, note caster_type = 0x2112
 // 1/24 16:50:53.696  SPELL_SUMMON,Player-3674-0906D09A,"Bihla-TwistingNether",0x512,0x0,Creature-0-4234-2291-11942-19668-00000DA56B,"Shadowfiend",0xa28,0x0,34433,"Shadowfiend",0x20
 // SWING_DAMAGE_LANDED,Creature-0-4234-2291-11942-19668-00000DA56B,"Shadowfiend",0x2112,0x0,Creature-0-4234-2291-11942-168934-00000DA4A7,"Enraged Spirit",0x10a48,0x0,Creature-0-4234-2291-11942-168934-00000DA4A7,0000000000000000,84989,320080,0,0,1071,0,1,0,0,0,2605.79,-2121.73,1680,6.2740,60,788,788,-1,32,0,0,0,nil,nil,nil
+// 1/24 16:55:26.219  SWING_DAMAGE,Pet-0-4234-2291-11942-58964-02021134B7,"Kerkek",0x1112,0x0,Creature-0-4234-2291-11942-170572-00008DA4A7,"Atal'ai Hoodoo Hexxer",0x10a48,0x1,Pet-0-4234-2291-11942-58964-02021134B7,Player-3674-0877EE37,19795,19795,849,1697,951,220,3,200,200,0,2743.39,-1819.85,1679,0.4638,201,210,299,-1,1,0,0,0,nil,nil,nil
+// 1/24 16:55:26.505  SPELL_DAMAGE,Pet-0-4234-2291-11942-58964-02021134B7,"Kerkek",0x1112,0x0,Creature-0-4234-2291-11942-170572-00008DA4A7,"Atal'ai Hoodoo Hexxer",0x10a48,0x1,54049,"Shadow Bite",0x20,Creature-0-4234-2291-11942-170572-00008DA4A7,0000000000000000,165445,284515,0,0,1071,0,0,2434,2434,0,2745.74,-1818.67,1679,5.5495,60,534,534,-1,32,0,0,0,nil,nil,nil
+//
 // next summon, note new caster id. didn't find an event that the pet is gone (for shadowfiend)
 // 1/24 16:57:32.383  SPELL_SUMMON,Player-3674-0906D09A,"Bihla-TwistingNether",0x512,0x0,Creature-0-4234-2291-11942-19668-00000DA6FA,"Shadowfiend",0xa28,0x0,34433,"Shadowfiend",0x20
 // passing in the uuids as a pointer to the string reduced the mb usage by a couple MB
-func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput) error {
+func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput, pets map[string]pet) error {
 
 	var actualAmount, currentTimeInSeconds int64
 	var spellID int
 	var err error
 	var casterID, casterName, casterType, spellName string
 
-	if params[0] != "SWING_DAMAGE" {
-		if len(params) != 39 {
-			return fmt.Errorf("*_DAMAGE should have 39 columns, it has %v: %v", len(params), params)
-		}
+	// TODO: refactor and test
+	pet, exists := pets[params[1]]
+	if exists == true {
+		// Pet damage:
+		// instead of getting the exact spell id and having a break down by spell per pet etc, I group everything
+		// under the spell id that was used to summon the pet, no matter if the actual damage was an auto attack by the pet
+		// or a cast
+		spellID = pet.SpellID
+		spellName = pet.Name
 
-		actualAmount, err = Atoi64(params[29]) // 783
-		if err != nil {
-			log.Printf("failed to convert damage event, field actual amount. got: %v", params[29])
-			return err
-		}
+		casterName = pet.OwnerName
+		casterType = "0x512"
+		casterID = pet.OwnerID
 
-		spellID, err = strconv.Atoi(params[9]) // 50842
-		if err != nil {
-			log.Printf("failed to convert damage event, field spell id. got: %v", params[9])
-			return err
+		if params[0] != "SWING_DAMAGE" {
+			actualAmount, err = Atoi64(params[29]) // 783
+			if err != nil {
+				log.Printf("failed to convert damage event, field actual amount. got: %v", params[29])
+				return err
+			}
+		} else {
+			actualAmount, err = Atoi64(params[26])
+			if err != nil {
+				log.Printf("failed to convert damage event, field actual amount. got: %v", params[26])
+				return err
+			}
 		}
-		spellName = trimQuotes(params[10])
 	} else {
-		if len(params) != 36 {
-			return fmt.Errorf("SWING_DAMAGE should have 36 columns, it has %v: %v", len(params), params)
+		if params[0] != "SWING_DAMAGE" {
+			// SWING_DAMAGE is 3 elements shorter because it doesn't have fields for spellID and spellName
+			// everything else is the same
+			if len(params) != 39 {
+				return fmt.Errorf("*_DAMAGE should have 39 columns, it has %v: %v", len(params), params)
+			}
+
+			actualAmount, err = Atoi64(params[29]) // 783
+			if err != nil {
+				log.Printf("failed to convert damage event, field actual amount. got: %v", params[29])
+				return err
+			}
+
+			spellID, err = strconv.Atoi(params[9]) // 50842
+			if err != nil {
+				log.Printf("failed to convert damage event, field spell id. got: %v", params[9])
+				return err
+			}
+			spellName = trimQuotes(params[10])
+		} else {
+			if len(params) != 36 {
+				return fmt.Errorf("SWING_DAMAGE should have 36 columns, it has %v: %v", len(params), params)
+			}
+
+			actualAmount, err = Atoi64(params[26])
+			if err != nil {
+				log.Printf("failed to convert damage event, field actual amount. got: %v", params[26])
+				return err
+			}
+
+			spellID = 42013370310 // just a random number
+			// TODO: use different name if a pet auto attacks
+			spellName = "Auto Attack"
 		}
 
-		// SWING_DAMAGE is 3 elements shorter because it doesn't have fields for spellID and spellName
-		actualAmount, err = Atoi64(params[26])
-		if err != nil {
-			log.Printf("failed to convert damage event, field actual amount. got: %v", params[26])
-			return err
-		}
-
-		log.Println(actualAmount)
-		spellID = 42013370310 // just a random number
-		spellName = "Auto Attack"
+		casterID = params[1]
+		casterName = trimQuotes(params[2])
+		casterType = trimQuotes(params[3])
 	}
-	casterID = params[1]
-	casterName = trimQuotes(params[2])
-	casterType = trimQuotes(params[3])
+
 	currentTimeInSeconds = time.Now().Unix()
 	rand.Seed(time.Now().UnixNano())
 
+	if exists == true {
+		log.Printf("caster id %s, caster name %s caster type %s spell id %d spell name %s actual amount %d ", casterID, casterName, casterType, spellID, spellName, actualAmount)
+	}
+
 	key := strconv.Itoa(spellID)
 
-	_, exists := rec[*combatlogUUID][key]
+	_, exists = rec[*combatlogUUID][key]
 	if exists == true {
 		var tmp []*timestreamwrite.WriteRecordsInput
 		tmp = make([]*timestreamwrite.WriteRecordsInput, len(rec[*combatlogUUID][key]))
@@ -86,6 +125,7 @@ func spellDamage(params []string, uploadUUID *string, combatlogUUID *string, rec
 
 		if len(tmp[last].Records) < 100 {
 			rec[*combatlogUUID][key][last].Records = append(rec[*combatlogUUID][key][last].Records, &timestreamwrite.Record{
+				// TODO: extra dimensions and common attribute to vars and reuse
 				Dimensions: []*timestreamwrite.Dimension{
 					{
 						Name:  aws.String("caster_id"),

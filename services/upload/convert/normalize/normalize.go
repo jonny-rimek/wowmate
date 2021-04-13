@@ -3,17 +3,21 @@ package normalize
 import (
 	"bufio"
 	"fmt"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"github.com/gofrs/uuid"
 )
 
 // Normalize converts the combatlog to a slice of Event structs
+// TODO: rename, we are not really normalizing the data anymore, because I'm not using a database tat needs it
 func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string][]*timestreamwrite.WriteRecordsInput, error) {
 	// var combatEvents []*timestreamwrite.Record
 	var combatlogUUID string
 
 	rec := make(map[string]map[string][]*timestreamwrite.WriteRecordsInput)
+
+	pets := make(map[string]pet)
 
 	if uploadUUID == "" {
 		return nil, fmt.Errorf("can't provide an empty uploadUUID")
@@ -115,7 +119,13 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 
 		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
 		case "SPELL_DAMAGE", "SPELL_PERIODIC_DAMAGE", "RANGE_DAMAGE", "SWING_DAMAGE":
-			err := spellDamage(params, &uploadUUID, &combatlogUUID, rec)
+			err := damage(params, &uploadUUID, &combatlogUUID, rec, pets)
+			if err != nil {
+				return nil, err
+			}
+
+		case "SPELL_SUMMON":
+			err := summon(params, &uploadUUID, &combatlogUUID, rec, pets)
 			if err != nil {
 				return nil, err
 			}
@@ -130,4 +140,36 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 	}
 
 	return rec, nil
+}
+
+type pet struct {
+	OwnerID   string
+	Name      string
+	OwnerName string
+	SpellID   int
+}
+
+// 1/24 16:50:53.696  SPELL_SUMMON,Player-3674-0906D09A,"Bihla-TwistingNether",0x512,0x0,Creature-0-4234-2291-11942-19668-00000DA56B,"Shadowfiend",0xa28,0x0,34433,"Shadowfiend",0x20
+func summon(params []string, uploadUUID *string, combatlogUUID *string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput, pets map[string]pet) error {
+	if len(params) != 12 {
+		return fmt.Errorf("SPELL_SUMMON should have 13 columns, it has %v: %v", len(params), params)
+	}
+	spellID, err := strconv.Atoi(params[9]) // 34433
+	if err != nil {
+		return fmt.Errorf("failed to convert pet summon event, field spell id. got: %v", params[10])
+	}
+
+	pets[params[5]] = pet{ // Creature-0-4234-2291-11942-19668-00000DA56B
+		OwnerID:   params[1],
+		OwnerName: trimQuotes(params[2]),
+		Name:      trimQuotes(params[10]), // params[7] is the pet name and [11] is the spell name, in this case the same
+		SpellID:   spellID,
+	}
+	// prettyStruct, err := golib.PrettyStruct(pets)
+	// if err != nil {
+	// 	return err
+	// }
+	// log.Println(prettyStruct)
+
+	return nil
 }
