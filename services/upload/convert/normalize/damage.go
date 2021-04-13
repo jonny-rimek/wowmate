@@ -103,6 +103,59 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 
 	key := strconv.Itoa(spellID)
 
+	record := &timestreamwrite.Record{
+		Dimensions: []*timestreamwrite.Dimension{
+			{
+				Name:  aws.String("caster_id"),
+				Value: aws.String(casterID),
+			},
+			{
+				Name:  aws.String("caster_name"),
+				Value: aws.String(casterName),
+			},
+			{
+				Name:  aws.String("caster_type"),
+				Value: aws.String(casterType),
+			},
+			{
+				Name:  aws.String("rnd"),
+				Value: aws.String(strconv.Itoa(rand.Int())),
+				// TODO: replace with time from log
+			},
+		},
+		MeasureValue: aws.String(strconv.FormatInt(actualAmount, 10)),
+	}
+	writeInput := &timestreamwrite.WriteRecordsInput{
+		CommonAttributes: &timestreamwrite.Record{
+			Dimensions: []*timestreamwrite.Dimension{
+				{
+					Name:  aws.String("spell_id"),
+					Value: aws.String(strconv.Itoa(spellID)),
+				},
+				{
+					Name:  aws.String("spell_name"),
+					Value: aws.String(spellName),
+				},
+				{
+					Name:  aws.String("upload_uuid"),
+					Value: aws.String(*uploadUUID),
+				},
+				{
+					Name:  aws.String("combatlog_uuid"),
+					Value: aws.String(*combatlogUUID),
+				},
+			},
+			MeasureName:      aws.String("damage"),
+			MeasureValueType: aws.String("BIGINT"),
+			TimeUnit:         aws.String("SECONDS"), // can specify seconds for timestream instead of ms!
+			Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
+			// I don't care about this time, it just the time we create this entry, not the time of the combatlog event
+			// I also don't care about the exact time this is written, so I always use the time the first record is created
+			// and reuse it for the subsequent ones
+		},
+		Records: []*timestreamwrite.Record{record},
+	}
+
 	_, exists = rec[*combatlogUUID][key]
 	if exists == true {
 		var tmp []*timestreamwrite.WriteRecordsInput
@@ -113,143 +166,14 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 		last := len(tmp) - 1
 
 		if len(tmp[last].Records) < 100 {
-			rec[*combatlogUUID][key][last].Records = append(rec[*combatlogUUID][key][last].Records, &timestreamwrite.Record{
-				Dimensions: []*timestreamwrite.Dimension{
-					{
-						Name:  aws.String("caster_id"),
-						Value: aws.String(casterID),
-					},
-					{
-						Name:  aws.String("caster_name"), //
-						Value: aws.String(casterName),
-					},
-					{
-						Name:  aws.String("caster_type"),
-						Value: aws.String(casterType),
-					},
-					{
-						Name:  aws.String("rnd"),
-						Value: aws.String(strconv.Itoa(rand.Int())),
-						// replace with time from log
-					},
-				},
-				MeasureValue: aws.String(strconv.FormatInt(actualAmount, 10)),
-			})
+			rec[*combatlogUUID][key][last].Records = append(rec[*combatlogUUID][key][last].Records, record)
 		} else {
-			writeInput := &timestreamwrite.WriteRecordsInput{
-				CommonAttributes: &timestreamwrite.Record{
-					Dimensions: []*timestreamwrite.Dimension{
-						{
-							Name:  aws.String("spell_id"),
-							Value: aws.String(strconv.Itoa(spellID)),
-						},
-						{
-							Name:  aws.String("spell_name"),
-							Value: aws.String(spellName),
-						},
-						{
-							Name:  aws.String("upload_uuid"),
-							Value: aws.String(*uploadUUID),
-						},
-						{
-							Name:  aws.String("combatlog_uuid"),
-							Value: aws.String(*combatlogUUID),
-						},
-					},
-					MeasureName:      aws.String("damage"),
-					MeasureValueType: aws.String("BIGINT"),
-					TimeUnit:         aws.String("SECONDS"), // can specify seconds for timestream instead of ms!
-					Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
-					// I don't care about this time, it just the time we create this entry, not the time of the combatlog event
-					// I also don't care about the exact time this is written, so I always use the time the first record is created
-					// and reuse it for the subsequent ones
-				},
-				Records: []*timestreamwrite.Record{
-					{
-						Dimensions: []*timestreamwrite.Dimension{
-							{
-								Name:  aws.String("caster_id"),
-								Value: aws.String(casterID),
-							},
-							{
-								Name:  aws.String("caster_name"), //
-								Value: aws.String(casterName),
-							},
-							{
-								Name:  aws.String("caster_type"),
-								Value: aws.String(casterType),
-							},
-							{
-								Name:  aws.String("rnd"),
-								Value: aws.String(strconv.Itoa(rand.Int())),
-								// replace with time from log
-							},
-						},
-						MeasureValue: aws.String(strconv.FormatInt(actualAmount, 10)),
-					},
-				},
-			}
-
 			rec[*combatlogUUID][key] = append(rec[*combatlogUUID][key], writeInput)
 		}
 		return nil
 	}
 
-	writeRecordsInputs := []*timestreamwrite.WriteRecordsInput{
-		{
-			CommonAttributes: &timestreamwrite.Record{
-				Dimensions: []*timestreamwrite.Dimension{
-					{
-						Name:  aws.String("spell_id"),
-						Value: aws.String(strconv.Itoa(spellID)),
-					},
-					{
-						Name:  aws.String("spell_name"),
-						Value: aws.String(spellName),
-					},
-					{
-						Name:  aws.String("upload_uuid"),
-						Value: aws.String(*uploadUUID),
-					},
-					{
-						Name:  aws.String("combatlog_uuid"),
-						Value: aws.String(*combatlogUUID),
-					},
-				},
-				MeasureName:      aws.String("damage"),
-				MeasureValueType: aws.String("BIGINT"),
-				TimeUnit:         aws.String("SECONDS"), // can specify seconds as rec for timestream instead of ms!
-				Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
-				// I don't care about this time, it just the time we create this entry, not the time of the combatlog event
-				// I also don't care about the exact time this is written, so I always use the time the first record is created
-				// and reuse it for the subsequent ones
-			},
-			Records: []*timestreamwrite.Record{
-				{
-					Dimensions: []*timestreamwrite.Dimension{
-						{
-							Name:  aws.String("caster_id"),
-							Value: aws.String(casterID),
-						},
-						{
-							Name:  aws.String("caster_name"),
-							Value: aws.String(casterName),
-						},
-						{
-							Name:  aws.String("caster_type"),
-							Value: aws.String(casterType),
-						},
-						{
-							Name:  aws.String("rnd"),
-							Value: aws.String(strconv.Itoa(rand.Int())),
-							// replace with time from log
-						},
-					},
-					MeasureValue: aws.String(strconv.FormatInt(actualAmount, 10)),
-				},
-			},
-		},
-	}
+	writeRecordsInputs := []*timestreamwrite.WriteRecordsInput{writeInput}
 	rec[*combatlogUUID][key] = writeRecordsInputs
 
 	return nil
