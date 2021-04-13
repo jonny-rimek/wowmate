@@ -69,6 +69,15 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 			}
 		}
 	} else {
+		casterID = params[1]
+		casterName = trimQuotes(params[2])
+		casterType = trimQuotes(params[3])
+
+		// only player damage matters atm, it is not player damage > exit
+		if casterType != "0x512" && casterType != "0x511" {
+			return nil
+		}
+
 		if params[0] != "SWING_DAMAGE" {
 			// SWING_DAMAGE is 3 elements shorter because it doesn't have fields for spellID and spellName
 			// everything else is the same
@@ -99,10 +108,6 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 			spellID = 42013370310 // just a random number
 			spellName = "Auto Attack"
 		}
-
-		casterID = params[1]
-		casterName = trimQuotes(params[2])
-		casterType = trimQuotes(params[3])
 	}
 
 	currentTimeInSeconds = time.Now().Unix()
