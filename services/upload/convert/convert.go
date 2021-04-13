@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -243,52 +244,57 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		return logData, fmt.Errorf("normalizing failed: %v", err)
 	}
 
-	// if os.Getenv("LOCAL") == "true" {
-	// uploading to timestream takes too long locally, option to not run it
-	//	return logData, nil
-	// }
-	errorChannel := make(chan error)
-	//
-	// maxGoroutines := 100
-	// guard := make(chan struct{}, maxGoroutines)
-	// var wg sync.WaitGroup
-	// const numDigesters = 100
-	// wg.Add(numDigesters)
+	maxGoroutines := 100
+	var ch = make(chan *timestreamwrite.WriteRecordsInput, 200) // This number 200 can be anything as long as it's larger than maxGoroutines
+	var wg sync.WaitGroup
+	// errorChannel := make(chan error)
+
+	wg.Add(maxGoroutines) // this start maxGoroutines number of goroutines that wait for something to do
+	for i := 0; i < maxGoroutines; i++ {
+		go func() {
+			for {
+				a, ok := <-ch
+				if !ok { // if there is nothing to do and the channel has been closed then end the goroutine
+					wg.Done()
+					return
+				}
+				// TODO: handle error
+				golib.WriteToTimestream(ctx, writeSvc, a)
+				// errorChannel <- golib.WriteToTimestream(ctx, writeSvc, a)
+			}
+		}()
+	}
 
 	for _, record := range nestedRecord { // group by different keys
 		for _, writeRecordsInputs := range record { // grouped by key to use common attribute
 			logData.TimestreamAPICalls += len(writeRecordsInputs)
 			for _, e := range writeRecordsInputs { // array of TimestreamWriteInputs
+				ch <- e                           // add i to the queue
 				logData.Records += len(e.Records) // not sure if this is problematic or I should use channels
-				// guard <- struct{}{}               // will block if channel is full
-				go func() {
-					errorChannel <- golib.WriteToTimestream(ctx, writeSvc, e)
-					// <-guard
-				}()
-			}
-		}
-	}
-	// go func() {
-	// 	wg.Wait()
-	// 	close(guard)
-	// }()
-
-	var errs []error
-
-	for _, record := range nestedRecord { // group by different keys
-		for _, writeRecordsInputs := range record { // grouped by key to use common attribute
-			for range writeRecordsInputs { // array of TimestreamWriteInputs
-				err := <-errorChannel
-				errs = append(errs, err)
 			}
 		}
 	}
 
-	for _, err := range errs {
-		if err != nil {
-			return logData, err
-		}
-	}
+	// var errs []error
+	//
+	// for _, record := range nestedRecord { // group by different keys
+	// 	for _, writeRecordsInputs := range record { // grouped by key to use common attribute
+	// 		for range writeRecordsInputs { // array of TimestreamWriteInputs
+	// 			err := <-errorChannel
+	// 			errs = append(errs, err)
+	// 		}
+	// 	}
+	// }
+	//
+	// for _, err := range errs {
+	// 	if err != nil {
+	// 		return logData, err
+	// 	}
+	// }
+	//
+	// close(errorChannel)
+	close(ch) // This tells the goroutines there's nothing else to do
+	wg.Wait() // Wait for the threads to finish
 
 	for combatlogUUID := range nestedRecord { // group by different keys
 		logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)

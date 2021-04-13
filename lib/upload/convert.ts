@@ -52,13 +52,13 @@ export class Convert extends cdk.Construct {
 			runtime: lambda.Runtime.GO_1_X,
 			// memorySize: 3584, //exactly 2 core
 			memorySize: 1792, //exactly 1 core
-			timeout: cdk.Duration.minutes(3),
+			timeout: cdk.Duration.seconds(30),
 			environment: {
 				TOPIC_ARN: topic.topicArn,
 				LOCAL: "false",
 				...props.envVars,
 			},
-			reservedConcurrentExecutions: 2,
+			reservedConcurrentExecutions: 60,
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			retryAttempts: 0, 	//0 in dev, but it has sqs as target, afaik this is only for async.
