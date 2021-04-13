@@ -98,13 +98,14 @@ CREATE TABLE IF NOT EXISTS combatlogs (
 // https://mholt.github.io/json-to-go/ best tool EVER
 
 type logData struct {
-	CombatlogUUID []string
-	UploadUUID    string
-	BucketName    string
-	ObjectKey     string
-	FileType      string
-	FileSize      int
-	Records       int
+	CombatlogUUID      []string
+	UploadUUID         string
+	BucketName         string
+	ObjectKey          string
+	FileType           string
+	FileSize           int
+	Records            int
+	TimestreamAPICalls int
 }
 
 var s3Svc *s3.S3
@@ -135,32 +136,35 @@ func handler(ctx aws.Context, e golib.SQSEvent) error {
 		// 		"err":             err.Error(),
 		// 		"err2":            err2.Error(),
 		// 		"records":         logData.Records, // printing record in case of error to better debug
+		// "timestream_api_calls": logData.TimestreamAPICalls,
 		// 		"event":           e,
 		// 	})
 		// 	return err
 		// }
 		golib.CanonicalLog(map[string]interface{}{
-			"combatlog_uuid":  logData.CombatlogUUID,
-			"file_size_in_kb": logData.FileSize,
-			"file_type":       logData.FileType,
-			"upload_uuid":     logData.UploadUUID,
-			"object_key":      logData.ObjectKey,
-			"bucket_name":     logData.BucketName,
-			"err":             err.Error(),
-			"records":         logData.Records, // printing record in case of error to better debug
-			"event":           e,
+			"combatlog_uuid":       logData.CombatlogUUID,
+			"file_size_in_kb":      logData.FileSize,
+			"file_type":            logData.FileType,
+			"upload_uuid":          logData.UploadUUID,
+			"object_key":           logData.ObjectKey,
+			"bucket_name":          logData.BucketName,
+			"err":                  err.Error(),
+			"records":              logData.Records, // printing record in case of error to better debug
+			"timestream_api_calls": logData.TimestreamAPICalls,
+			"event":                e,
 		})
 		return err
 	}
 
 	golib.CanonicalLog(map[string]interface{}{
-		"combatlog_uuid":  logData.CombatlogUUID,
-		"file_size_in_kb": logData.FileSize,
-		"file_type":       logData.FileType,
-		"upload_uuid":     logData.UploadUUID,
-		"object_key":      logData.ObjectKey,
-		"bucket_name":     logData.BucketName,
-		"records":         logData.Records,
+		"combatlog_uuid":       logData.CombatlogUUID,
+		"file_size_in_kb":      logData.FileSize,
+		"file_type":            logData.FileType,
+		"upload_uuid":          logData.UploadUUID,
+		"object_key":           logData.ObjectKey,
+		"bucket_name":          logData.BucketName,
+		"records":              logData.Records,
+		"timestream_api_calls": logData.TimestreamAPICalls,
 	})
 	return err
 }
@@ -244,17 +248,31 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	//	return logData, nil
 	// }
 	errorChannel := make(chan error)
+	//
+	// maxGoroutines := 100
+	// guard := make(chan struct{}, maxGoroutines)
+	// var wg sync.WaitGroup
+	// const numDigesters = 100
+	// wg.Add(numDigesters)
 
 	for _, record := range nestedRecord { // group by different keys
 		for _, writeRecordsInputs := range record { // grouped by key to use common attribute
+			logData.TimestreamAPICalls += len(writeRecordsInputs)
 			for _, e := range writeRecordsInputs { // array of TimestreamWriteInputs
 				logData.Records += len(e.Records) // not sure if this is problematic or I should use channels
+				// guard <- struct{}{}               // will block if channel is full
 				go func() {
 					errorChannel <- golib.WriteToTimestream(ctx, writeSvc, e)
+					// <-guard
 				}()
 			}
 		}
 	}
+	// go func() {
+	// 	wg.Wait()
+	// 	close(guard)
+	// }()
+
 	var errs []error
 
 	for _, record := range nestedRecord { // group by different keys
