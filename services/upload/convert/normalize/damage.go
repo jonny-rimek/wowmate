@@ -31,6 +31,13 @@ import (
 // passing in the uuids as a pointer to the string reduced the mb usage by a couple MB
 func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput, pets map[string]pet) error {
 
+	targetType := params[7]
+	// if target type is either value, that means that it the target is a player,
+	// which includes friendly fire such as shadow mend
+	if targetType == "0x512" || targetType == "0x511" {
+		return nil
+	}
+
 	var actualAmount, currentTimeInSeconds int64
 	var spellID int
 	var err error
