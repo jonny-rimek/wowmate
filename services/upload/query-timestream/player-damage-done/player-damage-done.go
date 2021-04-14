@@ -199,6 +199,17 @@ func query(combatlogUUID string) *string {
 		        time between ago(15m) and now() AND
 		        measure_name = 'ten_affix_id'
 		),        
+        patch AS (
+		    SELECT
+		        measure_value::varchar AS patch,
+		        combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = '%v'  AND
+		        time between ago(15m) and now() AND
+		        measure_name = 'patch'
+		),        
 		damage as (
 			SELECT
 				SUM(measure_value::bigint) AS damage,
@@ -239,7 +250,8 @@ func query(combatlogUUID string) *string {
 			seven_affix_id, 
 			ten_affix_id,
 			spell_id,
-			spell_name
+			spell_name,
+			patch
 		FROM
 			damage
 		JOIN
@@ -266,6 +278,9 @@ func query(combatlogUUID string) *string {
         JOIN
 			ten_affix_id
 		    ON ten_affix_id.combatlog_uuid = dungeon.combatlog_uuid            
+        JOIN
+			patch
+		    ON patch.combatlog_uuid = dungeon.combatlog_uuid            
 		`,
 		combatlogUUID,
 		combatlogUUID,
