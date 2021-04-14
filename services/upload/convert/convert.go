@@ -412,7 +412,7 @@ func main() {
 		return
 	}
 
-	sess, err := session.NewSession(&aws.Config{ Region: aws.String("us-east-1"), MaxRetries: aws.Int(10), HTTPClient: &http.Client{ Transport: tr }})
+	sess, err := session.NewSession(&aws.Config{Region: aws.String("us-east-1"), MaxRetries: aws.Int(10), HTTPClient: &http.Client{Transport: tr}})
 	// sess, err := session.NewSession()
 	if err != nil {
 		log.Printf("failed creating session: %v", err.Error())

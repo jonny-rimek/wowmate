@@ -152,6 +152,17 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		        time between ago(15m) and now() AND
 		        measure_name = 'ten_affix_id'
 		),        
+        patch AS (
+		    SELECT
+		        measure_value::varchar AS patch,
+		        combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = '%v'  AND
+		        time between ago(15m) and now() AND
+		        measure_name = 'patch'
+		),        
 		damage as (
 			SELECT
 				SUM(measure_value::bigint) AS damage,
@@ -183,7 +194,8 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			two_affix_id, 
 			four_affix_id, 
 			seven_affix_id, 
-			ten_affix_id
+			ten_affix_id,
+			patch
 		FROM
 			damage
 		JOIN
@@ -210,7 +222,11 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
         JOIN
 			ten_affix_id
 		    ON ten_affix_id.combatlog_uuid = dungeon.combatlog_uuid            
+        JOIN
+			patch
+		    ON patch.combatlog_uuid = dungeon.combatlog_uuid            
 		`,
+		combatlogUUID,
 		combatlogUUID,
 		combatlogUUID,
 		combatlogUUID,

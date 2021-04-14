@@ -27,6 +27,7 @@ var svc *dynamodb.DynamoDB
 func handler(ctx aws.Context, e events.SNSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
+		//goland:noinspection GoNilness
 		golib.CanonicalLog(map[string]interface{}{
 			"wcu":   logData.Wcu,
 			"err":   err.Error(),
@@ -151,11 +152,13 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		return resp, err
 	}
 
+	patch := *queryResult.Rows[0].Data[13].ScalarValue
+
 	maxMilliseconds := int64(999999999)
 	reverseDuration := maxMilliseconds - durationInMilliseconds
 
 	resp = golib.DynamoDBKeys{
-		Pk: "LOG#KEY#S2", // TODO: dynamic season
+		Pk: fmt.Sprintf("LOG#KEY#%s", patch), // TODO: dynamic season
 		Sk: fmt.Sprintf("%02d#%09d#%v", keyLevel, reverseDuration, combatlogUUID),
 		// sorting in dynamoDB is achieved via the sort key, in order to sort by key level and within the key level by
 		// time I'm printing the value as string and sort the string.
@@ -164,7 +167,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		// I subtract the duration from the max value 9times 9
 		// 999999999 milliseconds would be ~277h
 		Damage:        summaries,
-		Gsi1pk:        fmt.Sprintf("LOG#KEY#S2#%v", dungeonID), // TODO: dynamic season
+		Gsi1pk:        fmt.Sprintf("LOG#KEY#%s#%v", patch, dungeonID),
 		Gsi1sk:        fmt.Sprintf("%02d#%09d#%v", keyLevel, reverseDuration, combatlogUUID),
 		Duration:      t.Format("04:05"), // formats to minutes:seconds
 		Deaths:        0,                 // TODO:
