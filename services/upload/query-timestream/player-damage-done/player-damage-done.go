@@ -69,6 +69,9 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		logData.QueryID = *queryResult.QueryId
 		return logData, err
 	}
+	if len(queryResult.Rows) == 0 {
+		return logData, fmt.Errorf("query returned empty result")
+	}
 
 	logData.QueryID = *queryResult.QueryId
 	logData.BilledMegabytes = *queryResult.QueryStatus.CumulativeBytesMetered / 1e6 // 1.000.000

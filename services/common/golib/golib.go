@@ -590,9 +590,6 @@ func TimestreamQuery(ctx aws.Context, query *string, querySvc *timestreamquery.T
 			return nil, fmt.Errorf("failed querying timestream: %v", err.Error())
 		}
 	}
-	if len(result.Rows) == 0 {
-		return result, fmt.Errorf("query returned empty result")
-	}
 
 	return result, nil
 }

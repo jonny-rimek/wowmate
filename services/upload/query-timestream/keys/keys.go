@@ -230,6 +230,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		logData.QueryID = *queryResult.QueryId
 		return logData, err
 	}
+	// not checking for empty queries, because abandoned keys are supposed to return empty queries
 
 	logData.QueryID = *queryResult.QueryId
 	logData.BilledMegabytes = *queryResult.QueryStatus.CumulativeBytesMetered / 1e6 // 1.000.000
