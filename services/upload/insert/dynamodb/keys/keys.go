@@ -186,9 +186,18 @@ func timedAsPercent(dungeonID int, durationInMilliseconds float64) (durAsPercent
 
 	switch dungeonID {
 	case 2291: // De Other Side
-		intimeDuration = float64(1800000)
-		twoChestDuration = float64(2064000)
-		threeChestDuration = float64(1549000)
+		intimeDuration = float64(1800000)     // 43:00
+		twoChestDuration = float64(2064000)   // 34:25
+		threeChestDuration = float64(1549000) // 25:49
+	case 2289: // Plaguefall
+		intimeDuration = float64(2280000)     // 38:00
+		twoChestDuration = float64(1824000)   // 30:24
+		threeChestDuration = float64(1407000) // 22:48
+	case 2284: // Sanguine Depths
+		intimeDuration = float64(2460000)     // 41:00
+		twoChestDuration = float64(1968000)   // 32:48
+		threeChestDuration = float64(1356000) // 24:36
+		// TODO: parse time and convert to milli seconds
 		/*
 			https://www.wowhead.com/mythic-keystones-and-dungeons-guide
 			Dungeon	Timer	+2	+3
