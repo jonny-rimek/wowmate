@@ -123,6 +123,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	if err != nil {
 		return resp, err
 	}
+	dur := float64(durationInMilliseconds)
 	// converts duration to date 1970 + duration, of which I only display the minutes and seconds
 	// time.Duration, doesn't allow mixed formatting like min:seconds
 	t := time.Unix(0, durationInMilliseconds*1e6) // milliseconds > nanoseconds
@@ -154,13 +155,12 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 
 	patch := *queryResult.Rows[0].Data[13].ScalarValue
 
-	maxMilliseconds := int64(999999999)
-	reverseDuration := maxMilliseconds - durationInMilliseconds
+	reverseDuration := durationAsPercent(dungeonID, dur)
 
 	resp = golib.DynamoDBKeys{
 		// hardcoding the patch like that might be too granular, maybe it makes more sense that e.g. 9.0.2 and 9.0.5 are both S1
 		Pk: fmt.Sprintf("LOG#KEY#%s", patch),
-		Sk: fmt.Sprintf("%02d#%09d#%v", keyLevel, reverseDuration, combatlogUUID),
+		Sk: fmt.Sprintf("%02d#%3.6f#%v", keyLevel, reverseDuration, combatlogUUID),
 		// sorting in dynamoDB is achieved via the sort key, in order to sort by key level and within the key level by
 		// time I'm printing the value as string and sort the string.
 		// As I'm sorting descending I need to reverse the size of the duration, otherwise I would sort by
@@ -169,7 +169,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		// 999999999 milliseconds would be ~277h
 		Damage:        summaries,
 		Gsi1pk:        fmt.Sprintf("LOG#KEY#%s#%v", patch, dungeonID),
-		Gsi1sk:        fmt.Sprintf("%02d#%09d#%v", keyLevel, reverseDuration, combatlogUUID),
+		Gsi1sk:        fmt.Sprintf("%02d#%3.6f#%v", keyLevel, reverseDuration, combatlogUUID),
 		Duration:      t.Format("04:05"), // formats to minutes:seconds
 		Deaths:        0,                 // TODO:
 		Affixes:       golib.AffixIDsToString(twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
@@ -182,6 +182,16 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	return resp, err
 }
 
+func durationAsPercent(dungeonID int, durationInMilliseconds float64) float64 {
+	switch dungeonID {
+	case 2291: // De Other Side
+		return float64(1800000) / durationInMilliseconds
+	}
+	maxMilliseconds := float64(999999999)
+
+	return maxMilliseconds - durationInMilliseconds
+}
+
 func main() {
 	golib.InitLogging()
 
@@ -192,7 +202,9 @@ func main() {
 	}
 
 	svc = dynamodb.New(sess)
-	xray.AWS(svc.Client)
+	if os.Getenv("LOCAL") == "false" {
+		xray.AWS(svc.Client)
+	}
 
 	lambda.Start(handler)
 }
