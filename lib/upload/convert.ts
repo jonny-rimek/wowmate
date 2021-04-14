@@ -35,7 +35,7 @@ export class Convert extends cdk.Construct {
 				//maxReceiveCount: 3,
 				maxReceiveCount: 1, //no need during dev
 			},
-			visibilityTimeout: cdk.Duration.seconds(360) //6x lambda duration
+			visibilityTimeout: cdk.Duration.minutes(6) //6x lambda duration
 		});
 
         const topic = new sns.Topic(this, 'Topic', {})
@@ -52,10 +52,10 @@ export class Convert extends cdk.Construct {
 			runtime: lambda.Runtime.GO_1_X,
 			// memorySize: 3584, //exactly 2 core
 			memorySize: 1792, //exactly 1 core
-			timeout: cdk.Duration.seconds(60),
+			timeout: cdk.Duration.minutes(1),
+			// if I write to timestream after not writing to it for a very long time, the first writes takes a lot longer
 			environment: {
 				TOPIC_ARN: topic.topicArn,
-				LOCAL: "false",
 				...props.envVars,
 			},
 			reservedConcurrentExecutions: 15,

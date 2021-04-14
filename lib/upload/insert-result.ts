@@ -34,7 +34,6 @@ export class InsertResult extends cdk.Construct {
 			timeout: cdk.Duration.seconds(2),
 			environment: {
 				DYNAMODB_TABLE_NAME: props.dynamoDB.tableName,
-				LOCAL: "false",
 				...props.envVars
 			},
 			reservedConcurrentExecutions: 30,

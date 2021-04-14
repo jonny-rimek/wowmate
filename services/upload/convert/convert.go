@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"github.com/aws/aws-xray-sdk-go/xray"
+	"github.com/aws/aws-xray-sdk-go/xraylog"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -239,15 +240,17 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	s := bufio.NewScanner(bytes.NewReader(data))
 
-	nestedRecord, err := normalize.Normalize(s, uploadUUID)
+	var nestedRecord map[string]map[string][]*timestreamwrite.WriteRecordsInput
+
+	nestedRecord, err = normalize.Normalize(s, uploadUUID)
 	if err != nil {
 		return logData, fmt.Errorf("normalizing failed: %v", err)
 	}
 
+	// can process single key log files with 26MB size and 1792 MB memory lambda in ~3sec once timestream is warm
 	maxGoroutines := 15
 	var ch = make(chan *timestreamwrite.WriteRecordsInput, 300) // This number 200 can be anything as long as it's larger than maxGoroutines
 	var wg sync.WaitGroup
-	// errorChannel := make(chan error)
 
 	var writeErr error
 
@@ -261,7 +264,6 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 					return
 				}
 				writeErr = golib.WriteToTimestream(ctx, writeSvc, a)
-				// errorChannel <- golib.WriteToTimestream(ctx, writeSvc, a)
 			}
 		}()
 	}
@@ -272,10 +274,6 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 			for _, e := range writeRecordsInputs { // array of TimestreamWriteInputs
 				ch <- e                           // add i to the queue
 				logData.Records += len(e.Records) // not sure if this is problematic or I should use channels
-
-				// <-errorChannel
-				// err := <-errorChannel
-				// errs = append(errs, err)
 			}
 		}
 	}
@@ -357,12 +355,16 @@ func fileType(objectKey string) (int, string, error) {
 	return maxSizeInKB, fileType, nil
 }
 
-func readZipFile(zf *zip.File) ([]byte, error) {
+func readZipFile(zf *zip.File) (data []byte, err error) {
 	f, err := zf.Open()
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			err = fmt.Errorf("failed to close zip file: %v", err)
+		}
+	}()
 	return ioutil.ReadAll(f)
 }
 
@@ -391,6 +393,17 @@ func main() {
 	if err != nil {
 		log.Printf("Error creating session: %v", err.Error())
 	}
+
+	xray.SetLogger(xraylog.NullLogger)
+	/*
+		I get a lot of the following messages. The reason according to the support is that to upload background processes
+		are used, which don't have access to the context. To not spam my log and reduce cost I'm disabling the message with the
+		silent setting.
+
+		2021-04-14T05:50:30 2021-04-14T05:50:30Z [ERROR] Suppressing AWS X-Ray context missing panic: failed to begin subsegment named 'Timestream Write': segment cannot be found.
+		2021-04-14T05:50:30 2021-04-14T05:50:30Z [ERROR] Suppressing AWS X-Ray context missing panic: failed to begin subsegment named 'attempt': segment cannot be found.
+		2021-04-14T05:50:30 2021-04-14T05:50:30Z [ERROR] Suppressing AWS X-Ray context missing panic: failed to begin subsegment named 'unmarshal': segment cannot be found.
+	*/
 
 	s3Svc = s3.New(sess)
 	if os.Getenv("LOCAL") == "false" {

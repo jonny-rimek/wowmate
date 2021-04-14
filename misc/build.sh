@@ -19,6 +19,8 @@ goDirs=(
 
 frontendDir="services/frontend"
 
+# go get -u github.com/kisielk/errcheck
+
 for i in "${goDirs[@]}"
 do
   cd "$wowmateDir" || exit
@@ -27,6 +29,7 @@ do
   go mod tidy
   gofmt -w -s .
   go vet
+  errcheck
 # running fmt in the IDE
   go test .
   go build -ldflags='-s -w' -o main .

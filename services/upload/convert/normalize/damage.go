@@ -50,6 +50,7 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 		// instead of getting the exact spell id and having a break down by spell per pet etc, I group everything
 		// under the spell id that was used to summon the pet, no matter if the actual damage was an auto attack by the pet
 		// or a cast
+		return nil
 		spellID = pet.SpellID
 		spellName = pet.Name
 
