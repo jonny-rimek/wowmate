@@ -240,9 +240,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	s := bufio.NewScanner(bytes.NewReader(data))
 
-	var nestedRecord map[string]map[string][]*timestreamwrite.WriteRecordsInput
-
-	nestedRecord, err = normalize.Normalize(s, uploadUUID)
+	nestedRecord, err := normalize.Normalize(s, uploadUUID)
 	if err != nil {
 		return logData, fmt.Errorf("normalizing failed: %v", err)
 	}

@@ -104,7 +104,8 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			WHERE
 				combatlog_uuid = '%v'  AND
 		        time between ago(15m) and now() AND
-		        measure_name = 'finished'
+		        measure_name = 'finished' AND
+				measure_value::bigint != 0 -- don't add non finished keys to the top keys list'
 		),
         two_affix_id AS (
 		    SELECT
