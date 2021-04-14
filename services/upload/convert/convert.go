@@ -9,9 +9,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -22,6 +25,7 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/aws/aws-xray-sdk-go/xraylog"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
+	"golang.org/x/net/http2"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/wowmate/jonny-rimek/wowmate/services/upload/convert/normalize"
@@ -386,10 +390,33 @@ func uploadUUID(s string) (string, error) {
 
 func main() {
 	golib.InitLogging()
+	tr := &http.Transport{
+		ResponseHeaderTimeout: 20 * time.Second,
+		// Using DefaultTransport values for other parameters: https://golang.org/pkg/net/http/#RoundTripper
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+			Timeout:   30 * time.Second,
+		}).DialContext,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
 
-	sess, err := session.NewSession()
+	// So client makes HTTP/2 requests
+	err := http2.ConfigureTransport(tr)
 	if err != nil {
-		log.Printf("Error creating session: %v", err.Error())
+		log.Printf("failed configuring http2 transport: %v", err.Error())
+		return
+	}
+
+	sess, err := session.NewSession(&aws.Config{ Region: aws.String("us-east-1"), MaxRetries: aws.Int(10), HTTPClient: &http.Client{ Transport: tr }})
+	// sess, err := session.NewSession()
+	if err != nil {
+		log.Printf("failed creating session: %v", err.Error())
+		return
 	}
 
 	xray.SetLogger(xraylog.NullLogger)

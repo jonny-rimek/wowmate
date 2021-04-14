@@ -291,6 +291,7 @@ func query(combatlogUUID string) *string {
 		combatlogUUID,
 		combatlogUUID,
 		combatlogUUID,
+		combatlogUUID,
 	))
 }
 
