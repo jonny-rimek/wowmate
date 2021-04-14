@@ -155,21 +155,19 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 
 	patch := *queryResult.Rows[0].Data[13].ScalarValue
 
-	reverseDuration := durationAsPercent(dungeonID, dur)
+	durAsPercent, intime := timedAsPercent(dungeonID, dur)
 
 	resp = golib.DynamoDBKeys{
 		// hardcoding the patch like that might be too granular, maybe it makes more sense that e.g. 9.0.2 and 9.0.5 are both S1
 		Pk: fmt.Sprintf("LOG#KEY#%s", patch),
-		Sk: fmt.Sprintf("%02d#%3.6f#%v", keyLevel, reverseDuration, combatlogUUID),
+		Sk: fmt.Sprintf("%02d#%3.6f#%v", keyLevel, durAsPercent, combatlogUUID),
 		// sorting in dynamoDB is achieved via the sort key, in order to sort by key level and within the key level by
 		// time I'm printing the value as string and sort the string.
-		// As I'm sorting descending I need to reverse the size of the duration, otherwise I would sort by
-		// highest key and always show the slowest highest key first. In order to make the fastest key the highest number
-		// I subtract the duration from the max value 9times 9
-		// 999999999 milliseconds would be ~277h
+		// As I'm sorting descending I can't just print the duration in milliseconds.
+		// instead I print the duration as percent in relation to the intime duration
 		Damage:        summaries,
 		Gsi1pk:        fmt.Sprintf("LOG#KEY#%s#%v", patch, dungeonID),
-		Gsi1sk:        fmt.Sprintf("%02d#%3.6f#%v", keyLevel, reverseDuration, combatlogUUID),
+		Gsi1sk:        fmt.Sprintf("%02d#%3.6f#%v", keyLevel, durAsPercent, combatlogUUID),
 		Duration:      t.Format("04:05"), // formats to minutes:seconds
 		Deaths:        0,                 // TODO:
 		Affixes:       golib.AffixIDsToString(twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
@@ -178,18 +176,51 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		DungeonID:     dungeonID,
 		CombatlogUUID: combatlogUUID,
 		Finished:      finished != 0, // if 0 false, else 1
+		Intime:        intime,
 	}
 	return resp, err
 }
 
-func durationAsPercent(dungeonID int, durationInMilliseconds float64) float64 {
+func timedAsPercent(dungeonID int, durationInMilliseconds float64) (durAsPercent float64, intime int) {
+	var intimeDuration, twoChestDuration, threeChestDuration float64
+
 	switch dungeonID {
 	case 2291: // De Other Side
-		return float64(1800000) / durationInMilliseconds
+		intimeDuration = float64(1800000)
+		twoChestDuration = float64(2064000)
+		threeChestDuration = float64(1549000)
+		/*
+			https://www.wowhead.com/mythic-keystones-and-dungeons-guide
+			Dungeon	Timer	+2	+3
+			De Other Side	43:00	34:25	25:49
+			Halls of Atonement	31:00	24:48	18:36
+			Mists of Tirna Scithe	30:00	24:00	18:00
+			Necrotic Wake	36:00	28:48	21:36
+			Plaguefall	38:00	30:24	22:48
+			Sanguine Depths	41:00	32:48	24:36
+			Spires of Ascension	39:00	31:12	23:24
+			Theater of Pain	37:00	29:36	22:12
+		*/
 	}
-	maxMilliseconds := float64(999999999)
+	intime = timed(durationInMilliseconds, intimeDuration, twoChestDuration, threeChestDuration)
 
-	return maxMilliseconds - durationInMilliseconds
+	return durationAsPercent(intimeDuration, durationInMilliseconds), intime
+}
+
+func timed(durationInMilliseconds, intimeDuration, twoChestDuration, threeChestDuration float64) int {
+	if durationInMilliseconds <= threeChestDuration {
+		return 3 // three chest
+	} else if durationInMilliseconds > threeChestDuration && durationInMilliseconds <= twoChestDuration {
+		return 2 // two chest
+	} else if durationInMilliseconds > twoChestDuration && durationInMilliseconds <= intimeDuration {
+		return 1 // timed
+	} else {
+		return 0 // deplete
+	}
+}
+
+func durationAsPercent(dungeonIntimeDuration, durationInMilliseconds float64) float64 {
+	return (dungeonIntimeDuration / durationInMilliseconds) * 100
 }
 
 func main() {
