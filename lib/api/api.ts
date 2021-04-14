@@ -101,6 +101,7 @@ export class Api extends cdk.Construct {
 			environment: {BUCKET_NAME: props.uploadBucket.bucketName},
 			memorySize: 128,
 			reservedConcurrentExecutions: 100,
+			tracing: lambda.Tracing.ACTIVE,
 		});
 		const presignIntegration = new LambdaProxyIntegration({
 			handler: this.presignLambda
