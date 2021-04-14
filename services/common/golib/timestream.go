@@ -151,4 +151,3 @@ func UploadToTimestream2(cfg aws2.Config, e []types2.Record) error {
 	return nil
 }
 */
-

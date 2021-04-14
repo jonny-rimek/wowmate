@@ -33,7 +33,6 @@ func PrettyStruct(input interface{}) (string, error) {
 	return string(prettyJSON), nil
 }
 
-
 // Atoi64 is just a small wrapper around ParseInt
 func Atoi64(input string) (int64, error) {
 	num, err := strconv.ParseInt(input, 10, 64)

@@ -1,28 +1,60 @@
 package normalize
 
-//v16
-//10/3 05:44:30.076  COMBAT_LOG_VERSION,16,ADVANCED_LOG_ENABLED,1,BUILD_VERSION,9.0.2,PROJECT_ID,1
-// func (e *Event) combatLogVersion(params []string) (err error) {
-// 	if len(params) != 8 {
-// 		return fmt.Errorf("combatlog version should have 8 columns, it has %v: %v", len(params), params)
-// 	}
+import (
+	"fmt"
+	"math/rand"
+	"strconv"
+	"time"
 
-// 	e.Version, err = Atoi32(params[1])
-// 	if err != nil {
-// 		log.Println("failed to convert combatlog version event")
-// 		return err
-// 	}
-// 	if e.Version != 16 {
-// 		return fmt.Errorf("unsupported combatlog version: %v, only version 16 is supported", e.Version)
-// 	}
-// 	//IMPROVE: drop advanced combat logging field and column, it has to be 1
-// 	e.AdvancedLogEnabled, err = Atoi32(params[3])
-// 	if err != nil {
-// 		log.Println("failed to convert combatlog version event")
-// 		return err
-// 	}
-// 	if e.AdvancedLogEnabled != 1 {
-// 		return fmt.Errorf("advanced combatlogging must be enabled")
-// 	}
-// 	return nil
-// }
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/timestreamwrite"
+)
+
+// v16
+// 10/3 05:44:30.076  COMBAT_LOG_VERSION,16,ADVANCED_LOG_ENABLED,1,BUILD_VERSION,9.0.2,PROJECT_ID,1
+func combatLogVersion(params []string, uploadUUID string, combatlogUUID string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput) error {
+	if len(params) != 8 {
+		return fmt.Errorf("combatlog version should have 7 columns, it has %v: %v", len(params), params)
+	}
+
+	patchVersion := params[5]
+
+	currentTimeInSeconds := time.Now().Unix()
+
+	var e = []*timestreamwrite.Record{
+		{
+			Dimensions: []*timestreamwrite.Dimension{
+				{
+					Name:  aws.String("upload_uuid"),
+					Value: aws.String(uploadUUID),
+				},
+				{
+					Name:  aws.String("combatlog_uuid"),
+					Value: aws.String(combatlogUUID),
+				},
+			},
+			MeasureName:      aws.String("patch"),
+			MeasureValue:     aws.String(patchVersion),
+			MeasureValueType: aws.String("VARCHAR"),
+			Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
+			TimeUnit:         aws.String("SECONDS"),
+		},
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	key := strconv.Itoa(rand.Int())
+
+	writeRecordsInputs := []*timestreamwrite.WriteRecordsInput{
+		{
+			// common attributes don't matter here, because this is a very rare
+			// event
+			CommonAttributes: &timestreamwrite.Record{
+				Dimensions: []*timestreamwrite.Dimension{},
+			},
+			Records: e,
+		},
+	}
+	rec[combatlogUUID][key] = writeRecordsInputs
+
+	return nil
+}

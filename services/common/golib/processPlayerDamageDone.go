@@ -49,7 +49,6 @@ type DynamoDBPlayerDamageDone struct {
 	Finished      bool               `json:"finished"`
 }
 
-
 /*
 func PlayerDamageSimpleResponseToJson2(result *dynamodb2.QueryOutput, sorted, firstPage bool) (string, error) {
 	var items []DynamoDBPlayerDamageSimple

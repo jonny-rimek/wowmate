@@ -3,6 +3,7 @@ package normalize
 import (
 	"bufio"
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"github.com/gofrs/uuid"
@@ -58,12 +59,13 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 
 		switch params[0] {
 		case "COMBAT_LOG_VERSION":
-			// TODO: get patch info from here
-			// e.CombatlogUUID = CombatlogUUID
-			// err = e.combatLogVersion(params)
-			// if err != nil {
-			// 	return err
-			// }
+			log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+			log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+			log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+			err := combatLogVersion(params, uploadUUID, combatlogUUID, rec)
+			if err != nil {
+				return nil, err
+			}
 
 			// NOTE:
 			// break is implicit in go, that means after the first match it exits

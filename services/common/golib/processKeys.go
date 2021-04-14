@@ -131,6 +131,7 @@ func KeysResponseToJson(result *dynamodb.QueryOutput, sorted, firstPage bool) (s
 	}
 	return string(b), err
 }
+
 // KeysToJson is unused right now, I think it was the predecessor of KeysResponseToJson
 func KeysToJson(result *dynamodb.QueryOutput) (string, error) {
 	var items []DynamoDBKeys

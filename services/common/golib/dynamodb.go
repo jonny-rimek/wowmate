@@ -67,6 +67,7 @@ func DynamoDBQuery(ctx aws.Context, svc *dynamodb.DynamoDB, input dynamodb.Query
 
 	return result, nil
 }
+
 /*
 //DynamoDBQuery2 is a helper to simplify querying a dynamo db table
 func DynamoDBQuery2(client *dynamodb2.Client, input dynamodb2.QueryInput) (*dynamodb2.QueryOutput, error) {
