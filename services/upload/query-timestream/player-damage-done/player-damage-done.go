@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"github.com/aws/aws-xray-sdk-go/xray"
+	"github.com/aws/aws-xray-sdk-go/xraylog"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 	"github.com/sirupsen/logrus"
 
@@ -286,6 +287,8 @@ func main() {
 		logrus.Info(fmt.Sprintf("Error creating session: %v", err.Error()))
 		return
 	}
+
+	xray.SetLogger(xraylog.NullLogger)
 
 	snsSvc = sns.New(sess)
 	if os.Getenv("LOCAL") != "true" {
