@@ -127,7 +127,8 @@ func paginatedQuery(input paginatedQueryInput) (paginatedQueryOutput, error) {
 	var expressionAttributeValues = make(map[string]*dynamodb.AttributeValue)
 
 	expressionAttributeValues[":v1"] = &dynamodb.AttributeValue{
-		S: aws.String(fmt.Sprintf("LOG#KEY#S2#%v", input.dungeonID)),
+		// TODO: make dynamic
+		S: aws.String(fmt.Sprintf("LOG#KEY#9.0.2#%v", input.dungeonID)),
 	}
 
 	// this is the default query aka no pagination
