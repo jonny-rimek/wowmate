@@ -27,7 +27,7 @@
           "arn": "arn:aws:s3:::wm-dev-bucketsupload0b7f8f15-f6hlcjt6x88p"
         },
         "object": {
-          "key": "upload/2021/4/5/2/b042a9d5-7bfe-480c-9880-699e46bb3224.zip",
+          "key": "upload/2021/4/6/9/0ad361c4-23b4-4db6-86e4-e54c9ba1302d.zip",
           "size": 6873965,
           "eTag": "cd1a984dd8323ef1e6e5541d363d5e4d",
           "sequencer": "005F5168797266420C"

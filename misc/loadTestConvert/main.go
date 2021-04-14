@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -48,7 +49,9 @@ func main() {
 
 	svc := sqs.New(sess)
 
-	data, err := ioutil.ReadFile("../s3event.json")
+	arg := os.Args
+
+	data, err := ioutil.ReadFile(arg[1])
 	if err != nil {
 		log.Println("File reading error", err)
 		return
@@ -58,7 +61,21 @@ func main() {
 	queueURL := "https://sqs.us-east-1.amazonaws.com/461497339039/wm-dev-ConvertProcessingQueueE8D6E023-17QQELE95GJC8"
 
 	// one batch contains 10 messages, to send 7,5k events set amount to 750
-	err = sendMessage(sqsBatchMessageSender, svc, &s3Event, &queueURL, 10)
+	var amount int
+
+	// if no argument is provided to the cli send 1 batch of messages aka 10
+	if len(arg) == 2 {
+		amount = 1
+	} else {
+		amount, err = strconv.Atoi(arg[2])
+		if err != nil {
+			log.Println("failed to convert cli argument to int")
+			return
+		}
+	}
+
+
+	err = sendMessage(sqsBatchMessageSender, svc, &s3Event, &queueURL, amount)
 	if err != nil {
 		log.Println(err)
 		return

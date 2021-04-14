@@ -9,11 +9,13 @@ import (
 )
 
 // Normalize converts the combatlog to a slice of Event structs
+// TODO: rename, we are not really normalizing the data anymore, because I'm not using a database tat needs it
 func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string][]*timestreamwrite.WriteRecordsInput, error) {
-	// var combatEvents []*timestreamwrite.Record
 	var combatlogUUID string
 
 	rec := make(map[string]map[string][]*timestreamwrite.WriteRecordsInput)
+
+	pets := make(map[string]pet)
 
 	if uploadUUID == "" {
 		return nil, fmt.Errorf("can't provide an empty uploadUUID")
@@ -48,19 +50,9 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 
 		params := splitAtCommas(&row[1])
 
-		// e := &timestreamwrite.Record{}
-		// e := Event{
-		// 	// UploadUUID:     uploadUUID,
-		// 	// CombatlogUUID:  CombatlogUUID,
-		// 	// BossFightUUID:  BossFightUUID,
-		// 	MythicplusUUID: MythicplusUUID,
-		// 	// ColumnUUID:     uuid.Must(uuid.NewV4()).String(),
-		// 	Timestamp: timestamp,
-		// 	// EventType:      params[0],
-		// }
-
 		// don' add events if they are outside of a combatlog
 		if combatlogUUID == "" && params[0] != "CHALLENGE_MODE_START" {
+			// log.Println(params)
 			continue
 		}
 
@@ -108,21 +100,22 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 		case "CHALLENGE_MODE_END":
 			err := challengeModeEnd(params, uploadUUID, combatlogUUID, rec)
 			if err != nil {
-				return rec, err
+				return nil, err
 			}
 
 			combatlogUUID = ""
 
-		// case "SPELL_HEAL", "SPELL_PERIODIC_HEAL":
-		// 	err = e.importHeal(params)
-		case "SPELL_DAMAGE":
-			err := spellDamage(params, &uploadUUID, &combatlogUUID, rec)
+		case "SPELL_DAMAGE", "SPELL_PERIODIC_DAMAGE", "RANGE_DAMAGE", "SWING_DAMAGE":
+			err := damage(params, &uploadUUID, &combatlogUUID, rec, pets)
 			if err != nil {
 				return nil, err
 			}
 
-			// combatEvents = append(combatEvents, e)
-			// rec[combatlogUUID] = combatEvents
+		case "SPELL_SUMMON":
+			err := summon(params, &uploadUUID, &combatlogUUID, rec, pets)
+			if err != nil {
+				return nil, err
+			}
 
 		default:
 			// e.Unsupported = true

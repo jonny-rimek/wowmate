@@ -2,7 +2,7 @@ package normalize
 
 //TODO:
 // func (e *Event) spellHeal(params []string) (err error) {
-// 	e.CasterID = params[1]               //Player-970-00307C5B
+// 	e.SpellID = params[1]               //Player-970-00307C5B
 // 	e.CasterName = trimQuotes(params[2]) //"Brimidreki-Sylvanas"
 // 	e.CasterType = params[3]             //0x512
 // 	e.SourceFlag = params[4]             //0x0

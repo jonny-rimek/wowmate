@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -19,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"github.com/aws/aws-xray-sdk-go/xray"
+	"github.com/aws/aws-xray-sdk-go/xraylog"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -98,13 +100,14 @@ CREATE TABLE IF NOT EXISTS combatlogs (
 // https://mholt.github.io/json-to-go/ best tool EVER
 
 type logData struct {
-	CombatlogUUID []string
-	UploadUUID    string
-	BucketName    string
-	ObjectKey     string
-	FileType      string
-	FileSize      int
-	Records       int
+	CombatlogUUID      []string
+	UploadUUID         string
+	BucketName         string
+	ObjectKey          string
+	FileType           string
+	FileSize           int
+	Records            int
+	TimestreamAPICalls int
 }
 
 var s3Svc *s3.S3
@@ -116,50 +119,54 @@ var writeSvc *timestreamwrite.TimestreamWrite
 func handler(ctx aws.Context, e golib.SQSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
-		err2 := golib.RenameFileS3(
-			ctx,
-			s3Svc,
-			logData.ObjectKey,
-			fmt.Sprintf("error/%v", logData.UploadUUID),
-			logData.BucketName,
-		)
-		if err2 != nil {
-			golib.CanonicalLog(map[string]interface{}{
-				"combatlog_uuid":  logData.CombatlogUUID,
-				"file_size_in_kb": logData.FileSize,
-				"file_type":       logData.FileType,
-				"upload_uuid":     logData.UploadUUID,
-				"object_key":      logData.ObjectKey,
-				"bucket_name":     logData.BucketName,
-				"err":             err.Error(),
-				"err2":            err2.Error(),
-				"records":         logData.Records, // printing record in case of error to better debug
-				"event":           e,
-			})
-			return err
-		}
+		// reactivate to release, ruins my load tests
+		// err2 := golib.RenameFileS3(
+		// 	ctx,
+		// 	s3Svc,
+		// 	logData.ObjectKey,
+		// 	fmt.Sprintf("error/%v", logData.UploadUUID),
+		// 	logData.BucketName,
+		// )
+		// if err2 != nil {
+		// 	golib.CanonicalLog(map[string]interface{}{
+		// 		"combatlog_uuid":  logData.CombatlogUUID,
+		// 		"file_size_in_kb": logData.FileSize,
+		// 		"file_type":       logData.FileType,
+		// 		"upload_uuid":     logData.UploadUUID,
+		// 		"object_key":      logData.ObjectKey,
+		// 		"bucket_name":     logData.BucketName,
+		// 		"err":             err.Error(),
+		// 		"err2":            err2.Error(),
+		// 		"records":         logData.Records, // printing record in case of error to better debug
+		// "timestream_api_calls": logData.TimestreamAPICalls,
+		// 		"event":           e,
+		// 	})
+		// 	return err
+		// }
 		golib.CanonicalLog(map[string]interface{}{
-			"combatlog_uuid":  logData.CombatlogUUID,
-			"file_size_in_kb": logData.FileSize,
-			"file_type":       logData.FileType,
-			"upload_uuid":     logData.UploadUUID,
-			"object_key":      logData.ObjectKey,
-			"bucket_name":     logData.BucketName,
-			"err":             err.Error(),
-			"records":         logData.Records, // printing record in case of error to better debug
-			"event":           e,
+			"combatlog_uuid":       logData.CombatlogUUID,
+			"file_size_in_kb":      logData.FileSize,
+			"file_type":            logData.FileType,
+			"upload_uuid":          logData.UploadUUID,
+			"object_key":           logData.ObjectKey,
+			"bucket_name":          logData.BucketName,
+			"err":                  err.Error(),
+			"records":              logData.Records, // printing record in case of error to better debug
+			"timestream_api_calls": logData.TimestreamAPICalls,
+			"event":                e,
 		})
 		return err
 	}
 
 	golib.CanonicalLog(map[string]interface{}{
-		"combatlog_uuid":  logData.CombatlogUUID,
-		"file_size_in_kb": logData.FileSize,
-		"file_type":       logData.FileType,
-		"upload_uuid":     logData.UploadUUID,
-		"object_key":      logData.ObjectKey,
-		"bucket_name":     logData.BucketName,
-		"records":         logData.Records,
+		"combatlog_uuid":       logData.CombatlogUUID,
+		"file_size_in_kb":      logData.FileSize,
+		"file_type":            logData.FileType,
+		"upload_uuid":          logData.UploadUUID,
+		"object_key":           logData.ObjectKey,
+		"bucket_name":          logData.BucketName,
+		"records":              logData.Records,
+		"timestream_api_calls": logData.TimestreamAPICalls,
 	})
 	return err
 }
@@ -193,18 +200,21 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	bucketName := req.Records[0].S3.Bucket.Name
 	objectKey := req.Records[0].S3.Object.Key
-	uploadUUID := uploadUUID(objectKey)
-
-	logData.BucketName = bucketName
-	logData.ObjectKey = objectKey
-	logData.UploadUUID = uploadUUID
 
 	var maxSizeInKB int
-
 	maxSizeInKB, logData.FileType, err = fileType(objectKey)
 	if err != nil {
 		return logData, err
 	}
+
+	uploadUUID, err := uploadUUID(objectKey)
+	if err != nil {
+		return logData, fmt.Errorf("failed to extract the uploadUUID: %v", err.Error())
+	}
+
+	logData.BucketName = bucketName
+	logData.ObjectKey = objectKey
+	logData.UploadUUID = uploadUUID
 
 	// zipped files are usually around 8% of the original size
 	logData.FileSize, err = golib.SizeOfS3Object(ctx, s3Svc, bucketName, objectKey)
@@ -235,30 +245,52 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		return logData, fmt.Errorf("normalizing failed: %v", err)
 	}
 
-	// if os.Getenv("LOCAL") == "true" {
-	// uploading to timestream takes too long locally, option to not run it
-	//	return logData, nil
-	// }
-	// logData.Records = len(combatEvents)
+	// can process single key log files with 26MB size and 1792 MB memory lambda in ~3sec once timestream is warm
+	maxGoroutines := 15
+	var ch = make(chan *timestreamwrite.WriteRecordsInput, 300) // This number 200 can be anything as long as it's larger than maxGoroutines
+	var wg sync.WaitGroup
 
-	for combatlogUUID, record := range nestedRecord {
-		for _, writeRecordsInputs := range record {
+	var writeErr error
 
-			for _, e := range writeRecordsInputs {
-				err = golib.WriteToTimestream(ctx, writeSvc, e)
-				if err != nil {
-					return logData, err
+	wg.Add(maxGoroutines) // this start maxGoroutines number of goroutines that wait for something to do
+	for i := 0; i < maxGoroutines; i++ {
+		go func() {
+			for {
+				a, ok := <-ch
+				if !ok { // if there is nothing to do and the channel has been closed then end the goroutine
+					wg.Done()
+					return
 				}
+				writeErr = golib.WriteToTimestream(ctx, writeSvc, a)
+			}
+		}()
+	}
+
+	for _, record := range nestedRecord { // group by different keys
+		for _, writeRecordsInputs := range record { // grouped by key to use common attribute
+			logData.TimestreamAPICalls += len(writeRecordsInputs)
+			for _, e := range writeRecordsInputs { // array of TimestreamWriteInputs
+				ch <- e                           // add i to the queue
+				logData.Records += len(e.Records) // not sure if this is problematic or I should use channels
 			}
 		}
-		logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
+	}
 
+	// close(errorChannel)
+	close(ch) // This tells the goroutines there's nothing else to do
+	wg.Wait() // Wait for the threads to finish
+
+	if writeErr != nil {
+		return logData, writeErr
+	}
+
+	for combatlogUUID := range nestedRecord { // group by different keys
+		logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
 		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
 		if err != nil {
 			return logData, err
 		}
 	}
-
 	return logData, nil
 }
 
@@ -303,7 +335,6 @@ func readFileTypes(fileType string, fileContent *aws.WriteAtBuffer) ([]byte, err
 	return data, nil
 }
 
-// TODO: ez test
 func fileType(objectKey string) (int, string, error) {
 	var fileType string
 	var maxSizeInKB int
@@ -322,23 +353,35 @@ func fileType(objectKey string) (int, string, error) {
 	return maxSizeInKB, fileType, nil
 }
 
-func readZipFile(zf *zip.File) ([]byte, error) {
+func readZipFile(zf *zip.File) (data []byte, err error) {
 	f, err := zf.Open()
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			err = fmt.Errorf("failed to close zip file: %v", err)
+		}
+	}()
 	return ioutil.ReadAll(f)
 }
 
-func uploadUUID(s string) string {
-	// TODO: check if string is empty and return error
-	//	update test too
+func uploadUUID(s string) (string, error) {
+	if s == "" {
+		return "", fmt.Errorf("input can't be empty")
+	}
 	s = strings.TrimSuffix(s, ".txt")
 	s = strings.TrimSuffix(s, ".txt.gz")
 	s = strings.TrimSuffix(s, ".zip")
 
-	return strings.Split(s, "/")[5]
+	split := strings.Split(s, "/")
+	correctLength := 6
+	if len(split) != correctLength {
+		return "", fmt.Errorf("input has the wrong length, got %d want %d", len(split), correctLength)
+	}
+
+	lastElement := split[correctLength-1]
+	return lastElement, nil
 }
 
 func main() {
@@ -348,6 +391,17 @@ func main() {
 	if err != nil {
 		log.Printf("Error creating session: %v", err.Error())
 	}
+
+	xray.SetLogger(xraylog.NullLogger)
+	/*
+		I get a lot of the following messages. The reason according to the support is that to upload background processes
+		are used, which don't have access to the context. To not spam my log and reduce cost I'm disabling the message with the
+		silent setting.
+
+		2021-04-14T05:50:30 2021-04-14T05:50:30Z [ERROR] Suppressing AWS X-Ray context missing panic: failed to begin subsegment named 'Timestream Write': segment cannot be found.
+		2021-04-14T05:50:30 2021-04-14T05:50:30Z [ERROR] Suppressing AWS X-Ray context missing panic: failed to begin subsegment named 'attempt': segment cannot be found.
+		2021-04-14T05:50:30 2021-04-14T05:50:30Z [ERROR] Suppressing AWS X-Ray context missing panic: failed to begin subsegment named 'unmarshal': segment cannot be found.
+	*/
 
 	s3Svc = s3.New(sess)
 	if os.Getenv("LOCAL") == "false" {

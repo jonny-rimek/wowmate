@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"github.com/aws/aws-xray-sdk-go/xray"
+	"github.com/aws/aws-xray-sdk-go/xraylog"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 	"github.com/sirupsen/logrus"
 
@@ -68,6 +69,9 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		}
 		logData.QueryID = *queryResult.QueryId
 		return logData, err
+	}
+	if len(queryResult.Rows) == 0 {
+		return logData, fmt.Errorf("query returned empty result")
 	}
 
 	logData.QueryID = *queryResult.QueryId
@@ -208,6 +212,7 @@ func query(combatlogUUID string) *string {
 			WHERE
 				combatlog_uuid = '%v' AND
 				(caster_type = '0x512' OR caster_type = '0x511') AND
+				caster_id != '0000000000000000' AND -- sometime the caster_id is empty, dunno why
 		  		time between ago(15m) and now()
 		-- TODO: I should only group by spell name, but I need one of the spell ids, to show an icon, might be easier to do in golang
 			GROUP BY
@@ -282,6 +287,8 @@ func main() {
 		logrus.Info(fmt.Sprintf("Error creating session: %v", err.Error()))
 		return
 	}
+
+	xray.SetLogger(xraylog.NullLogger)
 
 	snsSvc = sns.New(sess)
 	if os.Getenv("LOCAL") != "true" {

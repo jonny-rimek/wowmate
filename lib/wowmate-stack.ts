@@ -54,6 +54,7 @@ export class Wowmate extends Stack {
 			codePath: 'services/upload/query-timestream/keys',
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
+				LOCAL: "false",
 			}
 		});
 
@@ -65,6 +66,7 @@ export class Wowmate extends Stack {
 			codePath: 'services/upload/insert/dynamodb/keys',
             envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
+				LOCAL: "false",
 			}
 		});
 
@@ -76,6 +78,7 @@ export class Wowmate extends Stack {
 			codePath: 'services/upload/insert/timestream/keys',
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
+				LOCAL: "false",
 			}
 		});
 
@@ -89,6 +92,7 @@ export class Wowmate extends Stack {
 			codePath: 'services/upload/query-timestream/player-damage-done',
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
+				LOCAL: "false",
 			}
 		});
 
@@ -100,6 +104,7 @@ export class Wowmate extends Stack {
 			codePath: 'services/upload/insert/dynamodb/player-damage-done',
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
+				LOCAL: "false",
 			}
 		});
 
@@ -113,6 +118,7 @@ export class Wowmate extends Stack {
 			],
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
+				LOCAL: "false",
 			}
 		});
 

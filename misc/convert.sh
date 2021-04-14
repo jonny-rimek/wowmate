@@ -9,9 +9,10 @@ then
   ./misc/build.sh skipFrontend >/dev/null
 fi
 
-
 sam local invoke ConvertLambda3540DCCB \
   --template cdk.out/wm-dev.template.json \
   --event misc/convertInput.json \
   --profile default \
   --env-vars=misc/env.json
+
+#  --event misc/convertInputBigFile.json \

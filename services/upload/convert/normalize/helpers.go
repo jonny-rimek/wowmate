@@ -15,9 +15,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-//Atoi32 converts a string directly to a int32, baseline golang parses string always into int64 and have to be converted
-//to int32. You can however transform a string easily to int, which is somehow the same, but the parquet package expects int32
-//specifically
+// Atoi32 converts a string directly to a int32, baseline golang parses string always into int64 and have to be converted
+// to int32. You can however transform a string easily to int, which is somehow the same, but the parquet package expects int32
+// specifically
 func Atoi32(input string) (int32, error) {
 	bigint, err := strconv.ParseInt(input, 10, 32)
 	if err != nil {
@@ -28,7 +28,7 @@ func Atoi32(input string) (int32, error) {
 	return num, nil
 }
 
-//Atoi64 is just a small wrapper around ParseInt
+// Atoi64 is just a small wrapper around ParseInt
 func Atoi64(input string) (int64, error) {
 	num, err := strconv.ParseInt(input, 10, 64)
 	if err != nil {
@@ -38,7 +38,7 @@ func Atoi64(input string) (int64, error) {
 	return num, nil
 }
 
-//TODO: check that it is surounded by quotes and fail otherwise
+// TODO: check that it is surounded by quotes and fail otherwise
 //		to make it fail early.
 //		Because the columns must be surrounded by qoutes otherwise it is a wrong column
 func trimQuotes(input string) string {
@@ -47,7 +47,7 @@ func trimQuotes(input string) string {
 	return output
 }
 
-//TODO: test and fix the year problem
+// TODO: test and fix the year problem
 // this will break during new year, because go assumes UTC,
 // but the combatlog has the time of the player afaik
 func timestampMilli(input string) (int64, error) {
@@ -61,9 +61,9 @@ func timestampMilli(input string) (int64, error) {
 	return t.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)), nil
 }
 
-//copying code from stackoverflow like a pro
-//https://stackoverflow.com/questions/59297737/go-split-string-by-comma-but-ignore-comma-within-double-quotes
-//atleast I added tests^^ and switched to string pointers to reduce memory
+// copying code from stackoverflow like a pro
+// https://stackoverflow.com/questions/59297737/go-split-string-by-comma-but-ignore-comma-within-double-quotes
+// at least I added tests^^ and switched to string pointers to reduce memory
 func splitAtCommas(s *string) []string {
 	var res []string
 	var beg int
@@ -84,9 +84,9 @@ func splitAtCommas(s *string) []string {
 	return append(res, (*s)[beg:])
 }
 
-//wrapper around strings.Split to test functionality
-//doesn't really make sense to test the standard libary, but
-//i want to refactor this later
+// wrapper around strings.Split to test functionality
+// doesn't really make sense to test the standard libary, but
+// i want to refactor this later
 func splitString(s, sep string) []string {
 	return strings.Split(s, sep)
 }
@@ -101,7 +101,7 @@ func convertToCSV(events *[]Event) (io.Reader, error) {
 	}
 	log.Println("converted to struct to string slice")
 
-	//flushes the string slice as csv to buffer
+	// flushes the string slice as csv to buffer
 	if err := w.WriteAll(ss); err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func convertToCSV(events *[]Event) (io.Reader, error) {
 	return io.Reader(&buf), nil
 }
 
-//TODO: test once the db table definition is stable
+// TODO: test once the db table definition is stable
 func eventsAsStringSlices(events *[]Event) ([][]string, error) {
 	var ss [][]string
 
@@ -186,10 +186,10 @@ func eventsAsStringSlices(events *[]Event) ([][]string, error) {
 	return ss, nil
 }
 
-//IMPROVE:
-//there shouldn't be any aws logic inside this package, but I want to upload directly after every
-//m+, the idea was to free the memory of the uploaded combatlog, but I don't think this is working
-//anyway
+// IMPROVE:
+// there shouldn't be any aws logic inside this package, but I want to upload directly after every
+// m+, the idea was to free the memory of the uploaded combatlog, but I don't think this is working
+// anyway
 func uploadS3(r *io.Reader, sess *session.Session, mythicplugUUID string, csvBucket string) error {
 	if mythicplugUUID == "" {
 		//sometimes there are more CHALLANGE_MODE_END events than there are start events
@@ -212,13 +212,13 @@ func uploadS3(r *io.Reader, sess *session.Session, mythicplugUUID string, csvBuc
 	return nil
 }
 
-//IMPROVE: add all fields once table design is stable
+// IMPROVE: add all fields once table design is stable
 // func (s *Event) String() string {
 // 	return fmt.Sprintf(`[
 //   UUID            -> %s
 //   TimeStamp       -> %v
 //   EventType       -> %s
-//   CasterID        -> %s
+//   SpellID        -> %s
 //   CasterName      -> %s
 //   CasterType      -> %s
 //   SourceFlag      -> %s
@@ -230,6 +230,6 @@ func uploadS3(r *io.Reader, sess *session.Session, mythicplugUUID string, csvBuc
 //   SpellName       -> %s
 //   SpellType       -> %s
 // ]
-// `, s.UploadUUID, s.Timestamp, s.EventType, s.CasterID, s.CasterName, s.CasterType, s.SourceFlag, s.TargetID, s.TargetName, s.TargetType, s.DestFlag, s.SpellID, s.SpellName, s.SpellType)
+// `, s.UploadUUID, s.Timestamp, s.EventType, s.SpellID, s.CasterName, s.CasterType, s.SourceFlag, s.TargetID, s.TargetName, s.TargetType, s.DestFlag, s.SpellID, s.SpellName, s.SpellType)
 // 	//  AnotherPlayerID -> %s
 // }

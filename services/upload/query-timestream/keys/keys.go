@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/aws/aws-sdk-go/service/timestreamquery"
 	"github.com/aws/aws-xray-sdk-go/xray"
+	"github.com/aws/aws-xray-sdk-go/xraylog"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
 	"github.com/sirupsen/logrus"
 
@@ -104,7 +105,8 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			WHERE
 				combatlog_uuid = '%v'  AND
 		        time between ago(15m) and now() AND
-		        measure_name = 'finished'
+		        measure_name = 'finished' AND
+				measure_value::bigint != 0 -- don't add non finished keys to the top keys list'
 		),
         two_affix_id AS (
 		    SELECT
@@ -161,6 +163,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			WHERE
 				combatlog_uuid = '%v' AND
 				(caster_type = '0x512' OR caster_type = '0x511') AND
+				caster_id != '0000000000000000' AND -- sometime the caster_id is empty, dunno why
 		  		time between ago(15m) and now()
 			GROUP BY
 				caster_name, caster_id, combatlog_uuid
@@ -228,6 +231,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		logData.QueryID = *queryResult.QueryId
 		return logData, err
 	}
+	// not checking for empty queries, because abandoned keys are supposed to return empty queries
 
 	logData.QueryID = *queryResult.QueryId
 	logData.BilledMegabytes = *queryResult.QueryStatus.CumulativeBytesMetered / 1e6 // 1.000.000
@@ -268,6 +272,8 @@ func main() {
 		logrus.Info(fmt.Sprintf("Error creating session: %v", err.Error()))
 		return
 	}
+
+	xray.SetLogger(xraylog.NullLogger)
 
 	snsSvc = sns.New(sess)
 	if os.Getenv("LOCAL") != "true" {

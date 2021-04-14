@@ -590,9 +590,6 @@ func TimestreamQuery(ctx aws.Context, query *string, querySvc *timestreamquery.T
 			return nil, fmt.Errorf("failed querying timestream: %v", err.Error())
 		}
 	}
-	if len(result.Rows) == 0 {
-		return result, fmt.Errorf("query returned empty result")
-	}
 
 	return result, nil
 }
@@ -633,13 +630,16 @@ func WriteToTimestream(ctx aws.Context, writeSvc *timestreamwrite.TimestreamWrit
 	}
 	if err != nil {
 		// debug info
-		prettyStruct, err := PrettyStruct(e)
-		if err != nil {
-			return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
-		}
-		log.Println(prettyStruct)
+		// prettyStruct, err := PrettyStruct(e)
+		// if err != nil {
+		// 	return fmt.Errorf("failed to to get pretty struct: %v", err.Error())
+		// }
+		// log.Println(prettyStruct)
+		log.Printf("failed to write to timestream, logging: %v", err)
+		// I only handle one error from all goroutines, that's why I'm logging
+		// each to see if errors occur in multiple goroutines
 
-		return fmt.Errorf("failed to write to timestream: %v", err)
+		return fmt.Errorf("failed to write to timestream, returning: %v", err)
 	}
 	return nil
 }
