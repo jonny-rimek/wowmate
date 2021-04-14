@@ -247,11 +247,14 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		logData.QueryID = *queryResult.QueryId
 		return logData, err
 	}
-	// not checking for empty queries, because abandoned keys are supposed to return empty queries
-
 	logData.QueryID = *queryResult.QueryId
 	logData.BilledMegabytes = *queryResult.QueryStatus.CumulativeBytesMetered / 1e6 // 1.000.000
 	logData.ScannedMegabytes = *queryResult.QueryStatus.CumulativeBytesScanned / 1e6
+
+	if len(queryResult.Rows) == 0 {
+		// query was empty which is fine, but don't push it to sns
+		return logData, nil
+	}
 
 	input, err := json.Marshal(queryResult)
 	if err != nil {

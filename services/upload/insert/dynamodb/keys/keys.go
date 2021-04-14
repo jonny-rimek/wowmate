@@ -158,7 +158,8 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	reverseDuration := maxMilliseconds - durationInMilliseconds
 
 	resp = golib.DynamoDBKeys{
-		Pk: fmt.Sprintf("LOG#KEY#%s", patch), // TODO: dynamic season
+		// hardcoding the patch like that might be too granular, maybe it makes more sense that e.g. 9.0.2 and 9.0.5 are both S1
+		Pk: fmt.Sprintf("LOG#KEY#%s", patch),
 		Sk: fmt.Sprintf("%02d#%09d#%v", keyLevel, reverseDuration, combatlogUUID),
 		// sorting in dynamoDB is achieved via the sort key, in order to sort by key level and within the key level by
 		// time I'm printing the value as string and sort the string.
