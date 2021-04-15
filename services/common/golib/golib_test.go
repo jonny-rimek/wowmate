@@ -1,9 +1,9 @@
-package main
+package golib
 
 import "testing"
 
-func Test_minSecToMilliseconds(t *testing.T) {
-	got, _ := minSecToMilliseconds("43:00")
+func Test_MinSecToMilliseconds(t *testing.T) {
+	got, _ := MinSecToMilliseconds("43:00")
 	want := int64(2580000)
 
 	if got != want {
