@@ -124,7 +124,7 @@
                   <td
                     class="px-2 sm:px-6 py-4 whitespace-no-wrap text-sm capitalize leading-5 font-medium text-gray-200 "
                   >
-                    {{ entry.damage }}
+                    {{ entry.player_name }}
                   </td>
                   <td
                     class="sm:px-6 py-4 whitespace-no-wrap text-sm leading-5 text-gray-400"

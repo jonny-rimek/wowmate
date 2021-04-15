@@ -30,11 +30,10 @@ do
   gofmt -w -s .
   go vet
   errcheck
-# running fmt in the IDE
   go test .
   go build -ldflags='-s -w' -o main .
-  echo "compiled go"
 done
+echo "compiled go"
 
 #if there is a 2nd argument skip cdk build step
 if [ -z "$2" ]
