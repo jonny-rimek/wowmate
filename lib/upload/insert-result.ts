@@ -43,12 +43,13 @@ export class InsertResult extends cdk.Construct {
 			onFailure: new destinations.SqsDestination(this.lambdaDLQ),
 			//Fails will be retried twice without landing in the DLQ, if the last retry also fails the message
 			//lands in the DLQ
-			//TODO: on success destination doesn't work with xray DON'T USE until fixed
+
+			//on success destination doesn't work with xray DON'T USE until fixed
 		})
         //temp queue to get message content easily
 		//this is not the whole event one needs to invoke it locally only the SNS part
-		// const q = new sqs.Queue(this, 'QQQQQQQQQQQQQQQQQQQQQQQ') //long name so it's ez to find the temp queue^^
-		// props.topic.addSubscription(new subs.SqsSubscription(q))
+		const q = new sqs.Queue(this, 'QQQQQQQQQQQQQQQQQQQQQQQ') //long name so it's ez to find the temp queue^^
+		props.topic.addSubscription(new subs.SqsSubscription(q))
 
 		props.topic.addSubscription(new subs.LambdaSubscription(this.lambda, {
 			deadLetterQueue: props.topicDLQ,

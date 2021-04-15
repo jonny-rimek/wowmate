@@ -1,16 +1,15 @@
 #!/bin/bash
 
-clear && echo "building cdk and go"
-# watcher cli can't handle executing 2 commands at once with && in between
+# watcher cli can't handle executing 2 cmds at once with && inbetween
 # and during testing I don't want to rebuild for every test that's why I need to
 # add an extra flag
 if [ -z "$1" ]
 then
-  ./misc/build.sh skipFrontend >/dev/null
+  ./misc/build.sh skipFrontend
 fi
 
-sam local invoke ConvertLambda3540DCCB \
+sam local invoke InsertKeysToDynamodbLambda15825024 \
   --template cdk.out/wm-dev.template.json \
-  --event misc/convertInput.json \
+  --event misc/insertPlayerDamageDoneToDynamodbEvent.json \
   --profile default \
   --env-vars=misc/env.json

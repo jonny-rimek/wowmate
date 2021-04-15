@@ -123,6 +123,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	if err != nil {
 		return resp, err
 	}
+	dur := float64(durationInMilliseconds)
 	// converts duration to date 1970 + duration, of which I only display the minutes and seconds
 	// time.Duration, doesn't allow mixed formatting like min:seconds
 	t := time.Unix(0, durationInMilliseconds*1e6) // milliseconds > nanoseconds
@@ -154,22 +155,22 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 
 	patch := *queryResult.Rows[0].Data[13].ScalarValue
 
-	maxMilliseconds := int64(999999999)
-	reverseDuration := maxMilliseconds - durationInMilliseconds
+	durAsPercent, intime, err := timedAsPercent(dungeonID, dur)
+	if err != nil {
+		return resp, err
+	}
 
 	resp = golib.DynamoDBKeys{
 		// hardcoding the patch like that might be too granular, maybe it makes more sense that e.g. 9.0.2 and 9.0.5 are both S1
 		Pk: fmt.Sprintf("LOG#KEY#%s", patch),
-		Sk: fmt.Sprintf("%02d#%09d#%v", keyLevel, reverseDuration, combatlogUUID),
+		Sk: fmt.Sprintf("%02d#%3.6f#%v", keyLevel, durAsPercent, combatlogUUID),
 		// sorting in dynamoDB is achieved via the sort key, in order to sort by key level and within the key level by
 		// time I'm printing the value as string and sort the string.
-		// As I'm sorting descending I need to reverse the size of the duration, otherwise I would sort by
-		// highest key and always show the slowest highest key first. In order to make the fastest key the highest number
-		// I subtract the duration from the max value 9times 9
-		// 999999999 milliseconds would be ~277h
+		// As I'm sorting descending I can't just print the duration in milliseconds.
+		// instead I print the duration as percent in relation to the intime duration
 		Damage:        summaries,
 		Gsi1pk:        fmt.Sprintf("LOG#KEY#%s#%v", patch, dungeonID),
-		Gsi1sk:        fmt.Sprintf("%02d#%09d#%v", keyLevel, reverseDuration, combatlogUUID),
+		Gsi1sk:        fmt.Sprintf("%02d#%3.6f#%v", keyLevel, durAsPercent, combatlogUUID),
 		Duration:      t.Format("04:05"), // formats to minutes:seconds
 		Deaths:        0,                 // TODO:
 		Affixes:       golib.AffixIDsToString(twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
@@ -177,9 +178,208 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		DungeonName:   dungeonName,
 		DungeonID:     dungeonID,
 		CombatlogUUID: combatlogUUID,
-		Finished:      finished != 0, // if 0 false, else 1
+		Finished:      finished != 0, // if 0 false, else true
+		Intime:        intime,
 	}
 	return resp, err
+}
+
+// minSecToMilliseconds converts time in the "minute:seconds" format to milliseconds
+func minSecToMilliseconds(input string) (int64, error) {
+	input = fmt.Sprintf("1970 %s", input)
+	t, err := time.Parse("2006 04:05", input)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse time input: %v", err)
+	}
+	milliseconds := t.UnixNano() / 1e6
+	return milliseconds, nil
+}
+
+func timedAsPercent(dungeonID int, durationInMilliseconds float64) (durAsPercent float64, intime int, err error) {
+	var intimeDuration, twoChestDuration, threeChestDuration float64
+
+	switch dungeonID {
+	case 2291: // De Other Side
+		ms, err := minSecToMilliseconds("43:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("34:25")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("25:49")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2289: // Plaguefall
+		ms, err := minSecToMilliseconds("38:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("30:24")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("22:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+	case 2284: // Sanguine Depths
+		ms, err := minSecToMilliseconds("41:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("32:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("24:36")
+		if err != nil {
+			return 0, 0, err
+		}
+	// TODO: parse time and convert to milli seconds do it in TDD
+	/*
+		https://www.wowhead.com/mythic-keystones-and-dungeons-guide
+		Dungeon	Timer	+2	+3
+		De Other Side	43:00	34:25	25:49
+		Plaguefall	38:00	30:24	22:48
+		Halls of Atonement	31:00	24:48	18:36
+		Mists of Tirna Scithe	30:00	24:00	18:00
+		Spires of Ascension	39:00	31:12	23:24
+		Sanguine Depths	41:00	32:48	24:36
+		Necrotic Wake	36:00	28:48	21:36
+		Theater of Pain	37:00	29:36	22:12
+	*/
+	case 2287: // Halls of Atonement
+		ms, err := minSecToMilliseconds("31:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("24:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("18:36")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2290: // Mists of Tirna Scithe
+		ms, err := minSecToMilliseconds("30:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("24:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("18:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2285: // Spires of Ascension
+		ms, err := minSecToMilliseconds("39:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("31:12")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("23:24")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2286: // Necrotic Wake
+		ms, err := minSecToMilliseconds("36:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("28:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("21:36")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2293:
+		ms, err := minSecToMilliseconds("37:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("29:36")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("22:12")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+	}
+	intime = timed(durationInMilliseconds, intimeDuration, twoChestDuration, threeChestDuration)
+
+	return durationAsPercent(intimeDuration, durationInMilliseconds), intime, err
+}
+
+func timed(durationInMilliseconds, intimeDuration, twoChestDuration, threeChestDuration float64) int {
+	if durationInMilliseconds <= threeChestDuration {
+		return 3 // three chest
+	} else if durationInMilliseconds > threeChestDuration && durationInMilliseconds <= twoChestDuration {
+		return 2 // two chest
+	} else if durationInMilliseconds > twoChestDuration && durationInMilliseconds <= intimeDuration {
+		return 1 // timed
+	} else {
+		return 0 // deplete
+	}
+}
+
+func durationAsPercent(dungeonIntimeDuration, durationInMilliseconds float64) float64 {
+	return (dungeonIntimeDuration / durationInMilliseconds) * 100
 }
 
 func main() {
@@ -192,7 +392,9 @@ func main() {
 	}
 
 	svc = dynamodb.New(sess)
-	xray.AWS(svc.Client)
+	if os.Getenv("LOCAL") == "false" {
+		xray.AWS(svc.Client)
+	}
 
 	lambda.Start(handler)
 }

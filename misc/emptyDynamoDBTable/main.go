@@ -44,6 +44,7 @@ func main() {
 			delete(item, "player_damage")
 			delete(item, "gsi1pk")
 			delete(item, "gsi1sk")
+			delete(item, "intime")
 			log.Println(item)
 			output, err := svc.DeleteItem(&dynamodb.DeleteItemInput{
 				Key:       item,
