@@ -155,7 +155,10 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 
 	patch := *queryResult.Rows[0].Data[13].ScalarValue
 
-	durAsPercent, intime := timedAsPercent(dungeonID, dur)
+	durAsPercent, intime, err := timedAsPercent(dungeonID, dur)
+	if err != nil {
+		return resp, err
+	}
 
 	resp = golib.DynamoDBKeys{
 		// hardcoding the patch like that might be too granular, maybe it makes more sense that e.g. 9.0.2 and 9.0.5 are both S1
@@ -175,45 +178,99 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		DungeonName:   dungeonName,
 		DungeonID:     dungeonID,
 		CombatlogUUID: combatlogUUID,
-		Finished:      finished != 0, // if 0 false, else 1
+		Finished:      finished != 0, // if 0 false, else true
 		Intime:        intime,
 	}
 	return resp, err
 }
 
-func timedAsPercent(dungeonID int, durationInMilliseconds float64) (durAsPercent float64, intime int) {
+// minSecToMilliseconds converts time in the "minute:seconds" format to milliseconds
+func minSecToMilliseconds(input string) (int64, error) {
+	input = fmt.Sprintf("1970 %s", input)
+	t, err := time.Parse("2006 04:05", input)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse time input: %v", err)
+	}
+	milliseconds := t.UnixNano() / 1e6
+	return milliseconds, nil
+}
+
+func timedAsPercent(dungeonID int, durationInMilliseconds float64) (durAsPercent float64, intime int, err error) {
 	var intimeDuration, twoChestDuration, threeChestDuration float64
 
 	switch dungeonID {
 	case 2291: // De Other Side
-		intimeDuration = float64(1800000)     // 43:00
-		twoChestDuration = float64(2064000)   // 34:25
-		threeChestDuration = float64(1549000) // 25:49
+		ms, err := minSecToMilliseconds("43:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("34:25")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("25:49")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
 	case 2289: // Plaguefall
-		intimeDuration = float64(2280000)     // 38:00
-		twoChestDuration = float64(1824000)   // 30:24
-		threeChestDuration = float64(1407000) // 22:48
+		ms, err := minSecToMilliseconds("38:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("30:24")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("22:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
 	case 2284: // Sanguine Depths
-		intimeDuration = float64(2460000)     // 41:00
-		twoChestDuration = float64(1968000)   // 32:48
-		threeChestDuration = float64(1356000) // 24:36
-		// TODO: parse time and convert to milli seconds
+		ms, err := minSecToMilliseconds("41:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("32:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("24:36")
+		if err != nil {
+			return 0, 0, err
+		}
+		// TODO: parse time and convert to milli seconds do it in TDD
 		/*
 			https://www.wowhead.com/mythic-keystones-and-dungeons-guide
 			Dungeon	Timer	+2	+3
 			De Other Side	43:00	34:25	25:49
+			Plaguefall	38:00	30:24	22:48
+
+			Sanguine Depths	41:00	32:48	24:36
 			Halls of Atonement	31:00	24:48	18:36
 			Mists of Tirna Scithe	30:00	24:00	18:00
 			Necrotic Wake	36:00	28:48	21:36
-			Plaguefall	38:00	30:24	22:48
-			Sanguine Depths	41:00	32:48	24:36
 			Spires of Ascension	39:00	31:12	23:24
 			Theater of Pain	37:00	29:36	22:12
 		*/
 	}
 	intime = timed(durationInMilliseconds, intimeDuration, twoChestDuration, threeChestDuration)
 
-	return durationAsPercent(intimeDuration, durationInMilliseconds), intime
+	return durationAsPercent(intimeDuration, durationInMilliseconds), intime, err
 }
 
 func timed(durationInMilliseconds, intimeDuration, twoChestDuration, threeChestDuration float64) int {

@@ -2,6 +2,15 @@ package main
 
 import "testing"
 
+func Test_minSecToMilliseconds(t *testing.T) {
+	got, _ := minSecToMilliseconds("43:00")
+	want := int64(2580000)
+
+	if got != want {
+		t.Errorf("expected %d but got %d", want, got)
+	}
+}
+
 func Test_durationAsPercent(t *testing.T) {
 	type args struct {
 		dungeonIntimeDuration  float64
