@@ -2,11 +2,217 @@ package golib
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
+
+// MinSecToMilliseconds converts time in the "minute:seconds" format to milliseconds
+func MinSecToMilliseconds(input string) (int64, error) {
+	input = fmt.Sprintf("1970 %s", input)
+	t, err := time.Parse("2006 04:05", input)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse time input: %v", err)
+	}
+	milliseconds := t.UnixNano() / 1e6
+	return milliseconds, nil
+}
+
+// TimedAsPercent determines if a key was intime, deplete, two chest or three chest and
+// returns the quotient of the expected intime duration and the actual duration in milliseconds
+// this is used to order the keys, so the fastest within a key level is first
+func TimedAsPercent(dungeonID int, durationInMilliseconds float64) (durAsPercent float64, intime int, err error) {
+	var intimeDuration, twoChestDuration, threeChestDuration float64
+
+	switch dungeonID {
+	case 2291: // De Other Side
+		ms, err := MinSecToMilliseconds("43:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("34:25")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("25:49")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2289: // Plaguefall
+		ms, err := MinSecToMilliseconds("38:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("30:24")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("22:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+	case 2284: // Sanguine Depths
+		ms, err := MinSecToMilliseconds("41:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("32:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("24:36")
+		if err != nil {
+			return 0, 0, err
+		}
+	// TODO: parse time and convert to milli seconds do it in TDD
+	/*
+		https://www.wowhead.com/mythic-keystones-and-dungeons-guide
+		Dungeon	Timer	+2	+3
+		De Other Side	43:00	34:25	25:49
+		Plaguefall	38:00	30:24	22:48
+		Halls of Atonement	31:00	24:48	18:36
+		Mists of Tirna Scithe	30:00	24:00	18:00
+		Spires of Ascension	39:00	31:12	23:24
+		Sanguine Depths	41:00	32:48	24:36
+		Necrotic Wake	36:00	28:48	21:36
+		Theater of Pain	37:00	29:36	22:12
+	*/
+	case 2287: // Halls of Atonement
+		ms, err := MinSecToMilliseconds("31:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("24:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("18:36")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2290: // Mists of Tirna Scithe
+		ms, err := MinSecToMilliseconds("30:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("24:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("18:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2285: // Spires of Ascension
+		ms, err := MinSecToMilliseconds("39:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("31:12")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("23:24")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2286: // Necrotic Wake
+		ms, err := MinSecToMilliseconds("36:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("28:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("21:36")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2293:
+		ms, err := MinSecToMilliseconds("37:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("29:36")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = MinSecToMilliseconds("22:12")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+	}
+	intime = timed(durationInMilliseconds, intimeDuration, twoChestDuration, threeChestDuration)
+
+	return durationAsPercent(intimeDuration, durationInMilliseconds), intime, err
+}
+
+// timed determines if a key was intime, deplete, two chest or three chest
+func timed(durationInMilliseconds, intimeDuration, twoChestDuration, threeChestDuration float64) int {
+	if durationInMilliseconds <= threeChestDuration {
+		return 3 // three chest
+	} else if durationInMilliseconds > threeChestDuration && durationInMilliseconds <= twoChestDuration {
+		return 2 // two chest
+	} else if durationInMilliseconds > twoChestDuration && durationInMilliseconds <= intimeDuration {
+		return 1 // timed
+	} else {
+		return 0 // deplete
+	}
+}
+
+// durationAsPercent returns the quotient of the expected intime duration and the actual duration in milliseconds
+// this is used to order the keys, so the fastest within a key level is first
+func durationAsPercent(dungeonIntimeDuration, durationInMilliseconds float64) float64 {
+	return (dungeonIntimeDuration / durationInMilliseconds) * 100
+}
 
 // InitLogging sets up the logging for every lambda and should be called before the handler
 func InitLogging() {
