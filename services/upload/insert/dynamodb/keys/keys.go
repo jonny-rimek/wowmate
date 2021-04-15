@@ -253,20 +253,113 @@ func timedAsPercent(dungeonID int, durationInMilliseconds float64) (durAsPercent
 		if err != nil {
 			return 0, 0, err
 		}
-		// TODO: parse time and convert to milli seconds do it in TDD
-		/*
-			https://www.wowhead.com/mythic-keystones-and-dungeons-guide
-			Dungeon	Timer	+2	+3
-			De Other Side	43:00	34:25	25:49
-			Plaguefall	38:00	30:24	22:48
+	// TODO: parse time and convert to milli seconds do it in TDD
+	/*
+		https://www.wowhead.com/mythic-keystones-and-dungeons-guide
+		Dungeon	Timer	+2	+3
+		De Other Side	43:00	34:25	25:49
+		Plaguefall	38:00	30:24	22:48
+		Halls of Atonement	31:00	24:48	18:36
+		Mists of Tirna Scithe	30:00	24:00	18:00
+		Spires of Ascension	39:00	31:12	23:24
+		Sanguine Depths	41:00	32:48	24:36
+		Necrotic Wake	36:00	28:48	21:36
+		Theater of Pain	37:00	29:36	22:12
+	*/
+	case 2287: // Halls of Atonement
+		ms, err := minSecToMilliseconds("31:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
 
-			Sanguine Depths	41:00	32:48	24:36
-			Halls of Atonement	31:00	24:48	18:36
-			Mists of Tirna Scithe	30:00	24:00	18:00
-			Necrotic Wake	36:00	28:48	21:36
-			Spires of Ascension	39:00	31:12	23:24
-			Theater of Pain	37:00	29:36	22:12
-		*/
+		ms, err = minSecToMilliseconds("24:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("18:36")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2290: // Mists of Tirna Scithe
+		ms, err := minSecToMilliseconds("30:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("24:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("18:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2285: // Spires of Ascension
+		ms, err := minSecToMilliseconds("39:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("31:12")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("23:24")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2286: // Necrotic Wake
+		ms, err := minSecToMilliseconds("36:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("28:48")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("21:36")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
+
+	case 2293:
+		ms, err := minSecToMilliseconds("37:00")
+		if err != nil {
+			return 0, 0, err
+		}
+		intimeDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("29:36")
+		if err != nil {
+			return 0, 0, err
+		}
+		twoChestDuration = float64(ms)
+
+		ms, err = minSecToMilliseconds("22:12")
+		if err != nil {
+			return 0, 0, err
+		}
+		threeChestDuration = float64(ms)
 	}
 	intime = timed(durationInMilliseconds, intimeDuration, twoChestDuration, threeChestDuration)
 
