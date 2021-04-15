@@ -1,4 +1,3 @@
-
 export default {
   ssr: false,
   /*
@@ -47,7 +46,6 @@ export default {
   */
   buildModules: [
 	'@nuxtjs/tailwindcss',
-//	'@nuxtjs/color-mode',
   ],
   tailwindcss: {
     jit: true

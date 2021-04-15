@@ -32,7 +32,7 @@ export class Api extends cdk.Construct {
 		super(scope, id)
 
 		this.getKeysLambda = new lambda.Function(this, 'GetKeysLambda', {
-			code: lambda.Code.fromAsset('services/api/combatlogs/keys/index/get'),
+			code: lambda.Code.fromAsset('dist/api/combatlogs/keys/index/get'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 10240,
@@ -56,7 +56,7 @@ export class Api extends cdk.Construct {
 		})
 
 		this.getKeysPerDungeonLambda = new lambda.Function(this, 'GetKeysPerDungeonLambda', {
-			code: lambda.Code.fromAsset('services/api/combatlogs/keys/_dungeon_id/get'),
+			code: lambda.Code.fromAsset('dist/api/combatlogs/keys/_dungeon_id/get'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 10240,
@@ -75,7 +75,7 @@ export class Api extends cdk.Construct {
 		})
 
 		this.getPlayerDamageDoneLambda = new lambda.Function(this, 'GetPlayerDamageDoneLambda', {
-			code: lambda.Code.fromAsset('services/api/combatlogs/keys/_combatlog_uuid/player-damage-done/get'),
+			code: lambda.Code.fromAsset('dist/api/combatlogs/keys/_combatlog_uuid/player-damage-done/get'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
 			memorySize: 10240,

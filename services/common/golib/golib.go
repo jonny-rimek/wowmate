@@ -24,8 +24,14 @@ func MinSecToMilliseconds(input string) (int64, error) {
 // TimedAsPercent determines if a key was intime, deplete, two chest or three chest and
 // returns the quotient of the expected intime duration and the actual duration in milliseconds
 // this is used to order the keys, so the fastest within a key level is first
+// TODO: add table test and check 0 duration
 func TimedAsPercent(dungeonID int, durationInMilliseconds float64) (durAsPercent float64, intime int, err error) {
 	var intimeDuration, twoChestDuration, threeChestDuration float64
+
+	if durationInMilliseconds == 0 {
+		// if a key is abandoned the duration will always be 0
+		return float64(1000), 0, nil
+	}
 
 	switch dungeonID {
 	case 2291: // De Other Side
@@ -171,7 +177,7 @@ func TimedAsPercent(dungeonID int, durationInMilliseconds float64) (durAsPercent
 		}
 		threeChestDuration = float64(ms)
 
-	case 2293:
+	case 2293: // Theater of Pain
 		ms, err := MinSecToMilliseconds("37:00")
 		if err != nil {
 			return 0, 0, err

@@ -51,7 +51,7 @@ export class Wowmate extends Stack {
 			dynamoDB: dynamoDB.table,
 			timestreamArn: timestream.timestreamArn,
 			lambdaDescription: 'queries timestream for the keys, keys per dungeon etc and posts it to SNS',
-			codePath: 'services/upload/query-timestream/keys',
+			codePath: 'dist/upload/query-timestream/keys',
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
 				LOCAL: "false",
@@ -63,7 +63,7 @@ export class Wowmate extends Stack {
             topic: queryKeys.topic,
 			topicDLQ: queryKeys.topicDLQ,
 			lambdaDescription: 'writes the keys, keys per dungeon etc to dynamodb for access by the frontend',
-			codePath: 'services/upload/insert/dynamodb/keys',
+			codePath: 'dist/upload/insert/dynamodb/keys',
             envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
 				LOCAL: "false",
@@ -75,7 +75,7 @@ export class Wowmate extends Stack {
 			topic: queryKeys.topic,
 			topicDLQ: queryKeys.topicDLQ,
 			lambdaDescription: 'writes the simple damage summary to timestream for later analyzing e.g. statistics per dungeon',
-			codePath: 'services/upload/insert/timestream/keys',
+			codePath: 'dist/upload/insert/timestream/keys',
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
 				LOCAL: "false",
@@ -89,7 +89,7 @@ export class Wowmate extends Stack {
 			lambdaDescription: 'queries timestream and creates the advanced damage summary for the combatlog specific page',
 			//upload/query/player-damage-done
 			//upload/query/keys
-			codePath: 'services/upload/query-timestream/player-damage-done',
+			codePath: 'dist/upload/query-timestream/player-damage-done',
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
 				LOCAL: "false",
@@ -101,7 +101,7 @@ export class Wowmate extends Stack {
 			topic: queryPlayerDamageDone.topic,
 			topicDLQ: queryPlayerDamageDone.topicDLQ,
 			lambdaDescription: 'writes the player damage done summary for combatlog specific page to dynamodb for access by the frontend',
-			codePath: 'services/upload/insert/dynamodb/player-damage-done',
+			codePath: 'dist/upload/insert/dynamodb/player-damage-done',
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
 				LOCAL: "false",

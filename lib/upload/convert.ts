@@ -35,7 +35,7 @@ export class Convert extends cdk.Construct {
 				//maxReceiveCount: 3,
 				maxReceiveCount: 1, //no need during dev
 			},
-			visibilityTimeout: cdk.Duration.minutes(6) //6x lambda duration
+			visibilityTimeout: cdk.Duration.minutes(5*6) //6x lambda duration, it's an aws best practice
 		});
 
         const topic = new sns.Topic(this, 'Topic', {})
@@ -47,13 +47,20 @@ export class Convert extends cdk.Construct {
 
 		this.lambda = new lambda.Function(this, 'Lambda', {
 			description: "takes combatlog file and uploads it to amazon timestream",
-			code: lambda.Code.fromAsset('services/upload/convert'),
+			code: lambda.Code.fromAsset('dist/upload/convert'),
 			handler: 'main',
 			runtime: lambda.Runtime.GO_1_X,
-			// memorySize: 3584, //exactly 2 core
-			memorySize: 1792, //exactly 1 core
-			timeout: cdk.Duration.minutes(1),
-			// if I write to timestream after not writing to it for a very long time, the first writes takes a lot longer
+			// with a file limit of 450MB uncompressed 1792 would be enough, but on repeated invokes
+			// of the lambda the max memory increases.
+			// e.g. first invoke 1535MB max memory, second 2238MB
+			// I'm not sure what the reason is, probably go garbage collector only running every 2 minutes
+            // Maybe my goroutines that write to timestream leak data
+			memorySize: 3584, //exactly 2 core
+			// memorySize: 1792, //exactly 1 core
+			timeout: cdk.Duration.minutes(5),
+			// timestream write api has some sort of cold start, where at the beginning
+			// it's super slow, that's why the max duration needs to be way higher than
+			// the median duration
 			environment: {
 				TOPIC_ARN: topic.topicArn,
 				...props.envVars,
