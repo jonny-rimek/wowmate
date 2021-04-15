@@ -164,6 +164,11 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	// time.Duration, doesn't allow mixed formatting like min:seconds
 	t := time.Unix(0, durationInMilliseconds*1e6) // milliseconds > nanoseconds
 
+	_, intime, err := golib.TimedAsPercent(dungeonID, float64(durationInMilliseconds))
+	if err != nil {
+		return resp, err
+	}
+
 	finished, err := strconv.Atoi(*queryResult.Rows[0].Data[8].ScalarValue)
 	if err != nil {
 		return resp, err
@@ -200,6 +205,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		DungeonID:     dungeonID,
 		CombatlogUUID: combatlogUUID,
 		Finished:      finished != 0, // if 0 false, else 1
+		Intime:        intime,
 	}
 
 	for _, el := range m {

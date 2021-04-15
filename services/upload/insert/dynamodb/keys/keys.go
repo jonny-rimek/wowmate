@@ -123,10 +123,14 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	if err != nil {
 		return resp, err
 	}
-	dur := float64(durationInMilliseconds)
 	// converts duration to date 1970 + duration, of which I only display the minutes and seconds
 	// time.Duration, doesn't allow mixed formatting like min:seconds
 	t := time.Unix(0, durationInMilliseconds*1e6) // milliseconds > nanoseconds
+
+	durAsPercent, intime, err := golib.TimedAsPercent(dungeonID, float64(durationInMilliseconds))
+	if err != nil {
+		return resp, err
+	}
 
 	finished, err := strconv.Atoi(*queryResult.Rows[0].Data[8].ScalarValue)
 	if err != nil {
@@ -155,10 +159,6 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 
 	patch := *queryResult.Rows[0].Data[13].ScalarValue
 
-	durAsPercent, intime, err := golib.TimedAsPercent(dungeonID, dur)
-	if err != nil {
-		return resp, err
-	}
 
 	resp = golib.DynamoDBKeys{
 		// hardcoding the patch like that might be too granular, maybe it makes more sense that e.g. 9.0.2 and 9.0.5 are both S1
