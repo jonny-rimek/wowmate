@@ -3,7 +3,6 @@ package normalize
 import (
 	"bufio"
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go/service/timestreamwrite"
 	"github.com/gofrs/uuid"
@@ -53,15 +52,11 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 
 		// don' add events if they are outside of a combatlog
 		if combatlogUUID == "" && params[0] != "CHALLENGE_MODE_START" {
-			// log.Println(params)
 			continue
 		}
 
 		switch params[0] {
 		case "COMBAT_LOG_VERSION":
-			log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-			log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-			log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 			err := combatLogVersion(params, uploadUUID, combatlogUUID, rec)
 			if err != nil {
 				return nil, err
@@ -122,10 +117,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 		default:
 			// e.Unsupported = true
 		}
-
-		// if params[0] == "CHALLENGE_MODE_END" {
-		// 	continue
-		// }
 	}
 
 	return rec, nil
