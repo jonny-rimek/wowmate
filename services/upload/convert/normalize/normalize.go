@@ -90,7 +90,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 			combatlogUUID = uuid.Must(uuid.NewV4()).String()
 			rec[combatlogUUID] = make(map[string][]*timestreamwrite.WriteRecordsInput)
 
-			err := challengeModeStart(params, uploadUUID, combatlogUUID, rec)
+			err := challengeModeStart(params, uploadUUID, combatlogUUID, rec, timestamp)
 			if err != nil {
 				return rec, err
 			}
@@ -104,7 +104,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 			combatlogUUID = ""
 
 		case "SPELL_DAMAGE", "SPELL_PERIODIC_DAMAGE", "RANGE_DAMAGE", "SWING_DAMAGE":
-			err := damage(params, &uploadUUID, &combatlogUUID, rec, pets, timestamp)
+			err := damage(params, &uploadUUID, &combatlogUUID, rec, pets)
 			if err != nil {
 				return nil, err
 			}

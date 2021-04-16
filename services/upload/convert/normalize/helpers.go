@@ -35,6 +35,7 @@ func Atoi64(input string) (int64, error) {
 // TODO: check that it is surrounded by quotes and fail otherwise
 //		to make it fail early.
 //		Because the columns must be surrounded by quotes otherwise it is a wrong column
+// 		not sure that is the case everywhere I use this function
 func trimQuotes(input string) string {
 	output := strings.TrimSuffix(input, "\"")
 	output = strings.TrimPrefix(output, "\"")
@@ -52,8 +53,8 @@ func parseTimestamp(input *string) (*string, error) {
 		return aws.String(""), fmt.Errorf("failed to parse time: %v", err)
 	}
 
-	time := t.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
-	timeAsString := fmt.Sprintf("%s", strconv.FormatInt(time, 10))
+	timeAsInt64 := t.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
+	timeAsString := fmt.Sprintf("%s", strconv.FormatInt(timeAsInt64, 10))
 	return aws.String(timeAsString), nil
 }
 

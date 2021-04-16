@@ -14,7 +14,7 @@ import (
 // challengeModeStart gets the dungeonID, keyLevel and affixes
 // v17
 // 1/24 16:47:38.068  CHALLENGE_MODE_START,"De Other Side",2291,377,10,[10,123,3,121]
-func challengeModeStart(params []string, uploadUUID string, combatlogUUID string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput) error {
+func challengeModeStart(params []string, uploadUUID string, combatlogUUID string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput, timestamp *string) error {
 	dungeonID, err := Atoi64(params[2]) // 2291
 	if err != nil {
 		log.Printf("failed to convert challange mode start event, field dungeon id. got: %v", params[2])
@@ -65,6 +65,23 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 			},
 			MeasureName:      aws.String("key_level"),
 			MeasureValue:     aws.String(strconv.FormatInt(keyLevel, 10)),
+			MeasureValueType: aws.String("BIGINT"),
+			Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
+			TimeUnit:         aws.String("SECONDS"),
+		},
+		{
+			Dimensions: []*timestreamwrite.Dimension{
+				{
+					Name:  aws.String("upload_uuid"),
+					Value: aws.String(uploadUUID),
+				},
+				{
+					Name:  aws.String("combatlog_uuid"),
+					Value: aws.String(combatlogUUID),
+				},
+			},
+			MeasureName:      aws.String("date"),
+			MeasureValue:     timestamp,
 			MeasureValueType: aws.String("BIGINT"),
 			Time:             aws.String(strconv.FormatInt(currentTimeInSeconds, 10)),
 			TimeUnit:         aws.String("SECONDS"),

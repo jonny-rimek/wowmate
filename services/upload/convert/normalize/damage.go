@@ -29,7 +29,7 @@ import (
 // next summon, note new caster id. didn't find an event that the pet is gone (for shadowfiend)
 // 1/24 16:57:32.383  SPELL_SUMMON,Player-3674-0906D09A,"Bihla-TwistingNether",0x512,0x0,Creature-0-4234-2291-11942-19668-00000DA6FA,"Shadowfiend",0xa28,0x0,34433,"Shadowfiend",0x20
 // passing in the uuids as a pointer to the string reduced the mb usage by a couple MB
-func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput, pets map[string]pet, timestamp *string) error {
+func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[string]map[string][]*timestreamwrite.WriteRecordsInput, pets map[string]pet) error {
 
 	targetType := params[7]
 	// if target type is either value, that means that it the target is a player,
@@ -130,9 +130,8 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 				Value: aws.String(casterType),
 			},
 			{
-				Name:  aws.String("timestamp"),
-				Value: timestamp,
-				// type for dimension can only be string
+				Name:  aws.String("rnd"),
+				Value: aws.String(strconv.Itoa(rand.Int())),
 			},
 		},
 		MeasureValue: aws.String(strconv.FormatInt(actualAmount, 10)),

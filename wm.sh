@@ -335,8 +335,7 @@ main() {
       cdk_deploy "wm"
     elif [ "$2" == "dev" ]
     then
-      # using wm for diff is intended, because I care about the diff to prod not the last deploy on dev
-      cdk_diff "wm"
+      cdk_diff "wm-dev"
       cdk_deploy "wm-dev"
     fi
   elif [ "$1" == "diff" ]
