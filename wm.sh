@@ -17,6 +17,114 @@ goDirs=(
   "services/upload/insert/timestream/keys"
 )
 
+local-api() {
+  build_go
+  build_cdk
+  cdk_synth
+
+  sam local start-api \
+    --template cdk.out/wm.template.json \
+    --profile default \
+    --env-vars=misc/env.json \
+    || exit 1
+}
+
+get-keys-per-dungeon() {
+  build_go
+  build_cdk
+  cdk_synth
+
+  echo '{"pathParameters": {"dungeon_id": "2291"}}' | \
+  sam local invoke ApiGetKeysPerDungeonLambda073DE524 \
+    --template cdk.out/wm-dev.template.json \
+    --event - \
+    --profile default \
+    --env-vars=misc/env.json \
+    || exit 1
+}
+
+insert-keys-to-dynamodb() {
+  build_go
+  build_cdk
+  cdk_synth
+
+  sam local invoke InsertKeysToDynamodbLambda15825024 \
+    --template cdk.out/wm-dev.template.json \
+    --event misc/insertPlayerDamageDoneToDynamodbEvent.json \
+    --profile default \
+    --env-vars=misc/env.json \
+    || exit 1
+}
+get-keys() {
+  build_go
+  build_cdk
+  cdk_synth
+
+  sam local invoke ApiGetKeysLambdaFDF1A526 \
+    --no-event \
+    --template cdk.out/wm-dev.template.json \
+    --profile default \
+    --env-vars=misc/env.json \
+    || exit 1
+}
+
+get-player-damage-done() {
+  build_go
+  build_cdk
+  cdk_synth
+
+  echo '{"pathParameters": {"combatlog_uuid": "06778555-45d4-404b-a79b-5f03ef2d6b37"}}' | \
+  sam local invoke ApiGetPlayerDamageDoneLambda7F052E98 \
+    --template cdk.out/wm-dev.template.json \
+    --event - \
+    --profile default \
+    --env-vars=misc/env.json \
+    || exit 1
+}
+
+insert-player-damage-done() {
+  build_go
+  build_cdk
+  cdk_synth
+
+  sam local invoke InsertPlayerDamageDoneToDynamodbLambda659E0DA7 \
+    --template cdk.out/wm-dev.template.json \
+    --event misc/insertPlayerDamageDoneToDynamodbEvent.json \
+    --profile default \
+    --env-vars=misc/env.json \
+    || exit 1
+}
+
+query-player-damage-done() {
+  build_go
+  build_cdk
+  cdk_synth
+
+  sam local invoke QueryPlayerDamageDoneLambda98AFC037 \
+    --template cdk.out/wm-dev.template.json \
+    --event misc/queryTimestreamInput.json \
+    --profile default \
+    --env-vars=misc/env.json \
+    || exit 1
+}
+
+convert() {
+  build_go
+  build_cdk
+  cdk_synth
+
+  sam local invoke ConvertLambda3540DCCB \
+    --template cdk.out/wm-dev.template.json \
+    --event misc/convertInput.json \
+    --profile default \
+    --env-vars=misc/env.json \
+    || exit 1
+}
+
+cdk_synth() {
+  npx cdk synth "wm-dev" -q
+}
+
 # comments on the pr
 # source https://github.com/youyo/aws-cdk-github-actions/blob/master/entrypoint.sh#L63
 # won't work locally, but it's not supposed to be.
@@ -246,6 +354,34 @@ main() {
     if [ "$2" == "go" ]
     then
       lint_go
+    fi
+  # invoking lambdas locally
+  elif [ "$1" == "invoke" ]
+  then
+    if [ "$2" == "convert" ]
+    then
+      convert
+    elif [ "$2" == "query-player-damage-done" ]
+    then
+      query-player-damage-done
+    elif [ "$2" == "get-keys-per-dungeon" ]
+    then
+      get-keys-per-dungeon
+    elif [ "$2" == "local-api" ]
+    then
+      local-api
+    elif [ "$2" == "insert-keys-to-dynamodb" ]
+    then
+      insert-keys-to-dynamodb
+    elif [ "$2" == "get-keys" ]
+    then
+      get-keys
+    elif [ "$2" == "get-player-damage-done" ]
+    then
+      get-player-damage-done
+    elif [ "$2" == "insert-player-damage-done" ]
+    then
+      insert-player-damage-done
     fi
   fi
 }

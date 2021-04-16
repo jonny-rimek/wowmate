@@ -205,7 +205,10 @@ func main() {
 		return
 	}
 	svc = dynamodb.New(sess)
-	xray.AWS(svc.Client)
+
+	if os.Getenv("LOCAL") == "false" {
+		xray.AWS(svc.Client)
+	}
 
 	lambda.Start(handler)
 }

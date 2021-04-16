@@ -44,7 +44,8 @@ export class Api extends cdk.Construct {
 			timeout: cdk.Duration.seconds(3),
 			environment: {
 				DYNAMODB_TABLE_NAME: props.dynamoDB.tableName,
-				LOG_LEVEL: "info" //only info or debug are support
+				LOG_LEVEL: "info", //only info or debug are support
+				LOCAL: "false",
 			},
 			logRetention: RetentionDays.ONE_MONTH,
 			tracing: lambda.Tracing.ACTIVE,
@@ -63,6 +64,7 @@ export class Api extends cdk.Construct {
 			timeout: cdk.Duration.seconds(3),
 			environment: {
 				DYNAMODB_TABLE_NAME: props.dynamoDB.tableName,
+				LOCAL: "false",
 				LOG_LEVEL: "info" //only info or debug are support
 			},
 			logRetention: RetentionDays.ONE_MONTH,
@@ -82,6 +84,7 @@ export class Api extends cdk.Construct {
 			timeout: cdk.Duration.seconds(3),
 			environment: {
 				DYNAMODB_TABLE_NAME: props.dynamoDB.tableName,
+				LOCAL: "false",
 				LOG_LEVEL: "info" //only info or debug are support
 			},
 			logRetention: RetentionDays.ONE_MONTH,
@@ -98,7 +101,10 @@ export class Api extends cdk.Construct {
 			description: "allows to upload combatlogs to private s3 bucket",
 			code: lambda.Code.fromAsset('services/upload/presign'),
 			handler: 'index.handler',
-			environment: {BUCKET_NAME: props.uploadBucket.bucketName},
+			environment: {
+				LOCAL: "false",
+				BUCKET_NAME: props.uploadBucket.bucketName
+			},
 			memorySize: 128,
 			reservedConcurrentExecutions: 100,
 			tracing: lambda.Tracing.ACTIVE,
