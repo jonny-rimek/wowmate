@@ -159,7 +159,6 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 
 	patch := *queryResult.Rows[0].Data[13].ScalarValue
 
-
 	resp = golib.DynamoDBKeys{
 		// hardcoding the patch like that might be too granular, maybe it makes more sense that e.g. 9.0.2 and 9.0.5 are both S1
 		Pk: fmt.Sprintf("LOG#KEY#%s", patch),

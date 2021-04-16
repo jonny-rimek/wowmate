@@ -1,0 +1,164 @@
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [ prod ]
+  push:
+    branches: [ prod ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS dev credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16.3'
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15.x
+
+      # BUILD CACHES
+      # if no go file changes the binaries are cached and don't have to be rebuild
+      - name: cache go builds
+        uses: actions/cache@v2
+        id: go-build-cache
+        with:
+          path: dist
+          key: go-build-${{ hashFiles('**/*.go') }}-${{ hashFiles('**/go.sum') }}
+
+      # if no js or vue file changes the services/frontend/dist dir is cached
+      - name: Cache frontend build
+        uses: actions/cache@v2
+        id: frontend-build-cache
+        with:
+          path: services/frontend/dist
+          key: frontend-build-${{ hashFiles('services/frontend/**/*.vue') }}-${{ hashFiles('services/frontend/**/*.js') }}-${{ hashFiles('services/upload/package-lock.json') }}
+
+      # INSTALL CACHES
+      # caches all go dependencies
+      # can't not get cache if the go build did not change
+      - name: Cache go deps
+        uses: actions/cache@v2
+        id: go-cache
+        with:
+          path: ~/go/pkg/mod
+          key: go-${{ hashFiles('**/go.sum') }}
+          restore-keys: go-
+
+      # caches node_modules of presign lambda
+      - name: Cache presign npm
+        uses: actions/cache@v2
+        id: presign-cache
+        with:
+          path: services/upload/presign/node_modules
+          key: presign-${{ hashFiles('services/upload/package-lock.json') }}
+          restore-keys: presign-
+
+      # cache dependencies for cdk
+      - name: Cache cdk npm
+        uses: actions/cache@v2
+        id: cdk-cache
+        with:
+          path: node_modules
+          key: cdk-${{ hashFiles('package-lock.json') }}
+          restore-keys: cdk-
+
+      # cache dependencies for nuxt frontend
+      - name: Cache frontend yarn
+        uses: actions/cache@v2
+        id: frontend-cache
+        with:
+          path: services/frontend/node_modules
+          key: frontend-${{ hashFiles('services/frontend/yarn.lock') }}
+          restore-keys: |
+            frontend-
+
+      # INSTALL:
+      - name: Install cdk
+        if: steps.cdk-cache.outputs.cache-hit != 'true'
+        run: ./wm.sh install cdk
+
+      - name: Install go
+        if: steps.go-cache.outputs.cache-hit != 'true'
+        run: ./wm.sh install go
+
+      - name: Install presign
+        if: steps.presign-cache.outputs.cache-hit != 'true'
+        run: ./wm.sh install presign
+
+      - name: Install frontend
+        if: steps.frontend-cache.outputs.cache-hit != 'true'
+        run: ./wm.sh install frontend
+
+      # BUILD:
+      # GO
+      - name: Build go
+        if: steps.go-build-cache.outputs.cache-hit != 'true'
+        run: ./wm.sh build go
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract-branch
+
+      # FRONTEND
+      - name: Export frontend build env if not prod
+        if: steps.extract-branch.outputs.branch != 'prod'
+        run: echo "##[set-output name=nuxt_env;]$(echo dev)"
+        id: frontend-env
+        # this env var is only set in non prod, because it controls the urls the frontend calls
+        # if env var is set it's api.dev.wowmate.io, if not it is api.wowmate.io
+
+      - name: Build frontend
+        env:
+          NUXT_ENV: ${{ steps.frontend-env.outputs.nuxt_env }}
+        if: steps.frontend-build-cache.outputs.cache-hit != 'true'
+        run: ./wm.sh build frontend
+
+      # CDK
+      - name: Compile cdk typescript
+        run: ./wm.sh build cdk
+
+      - name: Specify cdk stack to deploy
+        if: steps.extract-branch.outputs.branch != 'prod'
+        run: echo "##[set-output name=stack;]$(echo wm-dev)"
+        id: cdk-stack
+
+      - name: Deploy to dev
+        env:
+          CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
+        run: ./wm.sh deploy dev
+
+      - name: Configure AWS prod credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Diff
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: ./wm.sh diff prod
+
+      # https://github.com/youyo/aws-cdk-github-actions/blob/master/entrypoint.sh#L63
+#      - name: Diff against prod
+#        run: ./wm.sh diff prod
+
+#      - name: cfn_nag test
+#        uses: stelligent/cfn_nag@master
+#        with:
+#          input_path: cdk.out/wm-dev.template.json
