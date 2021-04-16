@@ -7,7 +7,7 @@ import (
 
 func TestSplitAtCommas(t *testing.T) {
 
-	t.Run("split by comma without qoutes", func(t *testing.T) {
+	t.Run("split by comma without quotes", func(t *testing.T) {
 		row := "hello,world"
 		got := splitAtCommas(&row)
 		want := []string{"hello", "world"}
@@ -17,7 +17,7 @@ func TestSplitAtCommas(t *testing.T) {
 		}
 	})
 
-	t.Run("split by comma with qoutes", func(t *testing.T) {
+	t.Run("split by comma with quotes", func(t *testing.T) {
 		row := "\"hello, world\",yo"
 		got := splitAtCommas(&row)
 		want := []string{"\"hello, world\"", "yo"}
@@ -39,7 +39,7 @@ func TestTrimQuotes(t *testing.T) {
 		}
 	})
 
-	t.Run("don't trim nonexisting quotes", func(t *testing.T) {
+	t.Run("don't trim nonexistent quotes", func(t *testing.T) {
 		row := "hello, world"
 		got := trimQuotes(row)
 		want := "hello, world"

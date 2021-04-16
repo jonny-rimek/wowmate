@@ -43,10 +43,11 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 
 		// NOTE: not written to DB atm https://github.com/jonny-rimek/wowmate/issues/129
 		// gonna use it later again
-		// timestamp, err := timestampMilli(row[0])
-		// if err != nil {
-		// 	return err
-		// }
+		_, err := parseTimestamp(&row[0])
+		if err != nil {
+			return nil, err
+		}
+		// log.Println(timestamp)
 
 		params := splitAtCommas(&row[1])
 
