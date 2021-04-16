@@ -122,10 +122,10 @@ convert() {
 }
 
 cdk_synth() {
-  npx cdk synth "wm-dev" -q
+  npx cdk synth "wm-dev" -q || exit 1
 }
 
-# comments on the pr
+# comments the diff on the current PR
 # source https://github.com/youyo/aws-cdk-github-actions/blob/master/entrypoint.sh#L63
 # won't work locally, but it's not supposed to be.
 cdk_diff_prod() {
@@ -155,11 +155,11 @@ ${output}
 }
 
 cdk_deploy() {
- npm run cdk deploy -- --require-approval=never "$1"
+ npm run cdk deploy -- --require-approval=never "$1" || exit 1
 }
 
 cdk_diff() {
- npx cdk diff "$1"
+ npx cdk diff "$1" || exit 1
 }
 
 update_go() {
@@ -181,17 +181,17 @@ update_cdk() {
 
 update_frontend() {
 #  echo "start frontend update"
-  cd "$wowmateDir" || exit
-  cd $frontendDir || exit
-  yarn upgrade
+  cd "$wowmateDir" || exit 1
+  cd $frontendDir || exit 1
+  yarn upgrade || exit 1
   echo "frontend updated"
 }
 
 update_presign() {
 #  echo "start presign update"
-  cd "$wowmateDir" || exit
-  cd $presignDir || exit
-  npm update
+  cd "$wowmateDir" || exit 1
+  cd $presignDir || exit 1
+  npm update || exit 1
   echo "presign updated"
 }
 
@@ -200,8 +200,7 @@ install_go() {
   do
     cd "$wowmateDir" || exit 1
     cd "$i" || exit 1
-    pwd
-    go get
+    go get || exit 1
   done
   echo "go installed"
 }
@@ -229,8 +228,8 @@ install_presign() {
 }
 
 lint_go() {
-  go get -u github.com/kisielk/errcheck
-  go get -u honnef.co/go/tools/cmd/staticcheck
+  go get -u github.com/kisielk/errcheck || exit 1
+  go get -u honnef.co/go/tools/cmd/staticcheck || exit 1
 
   for i in "${goDirs[@]}"
   do
