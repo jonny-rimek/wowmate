@@ -35,7 +35,7 @@ export class Convert extends cdk.Construct {
 				//maxReceiveCount: 3,
 				maxReceiveCount: 1, //no need during dev
 			},
-			visibilityTimeout: cdk.Duration.minutes(5*6) //6x lambda duration, it's an aws best practice
+			visibilityTimeout: cdk.Duration.minutes(1*6) //6x lambda duration, it's an aws best practice
 		});
 
         const topic = new sns.Topic(this, 'Topic', {})
@@ -57,7 +57,7 @@ export class Convert extends cdk.Construct {
             // Maybe my goroutines that write to timestream leak data
 			memorySize: 3584, //exactly 2 core
 			// memorySize: 1792, //exactly 1 core
-			timeout: cdk.Duration.minutes(5),
+			timeout: cdk.Duration.minutes(1),
 			// timestream write api has some sort of cold start, where at the beginning
 			// it's super slow, that's why the max duration needs to be way higher than
 			// the median duration

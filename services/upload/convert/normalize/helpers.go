@@ -44,15 +44,17 @@ func trimQuotes(input string) string {
 // TODO: test and fix the year problem
 // this will break during new year, because go assumes UTC,
 // but the combatlog has the time of the player afaik
-func parseTimestamp(input *string) (int64, error) {
+func parseTimestamp(input *string) (*string, error) {
 	input = aws.String(fmt.Sprintf("%v/%s", time.Now().Year(), *input))
 	stupidTimeFormat := "2006/1/2 15:04:05.000"
 	t, err := time.Parse(stupidTimeFormat, *input)
 	if err != nil {
-		return 0, fmt.Errorf("failed to parse time: %v", err)
+		return aws.String(""), fmt.Errorf("failed to parse time: %v", err)
 	}
 
-	return t.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)), nil
+	time := t.UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
+	timeAsString := fmt.Sprintf("%s", strconv.FormatInt(time, 10))
+	return aws.String(timeAsString), nil
 }
 
 // copying code from stackoverflow like a pro

@@ -43,7 +43,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 
 		// NOTE: not written to DB atm https://github.com/jonny-rimek/wowmate/issues/129
 		// gonna use it later again
-		_, err := parseTimestamp(&row[0])
+		timestamp, err := parseTimestamp(&row[0])
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +104,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 			combatlogUUID = ""
 
 		case "SPELL_DAMAGE", "SPELL_PERIODIC_DAMAGE", "RANGE_DAMAGE", "SWING_DAMAGE":
-			err := damage(params, &uploadUUID, &combatlogUUID, rec, pets)
+			err := damage(params, &uploadUUID, &combatlogUUID, rec, pets, timestamp)
 			if err != nil {
 				return nil, err
 			}
