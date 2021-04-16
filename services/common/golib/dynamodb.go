@@ -65,7 +65,7 @@ func DynamoDBQuery(ctx aws.Context, svc *dynamodb.DynamoDB, input dynamodb.Query
 	if os.Getenv("LOCAL") == "true" {
 		result, err = svc.Query(&input)
 	} else {
-		// result, err = svc.QueryWithContext(ctx, &input)
+		result, err = svc.QueryWithContext(ctx, &input)
 	}
 	if err != nil {
 		return nil, err
