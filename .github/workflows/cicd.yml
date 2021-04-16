@@ -37,7 +37,7 @@ jobs:
         id: go-build-cache
         with:
           path: dist
-          key: go-build-${{ hashFiles('**/*.go') }}-${{ hashFiles('**/go.sum') }}
+          key: go-build-${{ hashFiles('services/**/*.go') }}-${{ hashFiles('services/**/go.sum') }}
 
       # if no js or vue file changes the services/frontend/dist dir is cached
       - name: Cache frontend build
