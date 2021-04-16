@@ -1,0 +1,2852 @@
+Resources:
+  BucketsUpload0B7F8F15:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - POST
+              - HEAD
+            AllowedOrigins:
+              - "*"
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 1
+            Prefix: error/
+            Status: Enabled
+          - AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+            Status: Enabled
+          - Prefix: upload/
+            Status: Enabled
+            Transitions:
+              - StorageClass: STANDARD_IA
+                TransitionInDays: 30
+      MetricsConfigurations:
+        - Id: metric
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/Buckets-/Upload/Resource
+  BucketsUploadNotifications1D3A1C7B:
+    Type: Custom::S3BucketNotifications
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691
+          - Arn
+      BucketName:
+        Ref: BucketsUpload0B7F8F15
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Events:
+              - s3:ObjectCreated:*
+            Filter:
+              Key:
+                FilterRules:
+                  - Name: suffix
+                    Value: .txt
+                  - Name: prefix
+                    Value: upload/
+            QueueArn:
+              Fn::GetAtt:
+                - ConvertProcessingQueueE8D6E023
+                - Arn
+          - Events:
+              - s3:ObjectCreated:*
+            Filter:
+              Key:
+                FilterRules:
+                  - Name: suffix
+                    Value: .txt.gz
+                  - Name: prefix
+                    Value: upload/
+            QueueArn:
+              Fn::GetAtt:
+                - ConvertProcessingQueueE8D6E023
+                - Arn
+          - Events:
+              - s3:ObjectCreated:*
+            Filter:
+              Key:
+                FilterRules:
+                  - Name: suffix
+                    Value: .zip
+                  - Name: prefix
+                    Value: upload/
+            QueueArn:
+              Fn::GetAtt:
+                - ConvertProcessingQueueE8D6E023
+                - Arn
+    DependsOn:
+      - ConvertProcessingQueuePolicy2A81FA80
+      - ConvertProcessingQueueE8D6E023
+    Metadata:
+      aws:cdk:path: wm-dev/Buckets-/Upload/Notifications/Resource
+  Timestreamdb30DC6EF5:
+    Type: AWS::Timestream::Database
+    Properties:
+      DatabaseName: wowmate-analytics
+    Metadata:
+      aws:cdk:path: wm-dev/Timestream-/db
+  Timestreamtable60CD8F37:
+    Type: AWS::Timestream::Table
+    Properties:
+      DatabaseName: wowmate-analytics
+      RetentionProperties:
+        MemoryStoreRetentionPeriodInHours: "1"
+        MagneticStoreRetentionPeriodInDays: "365"
+      TableName: combatlogs
+    DependsOn:
+      - Timestreamdb30DC6EF5
+    Metadata:
+      aws:cdk:path: wm-dev/Timestream-/table
+  DynamoDBtableF8E87752:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: gsi1
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/DynamoDB-/table/Resource
+  ApiGetKeysLambdaServiceRoleFFF869F9:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetKeysLambda/ServiceRole/Resource
+  ApiGetKeysLambdaServiceRoleDefaultPolicy0822A5A1:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:ConditionCheckItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - DynamoDBtableF8E87752
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - DynamoDBtableF8E87752
+                        - Arn
+                    - /index/*
+        Version: "2012-10-17"
+      PolicyName: ApiGetKeysLambdaServiceRoleDefaultPolicy0822A5A1
+      Roles:
+        - Ref: ApiGetKeysLambdaServiceRoleFFF869F9
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetKeysLambda/ServiceRole/DefaultPolicy/Resource
+  ApiGetKeysLambdaFDF1A526:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: 1d7e44a1361b251cf63327e812aea82e21270f36133c3b036409396dba999aef.zip
+      Role:
+        Fn::GetAtt:
+          - ApiGetKeysLambdaServiceRoleFFF869F9
+          - Arn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME:
+            Ref: DynamoDBtableF8E87752
+          LOG_LEVEL: info
+          LOCAL: "false"
+      Handler: main
+      MemorySize: 10240
+      ReservedConcurrentExecutions: 10
+      Runtime: go1.x
+      Timeout: 3
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - ApiGetKeysLambdaServiceRoleDefaultPolicy0822A5A1
+      - ApiGetKeysLambdaServiceRoleFFF869F9
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetKeysLambda/Resource
+      aws:asset:path: asset.1d7e44a1361b251cf63327e812aea82e21270f36133c3b036409396dba999aef
+      aws:asset:property: Code
+  ApiGetKeysLambdaLogRetention9FE5D440:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: ApiGetKeysLambdaFDF1A526
+      RetentionInDays: 30
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetKeysLambda/LogRetention/Resource
+  ApiGetKeysPerDungeonLambdaServiceRole0900A6D0:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetKeysPerDungeonLambda/ServiceRole/Resource
+  ApiGetKeysPerDungeonLambdaServiceRoleDefaultPolicy58500631:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:ConditionCheckItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - DynamoDBtableF8E87752
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - DynamoDBtableF8E87752
+                        - Arn
+                    - /index/*
+        Version: "2012-10-17"
+      PolicyName: ApiGetKeysPerDungeonLambdaServiceRoleDefaultPolicy58500631
+      Roles:
+        - Ref: ApiGetKeysPerDungeonLambdaServiceRole0900A6D0
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetKeysPerDungeonLambda/ServiceRole/DefaultPolicy/Resource
+  ApiGetKeysPerDungeonLambda073DE524:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: 7b69865a12f59aa59489e1d4269605bba55d6804d4ab5fae177347fde9f49fe3.zip
+      Role:
+        Fn::GetAtt:
+          - ApiGetKeysPerDungeonLambdaServiceRole0900A6D0
+          - Arn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME:
+            Ref: DynamoDBtableF8E87752
+          LOCAL: "false"
+          LOG_LEVEL: info
+      Handler: main
+      MemorySize: 10240
+      ReservedConcurrentExecutions: 10
+      Runtime: go1.x
+      Timeout: 3
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - ApiGetKeysPerDungeonLambdaServiceRoleDefaultPolicy58500631
+      - ApiGetKeysPerDungeonLambdaServiceRole0900A6D0
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetKeysPerDungeonLambda/Resource
+      aws:asset:path: asset.7b69865a12f59aa59489e1d4269605bba55d6804d4ab5fae177347fde9f49fe3
+      aws:asset:property: Code
+  ApiGetKeysPerDungeonLambdaLogRetention4739CD65:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: ApiGetKeysPerDungeonLambda073DE524
+      RetentionInDays: 30
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetKeysPerDungeonLambda/LogRetention/Resource
+  ApiGetPlayerDamageDoneLambdaServiceRole77AF57C9:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetPlayerDamageDoneLambda/ServiceRole/Resource
+  ApiGetPlayerDamageDoneLambdaServiceRoleDefaultPolicy7389EC4B:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:ConditionCheckItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - DynamoDBtableF8E87752
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - DynamoDBtableF8E87752
+                        - Arn
+                    - /index/*
+        Version: "2012-10-17"
+      PolicyName: ApiGetPlayerDamageDoneLambdaServiceRoleDefaultPolicy7389EC4B
+      Roles:
+        - Ref: ApiGetPlayerDamageDoneLambdaServiceRole77AF57C9
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetPlayerDamageDoneLambda/ServiceRole/DefaultPolicy/Resource
+  ApiGetPlayerDamageDoneLambda7F052E98:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: 817fd0e7223ef0df777117d2ac2269ac6cd993747a53163aa742a1afd5e4de6c.zip
+      Role:
+        Fn::GetAtt:
+          - ApiGetPlayerDamageDoneLambdaServiceRole77AF57C9
+          - Arn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME:
+            Ref: DynamoDBtableF8E87752
+          LOCAL: "false"
+          LOG_LEVEL: info
+      Handler: main
+      MemorySize: 10240
+      ReservedConcurrentExecutions: 10
+      Runtime: go1.x
+      Timeout: 3
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - ApiGetPlayerDamageDoneLambdaServiceRoleDefaultPolicy7389EC4B
+      - ApiGetPlayerDamageDoneLambdaServiceRole77AF57C9
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetPlayerDamageDoneLambda/Resource
+      aws:asset:path: asset.817fd0e7223ef0df777117d2ac2269ac6cd993747a53163aa742a1afd5e4de6c
+      aws:asset:property: Code
+  ApiGetPlayerDamageDoneLambdaLogRetentionAB65EFB5:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: ApiGetPlayerDamageDoneLambda7F052E98
+      RetentionInDays: 30
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/GetPlayerDamageDoneLambda/LogRetention/Resource
+  ApiLambdaServiceRoleD4F47218:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Lambda/ServiceRole/Resource
+  ApiLambdaServiceRoleDefaultPolicy57DBEC16:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - BucketsUpload0B7F8F15
+                      - Arn
+                  - /*
+        Version: "2012-10-17"
+      PolicyName: ApiLambdaServiceRoleDefaultPolicy57DBEC16
+      Roles:
+        - Ref: ApiLambdaServiceRoleD4F47218
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Lambda/ServiceRole/DefaultPolicy/Resource
+  ApiLambdaB75D04FB:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: 849857f3609102488757bd8b5cb22e013ee4ab6b2d670b11754c54f4d6d3323f.zip
+      Role:
+        Fn::GetAtt:
+          - ApiLambdaServiceRoleD4F47218
+          - Arn
+      Description: allows to upload combatlogs to private s3 bucket
+      Environment:
+        Variables:
+          LOCAL: "false"
+          BUCKET_NAME:
+            Ref: BucketsUpload0B7F8F15
+      Handler: index.handler
+      MemorySize: 128
+      ReservedConcurrentExecutions: 100
+      Runtime: nodejs14.x
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - ApiLambdaServiceRoleDefaultPolicy57DBEC16
+      - ApiLambdaServiceRoleD4F47218
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Lambda/Resource
+      aws:asset:path: asset.849857f3609102488757bd8b5cb22e013ee4ab6b2d670b11754c54f4d6d3323f
+      aws:asset:property: Code
+  ApiApiA3C0F448:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+      Description: wowmate API
+      Name: Api
+      ProtocolType: HTTP
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/Resource
+  ApiApiDefaultStage385E7FB0:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId:
+        Ref: ApiApiA3C0F448
+      StageName: $default
+      AutoDeploy: true
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/DefaultStage/Resource
+  ApiApiGETcombatlogskeyswmdevApiApiGETcombatlogskeys537C0EAAPermissionBA5207FA:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - ApiGetKeysLambdaFDF1A526
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:us-east-1:461497339039:"
+            - Ref: ApiApiA3C0F448
+            - /*/*/combatlogs/keys
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/GET--combatlogs--keys/wmdevApiApiGETcombatlogskeys537C0EAA-Permission
+  ApiApiGETcombatlogskeysHttpIntegration2ea539d1a2a340bd06df9ffe9b8f36fe1D78CAB1:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId:
+        Ref: ApiApiA3C0F448
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::GetAtt:
+          - ApiGetKeysLambdaFDF1A526
+          - Arn
+      PayloadFormatVersion: "2.0"
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/GET--combatlogs--keys/HttpIntegration-2ea539d1a2a340bd06df9ffe9b8f36fe/Resource
+  ApiApiGETcombatlogskeys26C747C5:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: ApiApiA3C0F448
+      RouteKey: GET /combatlogs/keys
+      Target:
+        Fn::Join:
+          - ""
+          - - integrations/
+            - Ref: ApiApiGETcombatlogskeysHttpIntegration2ea539d1a2a340bd06df9ffe9b8f36fe1D78CAB1
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/GET--combatlogs--keys/Resource
+  ApiApiGETcombatlogskeysdungeonidwmdevApiApiGETcombatlogskeysdungeonid946DC620Permission18328EE1:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - ApiGetKeysPerDungeonLambda073DE524
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:us-east-1:461497339039:"
+            - Ref: ApiApiA3C0F448
+            - /*/*/combatlogs/keys/{dungeon_id}
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/GET--combatlogs--keys--{dungeon_id}/wmdevApiApiGETcombatlogskeysdungeonid946DC620-Permission
+  ApiApiGETcombatlogskeysdungeonidHttpIntegrationc7a7a8017d951741dcb04035cf98aa803CE1D4E2:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId:
+        Ref: ApiApiA3C0F448
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::GetAtt:
+          - ApiGetKeysPerDungeonLambda073DE524
+          - Arn
+      PayloadFormatVersion: "2.0"
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/GET--combatlogs--keys--{dungeon_id}/HttpIntegration-c7a7a8017d951741dcb04035cf98aa80/Resource
+  ApiApiGETcombatlogskeysdungeonid42849F88:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: ApiApiA3C0F448
+      RouteKey: GET /combatlogs/keys/{dungeon_id}
+      Target:
+        Fn::Join:
+          - ""
+          - - integrations/
+            - Ref: ApiApiGETcombatlogskeysdungeonidHttpIntegrationc7a7a8017d951741dcb04035cf98aa803CE1D4E2
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/GET--combatlogs--keys--{dungeon_id}/Resource
+  ApiApiGETcombatlogskeyscombatloguuidplayerdamagedonewmdevApiApiGETcombatlogskeyscombatloguuidplayerdamagedone79367447Permission1159FCB2:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - ApiGetPlayerDamageDoneLambda7F052E98
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:us-east-1:461497339039:"
+            - Ref: ApiApiA3C0F448
+            - /*/*/combatlogs/keys/{combatlog_uuid}/player-damage-done
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/GET--combatlogs--keys--{combatlog_uuid}--player-damage-done/wmdevApiApiGETcombatlogskeyscombatloguuidplayerdamagedone79367447-Permission
+  ApiApiGETcombatlogskeyscombatloguuidplayerdamagedoneHttpIntegration15323691e973f6e0e900c8c84155a7a21B02E7B8:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId:
+        Ref: ApiApiA3C0F448
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::GetAtt:
+          - ApiGetPlayerDamageDoneLambda7F052E98
+          - Arn
+      PayloadFormatVersion: "2.0"
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/GET--combatlogs--keys--{combatlog_uuid}--player-damage-done/HttpIntegration-15323691e973f6e0e900c8c84155a7a2/Resource
+  ApiApiGETcombatlogskeyscombatloguuidplayerdamagedone1A0455EA:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: ApiApiA3C0F448
+      RouteKey: GET /combatlogs/keys/{combatlog_uuid}/player-damage-done
+      Target:
+        Fn::Join:
+          - ""
+          - - integrations/
+            - Ref: ApiApiGETcombatlogskeyscombatloguuidplayerdamagedoneHttpIntegration15323691e973f6e0e900c8c84155a7a21B02E7B8
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/GET--combatlogs--keys--{combatlog_uuid}--player-damage-done/Resource
+  ApiApiPOSTpresignfilenamewmdevApiApiPOSTpresignfilename92608512Permission276B055D:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - ApiLambdaB75D04FB
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:us-east-1:461497339039:"
+            - Ref: ApiApiA3C0F448
+            - /*/*/presign/{filename}
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/POST--presign--{filename}/wmdevApiApiPOSTpresignfilename92608512-Permission
+  ApiApiPOSTpresignfilenameHttpIntegrationdc7e8b0b9a5a5b48506eb43bcf02cdb907EFDBDB:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId:
+        Ref: ApiApiA3C0F448
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::GetAtt:
+          - ApiLambdaB75D04FB
+          - Arn
+      PayloadFormatVersion: "2.0"
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/POST--presign--{filename}/HttpIntegration-dc7e8b0b9a5a5b48506eb43bcf02cdb9/Resource
+  ApiApiPOSTpresignfilename099428A1:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: ApiApiA3C0F448
+      RouteKey: POST /presign/{filename}
+      Target:
+        Fn::Join:
+          - ""
+          - - integrations/
+            - Ref: ApiApiPOSTpresignfilenameHttpIntegrationdc7e8b0b9a5a5b48506eb43bcf02cdb907EFDBDB
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Api/POST--presign--{filename}/Resource
+  ApiCertificateCertificateRequestorFunctionServiceRoleB79D7B00:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Certificate/CertificateRequestorFunction/ServiceRole/Resource
+  ApiCertificateCertificateRequestorFunctionServiceRoleDefaultPolicy0117EB54:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - acm:RequestCertificate
+              - acm:DescribeCertificate
+              - acm:DeleteCertificate
+            Effect: Allow
+            Resource: "*"
+          - Action: route53:GetChange
+            Effect: Allow
+            Resource: "*"
+          - Action: route53:changeResourceRecordSets
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - "arn:"
+                  - Ref: AWS::Partition
+                  - :route53:::hostedzone/Z09026202SZR8MRVSF1BQ
+        Version: "2012-10-17"
+      PolicyName: ApiCertificateCertificateRequestorFunctionServiceRoleDefaultPolicy0117EB54
+      Roles:
+        - Ref: ApiCertificateCertificateRequestorFunctionServiceRoleB79D7B00
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Certificate/CertificateRequestorFunction/ServiceRole/DefaultPolicy/Resource
+  ApiCertificateCertificateRequestorFunctionF0788018:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: 19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2.zip
+      Role:
+        Fn::GetAtt:
+          - ApiCertificateCertificateRequestorFunctionServiceRoleB79D7B00
+          - Arn
+      Handler: index.certificateRequestHandler
+      Runtime: nodejs14.x
+      Timeout: 900
+    DependsOn:
+      - ApiCertificateCertificateRequestorFunctionServiceRoleDefaultPolicy0117EB54
+      - ApiCertificateCertificateRequestorFunctionServiceRoleB79D7B00
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Certificate/CertificateRequestorFunction/Resource
+      aws:asset:path: asset.19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2
+      aws:asset:property: Code
+  ApiCertificateCertificateRequestorResourceA5E9CABD:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - ApiCertificateCertificateRequestorFunctionF0788018
+          - Arn
+      DomainName: api.dev.wowmate.io
+      HostedZoneId: Z09026202SZR8MRVSF1BQ
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Certificate/CertificateRequestorResource/Default
+  ApiAllowCorsAndQueryStringParam2E1252D84:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        CookiesConfig:
+          CookieBehavior: none
+        HeadersConfig:
+          HeaderBehavior: whitelist
+          Headers:
+            - origin
+        Name: AllowCorsAndQueryStringParam2
+        QueryStringsConfig:
+          QueryStringBehavior: all
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/AllowCorsAndQueryStringParam2/Resource
+  ApiDistributionAF0E5162:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - api.dev.wowmate.io
+        Comment: wowmate.io API
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+            - PUT
+            - PATCH
+            - POST
+            - DELETE
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          OriginRequestPolicyId:
+            Ref: ApiAllowCorsAndQueryStringParam2E1252D84
+          TargetOriginId: wmdevApiDistributionOrigin1D8045FD9
+          ViewerProtocolPolicy: https-only
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Origins:
+          - CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+            DomainName:
+              Fn::Join:
+                - ""
+                - - Ref: ApiApiA3C0F448
+                  - .execute-api.us-east-1.
+                  - Ref: AWS::URLSuffix
+            Id: wmdevApiDistributionOrigin1D8045FD9
+            OriginShield:
+              Enabled: true
+              OriginShieldRegion: us-east-1
+        ViewerCertificate:
+          AcmCertificateArn:
+            Fn::GetAtt:
+              - ApiCertificateCertificateRequestorResourceA5E9CABD
+              - Arn
+          MinimumProtocolVersion: TLSv1.2_2019
+          SslSupportMethod: sni-only
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Distribution/Resource
+  ApiAlias9BCD8730:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: api.dev.wowmate.io.
+      Type: A
+      AliasTarget:
+        DNSName:
+          Fn::GetAtt:
+            - ApiDistributionAF0E5162
+            - DomainName
+        HostedZoneId:
+          Fn::FindInMap:
+            - AWSCloudFrontPartitionHostedZoneIdMap
+            - Ref: AWS::Partition
+            - zoneId
+      HostedZoneId: Z09026202SZR8MRVSF1BQ
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/Alias/Resource
+  ApiAliasAAA87243141:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: api.dev.wowmate.io.
+      Type: AAAA
+      AliasTarget:
+        DNSName:
+          Fn::GetAtt:
+            - ApiDistributionAF0E5162
+            - DomainName
+        HostedZoneId:
+          Fn::FindInMap:
+            - AWSCloudFrontPartitionHostedZoneIdMap
+            - Ref: AWS::Partition
+            - zoneId
+      HostedZoneId: Z09026202SZR8MRVSF1BQ
+    Metadata:
+      aws:cdk:path: wm-dev/Api-/AliasAAA/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:PutRetentionPolicy
+              - logs:DeleteRetentionPolicy
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB
+      Roles:
+        - Ref: LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+    Metadata:
+      aws:cdk:path: wm-dev/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: 67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24.zip
+      Role:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+          - Arn
+    DependsOn:
+      - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB
+      - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+    Metadata:
+      aws:cdk:path: wm-dev/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource
+  FrontendCertificateCertificateRequestorFunctionServiceRole2B49D3E7:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/Frontend-/Certificate/CertificateRequestorFunction/ServiceRole/Resource
+  FrontendCertificateCertificateRequestorFunctionServiceRoleDefaultPolicyAA1F647E:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - acm:RequestCertificate
+              - acm:DescribeCertificate
+              - acm:DeleteCertificate
+            Effect: Allow
+            Resource: "*"
+          - Action: route53:GetChange
+            Effect: Allow
+            Resource: "*"
+          - Action: route53:changeResourceRecordSets
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - "arn:"
+                  - Ref: AWS::Partition
+                  - :route53:::hostedzone/Z09026202SZR8MRVSF1BQ
+        Version: "2012-10-17"
+      PolicyName: FrontendCertificateCertificateRequestorFunctionServiceRoleDefaultPolicyAA1F647E
+      Roles:
+        - Ref: FrontendCertificateCertificateRequestorFunctionServiceRole2B49D3E7
+    Metadata:
+      aws:cdk:path: wm-dev/Frontend-/Certificate/CertificateRequestorFunction/ServiceRole/DefaultPolicy/Resource
+  FrontendCertificateCertificateRequestorFunctionF1B595B9:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: 19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2.zip
+      Role:
+        Fn::GetAtt:
+          - FrontendCertificateCertificateRequestorFunctionServiceRole2B49D3E7
+          - Arn
+      Handler: index.certificateRequestHandler
+      Runtime: nodejs14.x
+      Timeout: 900
+    DependsOn:
+      - FrontendCertificateCertificateRequestorFunctionServiceRoleDefaultPolicyAA1F647E
+      - FrontendCertificateCertificateRequestorFunctionServiceRole2B49D3E7
+    Metadata:
+      aws:cdk:path: wm-dev/Frontend-/Certificate/CertificateRequestorFunction/Resource
+      aws:asset:path: asset.19e461d2ff1a5b90438fed6ceee4c197d7efee8712a6f76d85b501ab20bfb1a2
+      aws:asset:property: Code
+  FrontendCertificateCertificateRequestorResource4952BA74:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - FrontendCertificateCertificateRequestorFunctionF1B595B9
+          - Arn
+      DomainName: dev.wowmate.io
+      HostedZoneId: Z09026202SZR8MRVSF1BQ
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/Frontend-/Certificate/CertificateRequestorResource/Default
+  FrontendBucket14D51EE9:
+    Type: AWS::S3::Bucket
+    Properties:
+      MetricsConfigurations:
+        - Id: metric
+      WebsiteConfiguration:
+        IndexDocument: index.html
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/Frontend-/Bucket/Resource
+  FrontendBucketPolicy9C3048D5:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: FrontendBucket14D51EE9
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Principal: "*"
+            Resource:
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - FrontendBucket14D51EE9
+                      - Arn
+                  - /*
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: wm-dev/Frontend-/Bucket/Policy/Resource
+  FrontendDistributionBC7F184B:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - dev.wowmate.io
+        Comment: wowmate.io frontend
+        CustomErrorResponses:
+          - ErrorCachingMinTTL: 0
+            ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        DefaultCacheBehavior:
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          Compress: true
+          OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf
+          TargetOriginId: wmdevFrontendDistributionOrigin11BD9E84A
+          ViewerProtocolPolicy: redirect-to-https
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Origins:
+          - CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+              OriginSSLProtocols:
+                - TLSv1.2
+            DomainName:
+              Fn::Select:
+                - 2
+                - Fn::Split:
+                    - /
+                    - Fn::GetAtt:
+                        - FrontendBucket14D51EE9
+                        - WebsiteURL
+            Id: wmdevFrontendDistributionOrigin11BD9E84A
+            OriginShield:
+              Enabled: true
+              OriginShieldRegion: us-east-1
+        ViewerCertificate:
+          AcmCertificateArn:
+            Fn::GetAtt:
+              - FrontendCertificateCertificateRequestorResource4952BA74
+              - Arn
+          MinimumProtocolVersion: TLSv1.2_2019
+          SslSupportMethod: sni-only
+    Metadata:
+      aws:cdk:path: wm-dev/Frontend-/Distribution/Resource
+  FrontendDeployWebsiteAwsCliLayer7B9DC8BF:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: e9882ab123687399f934da0d45effe675ecc8ce13b40cb946f3e1d6141fe8d68.zip
+      Description: /opt/awscli/aws
+    Metadata:
+      aws:cdk:path: wm-dev/Frontend-/DeployWebsite/AwsCliLayer/Resource
+      aws:asset:path: asset.e9882ab123687399f934da0d45effe675ecc8ce13b40cb946f3e1d6141fe8d68.zip
+      aws:asset:property: Content
+  FrontendDeployWebsiteCustomResource1B4A6C7F:
+    Type: Custom::CDKBucketDeployment
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536
+          - Arn
+      SourceBucketNames:
+        - cdk-hnb659fds-assets-461497339039-us-east-1
+      SourceObjectKeys:
+        - 3c4522ff9313e88e29809cbd815e811e74eff02c5fd3a258b066eeb7f5427464.zip
+      DestinationBucketName:
+        Ref: FrontendBucket14D51EE9
+      Prune: true
+      DistributionId:
+        Ref: FrontendDistributionBC7F184B
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/Frontend-/DeployWebsite/CustomResource/Default
+  FrontendAlias395A1F0F:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: dev.wowmate.io.
+      Type: A
+      AliasTarget:
+        DNSName:
+          Fn::GetAtt:
+            - FrontendDistributionBC7F184B
+            - DomainName
+        HostedZoneId:
+          Fn::FindInMap:
+            - AWSCloudFrontPartitionHostedZoneIdMap
+            - Ref: AWS::Partition
+            - zoneId
+      HostedZoneId: Z09026202SZR8MRVSF1BQ
+    Metadata:
+      aws:cdk:path: wm-dev/Frontend-/Alias/Resource
+  FrontendAliasAAABB385C43:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: dev.wowmate.io.
+      Type: AAAA
+      AliasTarget:
+        DNSName:
+          Fn::GetAtt:
+            - FrontendDistributionBC7F184B
+            - DomainName
+        HostedZoneId:
+          Fn::FindInMap:
+            - AWSCloudFrontPartitionHostedZoneIdMap
+            - Ref: AWS::Partition
+            - zoneId
+      HostedZoneId: Z09026202SZR8MRVSF1BQ
+    Metadata:
+      aws:cdk:path: wm-dev/Frontend-/AliasAAA/Resource
+  CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource
+  CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+            Effect: Allow
+            Resource:
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - :s3:::cdk-hnb659fds-assets-461497339039-us-east-1
+              - Fn::Join:
+                  - ""
+                  - - "arn:"
+                    - Ref: AWS::Partition
+                    - :s3:::cdk-hnb659fds-assets-461497339039-us-east-1/*
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - FrontendBucket14D51EE9
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - FrontendBucket14D51EE9
+                        - Arn
+                    - /*
+          - Action:
+              - cloudfront:GetInvalidation
+              - cloudfront:CreateInvalidation
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF
+      Roles:
+        - Ref: CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265
+    Metadata:
+      aws:cdk:path: wm-dev/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource
+  CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: c24b999656e4fe6c609c31bae56a1cf4717a405619c3aa6ba1bc686b8c2c86cf.zip
+      Role:
+        Fn::GetAtt:
+          - CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265
+          - Arn
+      Handler: index.handler
+      Layers:
+        - Ref: FrontendDeployWebsiteAwsCliLayer7B9DC8BF
+      Runtime: python3.6
+      Timeout: 900
+    DependsOn:
+      - CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF
+      - CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265
+    Metadata:
+      aws:cdk:path: wm-dev/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource
+      aws:asset:path: asset.c24b999656e4fe6c609c31bae56a1cf4717a405619c3aa6ba1bc686b8c2c86cf
+      aws:asset:property: Code
+  QueryKeysTopicDLQ11D7F7D2:
+    Type: AWS::SQS::Queue
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/QueryKeys-/TopicDLQ/Resource
+  QueryKeysTopicDLQPolicyA961FC27:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sqs:SendMessage
+            Condition:
+              ArnEquals:
+                aws:SourceArn:
+                  Ref: QueryKeysTopicE594304E
+            Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Resource:
+              Fn::GetAtt:
+                - QueryKeysTopicDLQ11D7F7D2
+                - Arn
+        Version: "2012-10-17"
+      Queues:
+        - Ref: QueryKeysTopicDLQ11D7F7D2
+    Metadata:
+      aws:cdk:path: wm-dev/QueryKeys-/TopicDLQ/Policy/Resource
+  QueryKeysLambdaDLQA087A324:
+    Type: AWS::SQS::Queue
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/QueryKeys-/LambdaDLQ/Resource
+  QueryKeysTopicE594304E:
+    Type: AWS::SNS::Topic
+    Metadata:
+      aws:cdk:path: wm-dev/QueryKeys-/Topic/Resource
+  QueryKeysLambdaServiceRoleB51B05D7:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/QueryKeys-/Lambda/ServiceRole/Resource
+  QueryKeysLambdaServiceRoleDefaultPolicy0B421788:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - sqs:SendMessage
+              - sqs:GetQueueAttributes
+              - sqs:GetQueueUrl
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - QueryKeysLambdaDLQA087A324
+                - Arn
+          - Action: sns:Publish
+            Effect: Allow
+            Resource:
+              Ref: QueryKeysTopicE594304E
+          - Action:
+              - timestream:DescribeEndpoints
+              - timestream:SelectValues
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - timestream:Select
+              - timestream:ListMeasures
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - Timestreamtable60CD8F37
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: QueryKeysLambdaServiceRoleDefaultPolicy0B421788
+      Roles:
+        - Ref: QueryKeysLambdaServiceRoleB51B05D7
+    Metadata:
+      aws:cdk:path: wm-dev/QueryKeys-/Lambda/ServiceRole/DefaultPolicy/Resource
+  QueryKeysLambda58DE9A2E:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: 9f75e0cfde3de0b195b2f2a9e5cb38ad19d8c081476fa134383452344f1ad04d.zip
+      Role:
+        Fn::GetAtt:
+          - QueryKeysLambdaServiceRoleB51B05D7
+          - Arn
+      Description: queries timestream for the keys, keys per dungeon etc and posts it to SNS
+      Environment:
+        Variables:
+          TOPIC_ARN:
+            Ref: QueryKeysTopicE594304E
+          LOG_LEVEL: info
+          LOCAL: "false"
+      Handler: main
+      MemorySize: 128
+      ReservedConcurrentExecutions: 15
+      Runtime: go1.x
+      Timeout: 10
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - QueryKeysLambdaServiceRoleDefaultPolicy0B421788
+      - QueryKeysLambdaServiceRoleB51B05D7
+    Metadata:
+      aws:cdk:path: wm-dev/QueryKeys-/Lambda/Resource
+      aws:asset:path: asset.9f75e0cfde3de0b195b2f2a9e5cb38ad19d8c081476fa134383452344f1ad04d
+      aws:asset:property: Code
+  QueryKeysLambdaLogRetentionC83F9F71:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: QueryKeysLambda58DE9A2E
+      RetentionInDays: 30
+    Metadata:
+      aws:cdk:path: wm-dev/QueryKeys-/Lambda/LogRetention/Resource
+  QueryKeysLambdaEventInvokeConfig3EEB69AE:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+      FunctionName:
+        Ref: QueryKeysLambda58DE9A2E
+      Qualifier: $LATEST
+      DestinationConfig:
+        OnFailure:
+          Destination:
+            Fn::GetAtt:
+              - QueryKeysLambdaDLQA087A324
+              - Arn
+      MaximumRetryAttempts: 2
+    Metadata:
+      aws:cdk:path: wm-dev/QueryKeys-/Lambda/EventInvokeConfig/Resource
+  QueryKeysLambdaAllowInvokewmdevConvertTopic537E6AE0AC1B2A9E:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - QueryKeysLambda58DE9A2E
+          - Arn
+      Principal: sns.amazonaws.com
+      SourceArn:
+        Ref: ConvertTopic05CCE428
+    Metadata:
+      aws:cdk:path: wm-dev/QueryKeys-/Lambda/AllowInvoke:wmdevConvertTopic537E6AE0
+  QueryKeysLambdaTopic43819E50:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: lambda
+      TopicArn:
+        Ref: ConvertTopic05CCE428
+      Endpoint:
+        Fn::GetAtt:
+          - QueryKeysLambda58DE9A2E
+          - Arn
+    Metadata:
+      aws:cdk:path: wm-dev/QueryKeys-/Lambda/Topic/Resource
+  InsertKeysToDynamodbLambdaDLQ8AABEF58:
+    Type: AWS::SQS::Queue
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToDynamodb-/LambdaDLQ/Resource
+  InsertKeysToDynamodbLambdaServiceRole20392EE8:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToDynamodb-/Lambda/ServiceRole/Resource
+  InsertKeysToDynamodbLambdaServiceRoleDefaultPolicy9862221D:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - sqs:SendMessage
+              - sqs:GetQueueAttributes
+              - sqs:GetQueueUrl
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - InsertKeysToDynamodbLambdaDLQ8AABEF58
+                - Arn
+          - Action:
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - DynamoDBtableF8E87752
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - DynamoDBtableF8E87752
+                        - Arn
+                    - /index/*
+        Version: "2012-10-17"
+      PolicyName: InsertKeysToDynamodbLambdaServiceRoleDefaultPolicy9862221D
+      Roles:
+        - Ref: InsertKeysToDynamodbLambdaServiceRole20392EE8
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToDynamodb-/Lambda/ServiceRole/DefaultPolicy/Resource
+  InsertKeysToDynamodbLambda15825024:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: c28abfe8eff8fc19d95d6339a6b569931c3987cc20c9323d21c41233e901026f.zip
+      Role:
+        Fn::GetAtt:
+          - InsertKeysToDynamodbLambdaServiceRole20392EE8
+          - Arn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME:
+            Ref: DynamoDBtableF8E87752
+          LOG_LEVEL: info
+          LOCAL: "false"
+      Handler: main
+      MemorySize: 128
+      ReservedConcurrentExecutions: 30
+      Runtime: go1.x
+      Timeout: 2
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - InsertKeysToDynamodbLambdaServiceRoleDefaultPolicy9862221D
+      - InsertKeysToDynamodbLambdaServiceRole20392EE8
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToDynamodb-/Lambda/Resource
+      aws:asset:path: asset.c28abfe8eff8fc19d95d6339a6b569931c3987cc20c9323d21c41233e901026f
+      aws:asset:property: Code
+  InsertKeysToDynamodbLambdaLogRetentionC19B843E:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: InsertKeysToDynamodbLambda15825024
+      RetentionInDays: 30
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToDynamodb-/Lambda/LogRetention/Resource
+  InsertKeysToDynamodbLambdaEventInvokeConfigDEDD1EC1:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+      FunctionName:
+        Ref: InsertKeysToDynamodbLambda15825024
+      Qualifier: $LATEST
+      DestinationConfig:
+        OnFailure:
+          Destination:
+            Fn::GetAtt:
+              - InsertKeysToDynamodbLambdaDLQ8AABEF58
+              - Arn
+      MaximumRetryAttempts: 2
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToDynamodb-/Lambda/EventInvokeConfig/Resource
+  InsertKeysToDynamodbLambdaAllowInvokewmdevQueryKeysTopic548B1F0E669466B5:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - InsertKeysToDynamodbLambda15825024
+          - Arn
+      Principal: sns.amazonaws.com
+      SourceArn:
+        Ref: QueryKeysTopicE594304E
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToDynamodb-/Lambda/AllowInvoke:wmdevQueryKeysTopic548B1F0E
+  InsertKeysToDynamodbLambdaTopicAF84EC41:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: lambda
+      TopicArn:
+        Ref: QueryKeysTopicE594304E
+      Endpoint:
+        Fn::GetAtt:
+          - InsertKeysToDynamodbLambda15825024
+          - Arn
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - QueryKeysTopicDLQ11D7F7D2
+            - Arn
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToDynamodb-/Lambda/Topic/Resource
+  InsertKeysToTimestreamLambdaDLQ96572578:
+    Type: AWS::SQS::Queue
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToTimestream-/LambdaDLQ/Resource
+  InsertKeysToTimestreamLambdaServiceRoleA2443CD9:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToTimestream-/Lambda/ServiceRole/Resource
+  InsertKeysToTimestreamLambdaServiceRoleDefaultPolicy59ED7474:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - sqs:SendMessage
+              - sqs:GetQueueAttributes
+              - sqs:GetQueueUrl
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - InsertKeysToTimestreamLambdaDLQ96572578
+                - Arn
+          - Action:
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - DynamoDBtableF8E87752
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - DynamoDBtableF8E87752
+                        - Arn
+                    - /index/*
+        Version: "2012-10-17"
+      PolicyName: InsertKeysToTimestreamLambdaServiceRoleDefaultPolicy59ED7474
+      Roles:
+        - Ref: InsertKeysToTimestreamLambdaServiceRoleA2443CD9
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToTimestream-/Lambda/ServiceRole/DefaultPolicy/Resource
+  InsertKeysToTimestreamLambdaA07E952E:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: 443188e1e0fb05f604733a50a12912c442b9378411ad87351e48dfe5dfc96357.zip
+      Role:
+        Fn::GetAtt:
+          - InsertKeysToTimestreamLambdaServiceRoleA2443CD9
+          - Arn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME:
+            Ref: DynamoDBtableF8E87752
+          LOG_LEVEL: info
+          LOCAL: "false"
+      Handler: main
+      MemorySize: 128
+      ReservedConcurrentExecutions: 30
+      Runtime: go1.x
+      Timeout: 2
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - InsertKeysToTimestreamLambdaServiceRoleDefaultPolicy59ED7474
+      - InsertKeysToTimestreamLambdaServiceRoleA2443CD9
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToTimestream-/Lambda/Resource
+      aws:asset:path: asset.443188e1e0fb05f604733a50a12912c442b9378411ad87351e48dfe5dfc96357
+      aws:asset:property: Code
+  InsertKeysToTimestreamLambdaLogRetentionFE855B2C:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: InsertKeysToTimestreamLambdaA07E952E
+      RetentionInDays: 30
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToTimestream-/Lambda/LogRetention/Resource
+  InsertKeysToTimestreamLambdaEventInvokeConfigA88100BC:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+      FunctionName:
+        Ref: InsertKeysToTimestreamLambdaA07E952E
+      Qualifier: $LATEST
+      DestinationConfig:
+        OnFailure:
+          Destination:
+            Fn::GetAtt:
+              - InsertKeysToTimestreamLambdaDLQ96572578
+              - Arn
+      MaximumRetryAttempts: 2
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToTimestream-/Lambda/EventInvokeConfig/Resource
+  InsertKeysToTimestreamLambdaAllowInvokewmdevQueryKeysTopic548B1F0E2D07AF0B:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - InsertKeysToTimestreamLambdaA07E952E
+          - Arn
+      Principal: sns.amazonaws.com
+      SourceArn:
+        Ref: QueryKeysTopicE594304E
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToTimestream-/Lambda/AllowInvoke:wmdevQueryKeysTopic548B1F0E
+  InsertKeysToTimestreamLambdaTopic89EC37F4:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: lambda
+      TopicArn:
+        Ref: QueryKeysTopicE594304E
+      Endpoint:
+        Fn::GetAtt:
+          - InsertKeysToTimestreamLambdaA07E952E
+          - Arn
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - QueryKeysTopicDLQ11D7F7D2
+            - Arn
+    Metadata:
+      aws:cdk:path: wm-dev/InsertKeysToTimestream-/Lambda/Topic/Resource
+  QueryPlayerDamageDoneTopicDLQAAA3B653:
+    Type: AWS::SQS::Queue
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/QueryPlayerDamageDone-/TopicDLQ/Resource
+  QueryPlayerDamageDoneTopicDLQPolicyB965AE5F:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sqs:SendMessage
+            Condition:
+              ArnEquals:
+                aws:SourceArn:
+                  Ref: QueryPlayerDamageDoneTopic2308E4CA
+            Effect: Allow
+            Principal:
+              Service: sns.amazonaws.com
+            Resource:
+              Fn::GetAtt:
+                - QueryPlayerDamageDoneTopicDLQAAA3B653
+                - Arn
+        Version: "2012-10-17"
+      Queues:
+        - Ref: QueryPlayerDamageDoneTopicDLQAAA3B653
+    Metadata:
+      aws:cdk:path: wm-dev/QueryPlayerDamageDone-/TopicDLQ/Policy/Resource
+  QueryPlayerDamageDoneLambdaDLQ471ADF5E:
+    Type: AWS::SQS::Queue
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/QueryPlayerDamageDone-/LambdaDLQ/Resource
+  QueryPlayerDamageDoneTopic2308E4CA:
+    Type: AWS::SNS::Topic
+    Metadata:
+      aws:cdk:path: wm-dev/QueryPlayerDamageDone-/Topic/Resource
+  QueryPlayerDamageDoneLambdaServiceRoleA3FDE35B:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/QueryPlayerDamageDone-/Lambda/ServiceRole/Resource
+  QueryPlayerDamageDoneLambdaServiceRoleDefaultPolicyF1DEB9B2:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - sqs:SendMessage
+              - sqs:GetQueueAttributes
+              - sqs:GetQueueUrl
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - QueryPlayerDamageDoneLambdaDLQ471ADF5E
+                - Arn
+          - Action: sns:Publish
+            Effect: Allow
+            Resource:
+              Ref: QueryPlayerDamageDoneTopic2308E4CA
+          - Action:
+              - timestream:DescribeEndpoints
+              - timestream:SelectValues
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - timestream:Select
+              - timestream:ListMeasures
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - Timestreamtable60CD8F37
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: QueryPlayerDamageDoneLambdaServiceRoleDefaultPolicyF1DEB9B2
+      Roles:
+        - Ref: QueryPlayerDamageDoneLambdaServiceRoleA3FDE35B
+    Metadata:
+      aws:cdk:path: wm-dev/QueryPlayerDamageDone-/Lambda/ServiceRole/DefaultPolicy/Resource
+  QueryPlayerDamageDoneLambda98AFC037:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: e50c3f41585ca1456077e086febedd08fc9fbd81156d078d25a28c0b5897127c.zip
+      Role:
+        Fn::GetAtt:
+          - QueryPlayerDamageDoneLambdaServiceRoleA3FDE35B
+          - Arn
+      Description: queries timestream and creates the advanced damage summary for the combatlog specific page
+      Environment:
+        Variables:
+          TOPIC_ARN:
+            Ref: QueryPlayerDamageDoneTopic2308E4CA
+          LOG_LEVEL: info
+          LOCAL: "false"
+      Handler: main
+      MemorySize: 128
+      ReservedConcurrentExecutions: 15
+      Runtime: go1.x
+      Timeout: 10
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - QueryPlayerDamageDoneLambdaServiceRoleDefaultPolicyF1DEB9B2
+      - QueryPlayerDamageDoneLambdaServiceRoleA3FDE35B
+    Metadata:
+      aws:cdk:path: wm-dev/QueryPlayerDamageDone-/Lambda/Resource
+      aws:asset:path: asset.e50c3f41585ca1456077e086febedd08fc9fbd81156d078d25a28c0b5897127c
+      aws:asset:property: Code
+  QueryPlayerDamageDoneLambdaLogRetentionDEF90B34:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: QueryPlayerDamageDoneLambda98AFC037
+      RetentionInDays: 30
+    Metadata:
+      aws:cdk:path: wm-dev/QueryPlayerDamageDone-/Lambda/LogRetention/Resource
+  QueryPlayerDamageDoneLambdaEventInvokeConfig2026E376:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+      FunctionName:
+        Ref: QueryPlayerDamageDoneLambda98AFC037
+      Qualifier: $LATEST
+      DestinationConfig:
+        OnFailure:
+          Destination:
+            Fn::GetAtt:
+              - QueryPlayerDamageDoneLambdaDLQ471ADF5E
+              - Arn
+      MaximumRetryAttempts: 2
+    Metadata:
+      aws:cdk:path: wm-dev/QueryPlayerDamageDone-/Lambda/EventInvokeConfig/Resource
+  QueryPlayerDamageDoneLambdaAllowInvokewmdevConvertTopic537E6AE0C23EA1EE:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - QueryPlayerDamageDoneLambda98AFC037
+          - Arn
+      Principal: sns.amazonaws.com
+      SourceArn:
+        Ref: ConvertTopic05CCE428
+    Metadata:
+      aws:cdk:path: wm-dev/QueryPlayerDamageDone-/Lambda/AllowInvoke:wmdevConvertTopic537E6AE0
+  QueryPlayerDamageDoneLambdaTopicFCCB25E4:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: lambda
+      TopicArn:
+        Ref: ConvertTopic05CCE428
+      Endpoint:
+        Fn::GetAtt:
+          - QueryPlayerDamageDoneLambda98AFC037
+          - Arn
+    Metadata:
+      aws:cdk:path: wm-dev/QueryPlayerDamageDone-/Lambda/Topic/Resource
+  InsertPlayerDamageDoneToDynamodbLambdaDLQF766FA6B:
+    Type: AWS::SQS::Queue
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/InsertPlayerDamageDoneToDynamodb-/LambdaDLQ/Resource
+  InsertPlayerDamageDoneToDynamodbLambdaServiceRole1B9D0147:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/InsertPlayerDamageDoneToDynamodb-/Lambda/ServiceRole/Resource
+  InsertPlayerDamageDoneToDynamodbLambdaServiceRoleDefaultPolicyAF90BF89:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - sqs:SendMessage
+              - sqs:GetQueueAttributes
+              - sqs:GetQueueUrl
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - InsertPlayerDamageDoneToDynamodbLambdaDLQF766FA6B
+                - Arn
+          - Action:
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - DynamoDBtableF8E87752
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - DynamoDBtableF8E87752
+                        - Arn
+                    - /index/*
+        Version: "2012-10-17"
+      PolicyName: InsertPlayerDamageDoneToDynamodbLambdaServiceRoleDefaultPolicyAF90BF89
+      Roles:
+        - Ref: InsertPlayerDamageDoneToDynamodbLambdaServiceRole1B9D0147
+    Metadata:
+      aws:cdk:path: wm-dev/InsertPlayerDamageDoneToDynamodb-/Lambda/ServiceRole/DefaultPolicy/Resource
+  InsertPlayerDamageDoneToDynamodbLambda659E0DA7:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: 1c710dfb81d471b2eadcfe145f1c72cde370a01324f04513c3c6f952d3ceffa2.zip
+      Role:
+        Fn::GetAtt:
+          - InsertPlayerDamageDoneToDynamodbLambdaServiceRole1B9D0147
+          - Arn
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME:
+            Ref: DynamoDBtableF8E87752
+          LOG_LEVEL: info
+          LOCAL: "false"
+      Handler: main
+      MemorySize: 128
+      ReservedConcurrentExecutions: 30
+      Runtime: go1.x
+      Timeout: 2
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - InsertPlayerDamageDoneToDynamodbLambdaServiceRoleDefaultPolicyAF90BF89
+      - InsertPlayerDamageDoneToDynamodbLambdaServiceRole1B9D0147
+    Metadata:
+      aws:cdk:path: wm-dev/InsertPlayerDamageDoneToDynamodb-/Lambda/Resource
+      aws:asset:path: asset.1c710dfb81d471b2eadcfe145f1c72cde370a01324f04513c3c6f952d3ceffa2
+      aws:asset:property: Code
+  InsertPlayerDamageDoneToDynamodbLambdaLogRetention94E640C6:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: InsertPlayerDamageDoneToDynamodbLambda659E0DA7
+      RetentionInDays: 30
+    Metadata:
+      aws:cdk:path: wm-dev/InsertPlayerDamageDoneToDynamodb-/Lambda/LogRetention/Resource
+  InsertPlayerDamageDoneToDynamodbLambdaEventInvokeConfig2673D5EB:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+      FunctionName:
+        Ref: InsertPlayerDamageDoneToDynamodbLambda659E0DA7
+      Qualifier: $LATEST
+      DestinationConfig:
+        OnFailure:
+          Destination:
+            Fn::GetAtt:
+              - InsertPlayerDamageDoneToDynamodbLambdaDLQF766FA6B
+              - Arn
+      MaximumRetryAttempts: 2
+    Metadata:
+      aws:cdk:path: wm-dev/InsertPlayerDamageDoneToDynamodb-/Lambda/EventInvokeConfig/Resource
+  InsertPlayerDamageDoneToDynamodbLambdaAllowInvokewmdevQueryPlayerDamageDoneTopic511158F7EA0CF346:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - InsertPlayerDamageDoneToDynamodbLambda659E0DA7
+          - Arn
+      Principal: sns.amazonaws.com
+      SourceArn:
+        Ref: QueryPlayerDamageDoneTopic2308E4CA
+    Metadata:
+      aws:cdk:path: wm-dev/InsertPlayerDamageDoneToDynamodb-/Lambda/AllowInvoke:wmdevQueryPlayerDamageDoneTopic511158F7
+  InsertPlayerDamageDoneToDynamodbLambdaTopicD91E79DC:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: lambda
+      TopicArn:
+        Ref: QueryPlayerDamageDoneTopic2308E4CA
+      Endpoint:
+        Fn::GetAtt:
+          - InsertPlayerDamageDoneToDynamodbLambda659E0DA7
+          - Arn
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - QueryPlayerDamageDoneTopicDLQAAA3B653
+            - Arn
+    Metadata:
+      aws:cdk:path: wm-dev/InsertPlayerDamageDoneToDynamodb-/Lambda/Topic/Resource
+  ConvertDeadLetterQueue4059303F:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/Convert-/DeadLetterQueue/Resource
+  ConvertProcessingQueueE8D6E023:
+    Type: AWS::SQS::Queue
+    Properties:
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - ConvertDeadLetterQueue4059303F
+            - Arn
+        maxReceiveCount: 1
+      VisibilityTimeout: 1800
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: wm-dev/Convert-/ProcessingQueue/Resource
+  ConvertProcessingQueuePolicy2A81FA80:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - sqs:SendMessage
+              - sqs:GetQueueAttributes
+              - sqs:GetQueueUrl
+            Condition:
+              ArnLike:
+                aws:SourceArn:
+                  Fn::GetAtt:
+                    - BucketsUpload0B7F8F15
+                    - Arn
+            Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Resource:
+              Fn::GetAtt:
+                - ConvertProcessingQueueE8D6E023
+                - Arn
+        Version: "2012-10-17"
+      Queues:
+        - Ref: ConvertProcessingQueueE8D6E023
+    Metadata:
+      aws:cdk:path: wm-dev/Convert-/ProcessingQueue/Policy/Resource
+  ConvertTopic05CCE428:
+    Type: AWS::SNS::Topic
+    Metadata:
+      aws:cdk:path: wm-dev/Convert-/Topic/Resource
+  ConvertLambdaServiceRole179DFF01:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/Convert-/Lambda/ServiceRole/Resource
+  ConvertLambdaServiceRoleDefaultPolicyE631747C:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - sqs:ReceiveMessage
+              - sqs:ChangeMessageVisibility
+              - sqs:GetQueueUrl
+              - sqs:DeleteMessage
+              - sqs:GetQueueAttributes
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - ConvertProcessingQueueE8D6E023
+                - Arn
+          - Action: sns:Publish
+            Effect: Allow
+            Resource:
+              Ref: ConvertTopic05CCE428
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+              - s3:DeleteObject*
+              - s3:PutObject*
+              - s3:Abort*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - BucketsUpload0B7F8F15
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - BucketsUpload0B7F8F15
+                        - Arn
+                    - /*
+          - Action: timestream:DescribeEndpoints
+            Effect: Allow
+            Resource: "*"
+          - Action: timestream:WriteRecords
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - Timestreamtable60CD8F37
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: ConvertLambdaServiceRoleDefaultPolicyE631747C
+      Roles:
+        - Ref: ConvertLambdaServiceRole179DFF01
+    Metadata:
+      aws:cdk:path: wm-dev/Convert-/Lambda/ServiceRole/DefaultPolicy/Resource
+  ConvertLambda3540DCCB:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-461497339039-us-east-1
+        S3Key: 084b31dfb1ba71e162d24d6f6deefb4cd0cef3b430300f95a2e57be4bb174a9c.zip
+      Role:
+        Fn::GetAtt:
+          - ConvertLambdaServiceRole179DFF01
+          - Arn
+      Description: takes combatlog file and uploads it to amazon timestream
+      Environment:
+        Variables:
+          TOPIC_ARN:
+            Ref: ConvertTopic05CCE428
+          LOG_LEVEL: info
+          LOCAL: "false"
+      Handler: main
+      MemorySize: 3584
+      ReservedConcurrentExecutions: 15
+      Runtime: go1.x
+      Timeout: 300
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - ConvertLambdaServiceRoleDefaultPolicyE631747C
+      - ConvertLambdaServiceRole179DFF01
+    Metadata:
+      aws:cdk:path: wm-dev/Convert-/Lambda/Resource
+      aws:asset:path: asset.084b31dfb1ba71e162d24d6f6deefb4cd0cef3b430300f95a2e57be4bb174a9c
+      aws:asset:property: Code
+  ConvertLambdaLogRetentionA56DFCD7:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: ConvertLambda3540DCCB
+      RetentionInDays: 7
+    Metadata:
+      aws:cdk:path: wm-dev/Convert-/Lambda/LogRetention/Resource
+  ConvertLambdaEventInvokeConfigC9614876:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+      FunctionName:
+        Ref: ConvertLambda3540DCCB
+      Qualifier: $LATEST
+      MaximumRetryAttempts: 0
+    Metadata:
+      aws:cdk:path: wm-dev/Convert-/Lambda/EventInvokeConfig/Resource
+  ConvertLambdaSqsEventSourcewmdevConvertProcessingQueueE0E369F27A6B7AFC:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      FunctionName:
+        Ref: ConvertLambda3540DCCB
+      BatchSize: 1
+      EventSourceArn:
+        Fn::GetAtt:
+          - ConvertProcessingQueueE8D6E023
+          - Arn
+    Metadata:
+      aws:cdk:path: wm-dev/Convert-/Lambda/SqsEventSource:wmdevConvertProcessingQueueE0E369F2/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: wm-dev/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: s3:PutBucketNotification
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36
+      Roles:
+        - Ref: BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+    Metadata:
+      aws:cdk:path: wm-dev/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: AWS CloudFormation handler for "Custom::S3BucketNotifications" resources (@aws-cdk/aws-s3)
+      Code:
+        ZipFile: |-
+          exports.handler = (event, context) => {
+              // eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-extraneous-dependencies
+              const s3 = new (require('aws-sdk').S3)();
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
+              const https = require('https');
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
+              const url = require('url');
+              log(JSON.stringify(event, undefined, 2));
+              const props = event.ResourceProperties;
+              if (event.RequestType === 'Delete') {
+                  props.NotificationConfiguration = {}; // this is how you clean out notifications
+              }
+              const req = {
+                  Bucket: props.BucketName,
+                  NotificationConfiguration: props.NotificationConfiguration,
+              };
+              return s3.putBucketNotificationConfiguration(req, (err, data) => {
+                  log({ err, data });
+                  if (err) {
+                      return submitResponse('FAILED', err.message + `\nMore information in CloudWatch Log Stream: ${context.logStreamName}`);
+                  }
+                  else {
+                      return submitResponse('SUCCESS');
+                  }
+              });
+              function log(obj) {
+                  console.error(event.RequestId, event.StackId, event.LogicalResourceId, obj);
+              }
+              // eslint-disable-next-line max-len
+              // adapted from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-cfnresponsemodule
+              // to allow sending an error message as a reason.
+              function submitResponse(responseStatus, reason) {
+                  const responseBody = JSON.stringify({
+                      Status: responseStatus,
+                      Reason: reason || 'See the details in CloudWatch Log Stream: ' + context.logStreamName,
+                      PhysicalResourceId: event.PhysicalResourceId || event.LogicalResourceId,
+                      StackId: event.StackId,
+                      RequestId: event.RequestId,
+                      LogicalResourceId: event.LogicalResourceId,
+                      NoEcho: false,
+                  });
+                  log({ responseBody });
+                  const parsedUrl = url.parse(event.ResponseURL);
+                  const options = {
+                      hostname: parsedUrl.hostname,
+                      port: 443,
+                      path: parsedUrl.path,
+                      method: 'PUT',
+                      headers: {
+                          'content-type': '',
+                          'content-length': responseBody.length,
+                      },
+                  };
+                  const request = https.request(options, (r) => {
+                      log({ statusCode: r.statusCode, statusMessage: r.statusMessage });
+                      context.done();
+                  });
+                  request.on('error', (error) => {
+                      log({ sendError: error });
+                      context.done();
+                  });
+                  request.write(responseBody);
+                  request.end();
+              }
+          };
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+          - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+          - Arn
+      Runtime: nodejs12.x
+      Timeout: 300
+    DependsOn:
+      - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36
+      - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+    Metadata:
+      aws:cdk:path: wm-dev/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource
+  UserFacingerrorTopic5CCCF614:
+    Type: AWS::SNS::Topic
+    Metadata:
+      aws:cdk:path: wm-dev/UserFacing-/errorTopic/Resource
+  UserFacingDashboard6CF2B360:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardBody:
+        Fn::Join:
+          - ""
+          - - '{"start":"-P1D","widgets":[{"type":"text","width":4,"height":6,"x":0,"y":0,"properties":{"markdown":"# CloudFront\n\t\t\t\t\t\nCloudFront is the CDN that is a globally distributed cache, to speed up the users requests.\n\nDue to the fact that log data is static and never changes we can cache all requests about combatlogs indefintely.\nFor metrics about combatlogs (damage per specc in all dungeons) the TTL is lower.\n\nOrigin Latency is the time the request spends after hitting CloudFront from the user, until the request is sent back\nand leaves the AWS network and should be as low as possible.\n\t\t\t\t\t"}},{"type":"metric","width":4,"height":6,"x":4,"y":0,"properties":{"view":"timeSeries","title":"Requests","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/CloudFront","Requests","DistributionId","'
+            - Ref: FrontendDistributionBC7F184B
+            - '","Region","Global",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":8,"y":0,"properties":{"view":"timeSeries","title":"Error Rate","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/CloudFront","TotalErrorRate","DistributionId","'
+            - Ref: FrontendDistributionBC7F184B
+            - '","Region","Global",{"period":60}],["AWS/CloudFront","5xxErrorRate","DistributionId","'
+            - Ref: FrontendDistributionBC7F184B
+            - '","Region","Global",{"period":60}],["AWS/CloudFront","4xxErrorRate","DistributionId","'
+            - Ref: FrontendDistributionBC7F184B
+            - '","Region","Global",{"period":60}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":12,"y":0,"properties":{"view":"timeSeries","title":"Origin Latency","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/CloudFront","OriginLatency","DistributionId","'
+            - Ref: FrontendDistributionBC7F184B
+            - '","Region","Global",{"period":60}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":16,"y":0,"properties":{"view":"timeSeries","title":"Cache Hit Rate","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/CloudFront","CacheHitRate","DistributionId","'
+            - Ref: FrontendDistributionBC7F184B
+            - '","Region","Global",{"period":60}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":20,"y":0,"properties":{"view":"timeSeries","title":"Bytes Downloaded/Uploaded ","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/CloudFront","BytesDownloaded","DistributionId","'
+            - Ref: FrontendDistributionBC7F184B
+            - '","Region","Global",{"period":60,"stat":"Sum"}],["AWS/CloudFront","BytesUploaded","DistributionId","'
+            - Ref: FrontendDistributionBC7F184B
+            - '","Region","Global",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"text","width":4,"height":6,"x":0,"y":6,"properties":{"markdown":"# HTTP API\n\nAPI Gatewayv2 is fronting all public lambdas.\n\t\t\t\t\t"}},{"type":"metric","width":4,"height":6,"x":4,"y":6,"properties":{"view":"timeSeries","title":"Count","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/ApiGateway","Count","ApiId","'
+            - Ref: ApiApiA3C0F448
+            - '",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":8,"y":6,"properties":{"view":"timeSeries","title":"Error Rates","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/ApiGateway","5xx","ApiId","'
+            - Ref: ApiApiA3C0F448
+            - '"],["AWS/ApiGateway","4xx","ApiId","'
+            - Ref: ApiApiA3C0F448
+            - '"]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":12,"y":6,"properties":{"view":"timeSeries","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/ApiGateway","Latency","ApiId","'
+            - Ref: ApiApiA3C0F448
+            - '",{"period":60}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":16,"y":6,"properties":{"view":"timeSeries","title":"Data processed","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/ApiGateway","DataProcessed","ApiId","'
+            - Ref: ApiApiA3C0F448
+            - '",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":20,"y":6,"properties":{"view":"timeSeries","title":"Time spent in AGW (ms)","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[[{"label":"API Gateway overhead","expression":"m1 - m2"}],["AWS/ApiGateway","Latency","ApiId","'
+            - Ref: ApiApiA3C0F448
+            - '",{"visible":false,"id":"m1"}],["AWS/ApiGateway","IntegrationLatency","ApiId","'
+            - Ref: ApiApiA3C0F448
+            - '",{"visible":false,"id":"m2"}]],"yAxis":{}}},{"type":"text","width":4,"height":6,"x":0,"y":12,"properties":{"markdown":"# Lambda metrics\n\nThose are all customer facing lambdas that access the database, ergo errors should be 0, no throttles and duration should be as low as possible.\n\t\t\t\t\t"}},{"type":"metric","width":4,"height":6,"x":4,"y":12,"properties":{"view":"timeSeries","title":"Invocations","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Lambda","Invocations","FunctionName","'
+            - Ref: ApiGetKeysLambdaFDF1A526
+            - '",{"stat":"Sum"}],["AWS/Lambda","Invocations","FunctionName","'
+            - Ref: ApiGetKeysPerDungeonLambda073DE524
+            - '",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":8,"y":12,"properties":{"view":"timeSeries","title":"Errors","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Lambda","Errors","FunctionName","'
+            - Ref: ApiGetKeysLambdaFDF1A526
+            - '",{"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","'
+            - Ref: ApiGetKeysPerDungeonLambda073DE524
+            - '",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":12,"y":12,"properties":{"view":"timeSeries","title":"Duration","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Lambda","Duration","FunctionName","'
+            - Ref: ApiGetKeysLambdaFDF1A526
+            - '"],["AWS/Lambda","Duration","FunctionName","'
+            - Ref: ApiGetKeysPerDungeonLambda073DE524
+            - '"]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":16,"y":12,"properties":{"view":"timeSeries","title":"Throttles","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Lambda","Throttles","FunctionName","'
+            - Ref: ApiGetKeysLambdaFDF1A526
+            - '",{"stat":"Sum"}],["AWS/Lambda","Throttles","FunctionName","'
+            - Ref: ApiGetKeysPerDungeonLambda073DE524
+            - '",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":20,"y":12,"properties":{"view":"timeSeries","title":"Concurrent Executions","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Lambda","ConcurrentExecutions","FunctionName","'
+            - Ref: ApiGetKeysLambdaFDF1A526
+            - '",{"stat":"Maximum"}],["AWS/Lambda","ConcurrentExecutions","FunctionName","'
+            - Ref: ApiGetKeysPerDungeonLambda073DE524
+            - '",{"stat":"Maximum"}]],"yAxis":{}}},{"type":"text","width":4,"height":6,"x":0,"y":18,"properties":{"markdown":"# S3 metrics\n\n\t\t\t\t\t"}},{"type":"metric","width":4,"height":6,"x":4,"y":18,"properties":{"view":"timeSeries","title":"Invocations","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/S3","GetRequests","BucketName","'
+            - Ref: FrontendBucket14D51EE9
+            - '","FilterId","metric",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":8,"y":18,"properties":{"view":"timeSeries","title":"Errors","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/S3","4xxErrors","BucketName","'
+            - Ref: FrontendBucket14D51EE9
+            - '","FilterId","metric",{"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":12,"y":18,"properties":{"view":"timeSeries","title":"Duration","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/S3","TotalRequestLatency","BucketName","'
+            - Ref: FrontendBucket14D51EE9
+            - '","FilterId","metric"],["AWS/S3","FirstByteLatency","BucketName","'
+            - Ref: FrontendBucket14D51EE9
+            - '","FilterId","metric"]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":16,"y":18,"properties":{"view":"timeSeries","title":"Bytes downloaded","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/S3","BytesDownloaded","BucketName","'
+            - Ref: FrontendBucket14D51EE9
+            - '","FilterId","metric"]],"yAxis":{}}}]}'
+    Metadata:
+      aws:cdk:path: wm-dev/UserFacing-/Dashboard/Resource
+  EtlerrorTopic2EB30B92:
+    Type: AWS::SNS::Topic
+    Metadata:
+      aws:cdk:path: wm-dev/Etl-/errorTopic/Resource
+  EtlerrorTopichiwowmateio8CCF0BB2:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn:
+        Ref: EtlerrorTopic2EB30B92
+      Endpoint: hi@wowmate.io
+    Metadata:
+      aws:cdk:path: wm-dev/Etl-/errorTopic/hi@wowmate.io/Resource
+  EtlDashboard5BDDDDA6:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardBody:
+        Fn::Join:
+          - ""
+          - - '{"start":"-P3H","widgets":[{"type":"text","width":4,"height":6,"x":0,"y":0,"properties":{"markdown":"# Lambda metrics\n\n**Convert** takes the combatlog, normal or compressed, and converts it to a format that can be imported to amazon timestream.\n\n**SummaryGet** queries the freshly imported data and publishes it to an sns topic\n\n**SummariesInsert** get invoked by the topic and store the data\n\t\t\t\t\t"}},{"type":"metric","width":4,"height":6,"x":4,"y":0,"properties":{"view":"timeSeries","title":"Invocations","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Lambda","Invocations","FunctionName","'
+            - Ref: ConvertLambda3540DCCB
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Invocations","FunctionName","'
+            - Ref: QueryKeysLambda58DE9A2E
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Invocations","FunctionName","'
+            - Ref: InsertKeysToDynamodbLambda15825024
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Invocations","FunctionName","'
+            - Ref: InsertKeysToTimestreamLambdaA07E952E
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Invocations","FunctionName","'
+            - Ref: InsertPlayerDamageDoneToDynamodbLambda659E0DA7
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Invocations","FunctionName","'
+            - Ref: QueryPlayerDamageDoneLambda98AFC037
+            - '",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":8,"y":0,"properties":{"view":"timeSeries","title":"Errors","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Lambda","Errors","FunctionName","'
+            - Ref: ConvertLambda3540DCCB
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","'
+            - Ref: QueryKeysLambda58DE9A2E
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","'
+            - Ref: InsertKeysToDynamodbLambda15825024
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","'
+            - Ref: InsertKeysToTimestreamLambdaA07E952E
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","'
+            - Ref: InsertPlayerDamageDoneToDynamodbLambda659E0DA7
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","'
+            - Ref: QueryPlayerDamageDoneLambda98AFC037
+            - '",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":12,"y":0,"properties":{"view":"timeSeries","title":"Throttles","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Lambda","Throttles","FunctionName","'
+            - Ref: ConvertLambda3540DCCB
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Throttles","FunctionName","'
+            - Ref: QueryKeysLambda58DE9A2E
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Throttles","FunctionName","'
+            - Ref: InsertKeysToDynamodbLambda15825024
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Throttles","FunctionName","'
+            - Ref: InsertKeysToTimestreamLambdaA07E952E
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Throttles","FunctionName","'
+            - Ref: InsertPlayerDamageDoneToDynamodbLambda659E0DA7
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Throttles","FunctionName","'
+            - Ref: QueryPlayerDamageDoneLambda98AFC037
+            - '",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":16,"y":0,"properties":{"view":"timeSeries","title":"Average Duration","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Lambda","Duration","FunctionName","'
+            - Ref: ConvertLambda3540DCCB
+            - '",{"period":60}],["AWS/Lambda","Duration","FunctionName","'
+            - Ref: QueryKeysLambda58DE9A2E
+            - '",{"period":60}],["AWS/Lambda","Duration","FunctionName","'
+            - Ref: InsertKeysToDynamodbLambda15825024
+            - '",{"period":60}],["AWS/Lambda","Duration","FunctionName","'
+            - Ref: InsertKeysToTimestreamLambdaA07E952E
+            - '",{"period":60}],["AWS/Lambda","Duration","FunctionName","'
+            - Ref: InsertPlayerDamageDoneToDynamodbLambda659E0DA7
+            - '",{"period":60}],["AWS/Lambda","Duration","FunctionName","'
+            - Ref: QueryPlayerDamageDoneLambda98AFC037
+            - '",{"period":60}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":20,"y":0,"properties":{"view":"timeSeries","title":"Concurrent Executions","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Lambda","ConcurrentExecutions","FunctionName","'
+            - Ref: ConvertLambda3540DCCB
+            - '",{"period":60,"stat":"Maximum"}],["AWS/Lambda","ConcurrentExecutions","FunctionName","'
+            - Ref: QueryKeysLambda58DE9A2E
+            - '",{"period":60,"stat":"Maximum"}],["AWS/Lambda","ConcurrentExecutions","FunctionName","'
+            - Ref: InsertKeysToDynamodbLambda15825024
+            - '",{"period":60,"stat":"Maximum"}],["AWS/Lambda","ConcurrentExecutions","FunctionName","'
+            - Ref: InsertKeysToTimestreamLambdaA07E952E
+            - '",{"period":60,"stat":"Maximum"}],["AWS/Lambda","ConcurrentExecutions","FunctionName","'
+            - Ref: InsertPlayerDamageDoneToDynamodbLambda659E0DA7
+            - '",{"period":60,"stat":"Maximum"}],["AWS/Lambda","ConcurrentExecutions","FunctionName","'
+            - Ref: QueryPlayerDamageDoneLambda98AFC037
+            - '",{"period":60,"stat":"Maximum"}]],"yAxis":{}}},{"type":"text","width":4,"height":6,"x":0,"y":6,"properties":{"markdown":"# SQS metrics\n\t\t\t\t\t\nvisible messages and message age *should* be as low as possible\n\nmessages in convert DLQ *should* be 0, the import and summary DLQ *must* be 0\n\t\t\t\t\t"}},{"type":"metric","width":4,"height":6,"x":4,"y":6,"properties":{"view":"timeSeries","title":"Visible messages","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/SQS","ApproximateNumberOfMessagesVisible","QueueName","'
+            - Fn::GetAtt:
+                - ConvertProcessingQueueE8D6E023
+                - QueueName
+            - '",{"period":60,"stat":"Maximum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":8,"y":6,"properties":{"view":"timeSeries","title":"Messages not visible","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/SQS","ApproximateNumberOfMessagesNotVisible","QueueName","'
+            - Fn::GetAtt:
+                - ConvertProcessingQueueE8D6E023
+                - QueueName
+            - '",{"period":60,"stat":"Maximum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":12,"y":6,"properties":{"view":"timeSeries","title":"Messages received","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/SQS","NumberOfMessagesReceived","QueueName","'
+            - Fn::GetAtt:
+                - ConvertProcessingQueueE8D6E023
+                - QueueName
+            - '",{"period":60,"stat":"Sum"}],["AWS/SQS","NumberOfMessagesSent","QueueName","'
+            - Fn::GetAtt:
+                - ConvertProcessingQueueE8D6E023
+                - QueueName
+            - '",{"period":60,"stat":"Sum"}],["AWS/SQS","NumberOfMessagesDeleted","QueueName","'
+            - Fn::GetAtt:
+                - ConvertProcessingQueueE8D6E023
+                - QueueName
+            - '",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":16,"y":6,"properties":{"view":"timeSeries","title":"Age of oldest message","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/SQS","ApproximateAgeOfOldestMessage","QueueName","'
+            - Fn::GetAtt:
+                - ConvertProcessingQueueE8D6E023
+                - QueueName
+            - '",{"period":60,"stat":"Maximum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":20,"y":6,"properties":{"view":"timeSeries","title":"DLQ messages","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/SQS","ApproximateNumberOfMessagesVisible","QueueName","'
+            - Fn::GetAtt:
+                - ConvertDeadLetterQueue4059303F
+                - QueueName
+            - '",{"period":60,"stat":"Maximum"}],["AWS/SQS","ApproximateNumberOfMessagesVisible","QueueName","'
+            - Fn::GetAtt:
+                - QueryPlayerDamageDoneLambdaDLQ471ADF5E
+                - QueueName
+            - '",{"period":60,"stat":"Maximum"}],["AWS/SQS","ApproximateNumberOfMessagesVisible","QueueName","'
+            - Fn::GetAtt:
+                - QueryPlayerDamageDoneTopicDLQAAA3B653
+                - QueueName
+            - '",{"period":60,"stat":"Maximum"}],["AWS/SQS","ApproximateNumberOfMessagesVisible","QueueName","'
+            - Fn::GetAtt:
+                - InsertPlayerDamageDoneToDynamodbLambdaDLQF766FA6B
+                - QueueName
+            - '",{"period":60,"stat":"Maximum"}],["AWS/SQS","ApproximateNumberOfMessagesVisible","QueueName","'
+            - Fn::GetAtt:
+                - QueryKeysLambdaDLQA087A324
+                - QueueName
+            - '",{"period":60,"stat":"Maximum"}],["AWS/SQS","ApproximateNumberOfMessagesVisible","QueueName","'
+            - Fn::GetAtt:
+                - QueryKeysTopicDLQ11D7F7D2
+                - QueueName
+            - '",{"period":60,"stat":"Maximum"}],["AWS/SQS","ApproximateNumberOfMessagesVisible","QueueName","'
+            - Fn::GetAtt:
+                - InsertKeysToDynamodbLambdaDLQ8AABEF58
+                - QueueName
+            - '",{"period":60,"stat":"Maximum"}],["AWS/SQS","ApproximateNumberOfMessagesVisible","QueueName","'
+            - Fn::GetAtt:
+                - InsertKeysToTimestreamLambdaDLQ96572578
+                - QueueName
+            - '",{"period":60,"stat":"Maximum"}]],"yAxis":{}}},{"type":"text","width":4,"height":6,"x":0,"y":12,"properties":{"markdown":"# Timestream\n\nall combatlog data is ingested into timestream to process.\n\t\t\t\t\t"}},{"type":"metric","width":4,"height":6,"x":4,"y":12,"properties":{"view":"timeSeries","title":"Number of WriteRecords","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Timestream","SuccessfulRequestLatency","DatabaseName","wowmate-analytics","Operation","WriteRecords","TableName","combatlogs",{"period":60,"stat":"SampleCount"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":8,"y":12,"properties":{"view":"timeSeries","title":"WriteRecords Latency","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Timestream","SuccessfulRequestLatency","DatabaseName","wowmate-analytics","Operation","WriteRecords","TableName","combatlogs",{"period":60}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":12,"y":12,"properties":{"view":"timeSeries","title":"Query Latency","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Timestream","SuccessfulRequestLatency","Operation","Query",{"period":60}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":16,"y":12,"properties":{"view":"timeSeries","title":"Number of Queries","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Timestream","SuccessfulRequestLatency","Operation","Query",{"label":"Query","period":60,"stat":"SampleCount"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":20,"y":12,"properties":{"view":"timeSeries","title":"Errors","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Timestream","UserErrors","Operation","Query",{"period":60,"stat":"Sum"}],["AWS/Timestream","UserErrors","Operation","WriteRecords",{"period":60,"stat":"Sum"}],["AWS/Timestream","SystemErrors","Operation","Query",{"period":60,"stat":"Sum"}],["AWS/Timestream","SystemErrors","Operation","WriteRecords",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"text","width":4,"height":6,"x":0,"y":18,"properties":{"markdown":"# DynamoDB\n\ncontains the summaries from timestream\n\t\t\t\t\t"}},{"type":"metric","width":4,"height":6,"x":4,"y":18,"properties":{"view":"timeSeries","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/DynamoDB","ConsumedWriteCapacityUnits","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":8,"y":18,"properties":{"view":"timeSeries","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/DynamoDB","ConsumedReadCapacityUnits","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":12,"y":18,"properties":{"view":"timeSeries","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/DynamoDB","ThrottledRequests","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":16,"y":18,"properties":{"view":"timeSeries","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[[{"label":"Sum of errors across all operations","expression":"getitem + batchgetitem + scan + query + getrecords + putitem + deleteitem + updateitem + batchwriteitem","period":60}],["AWS/DynamoDB","SystemErrors","Operation","GetItem","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum","visible":false,"id":"getitem"}],["AWS/DynamoDB","SystemErrors","Operation","BatchGetItem","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum","visible":false,"id":"batchgetitem"}],["AWS/DynamoDB","SystemErrors","Operation","Scan","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum","visible":false,"id":"scan"}],["AWS/DynamoDB","SystemErrors","Operation","Query","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum","visible":false,"id":"query"}],["AWS/DynamoDB","SystemErrors","Operation","GetRecords","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum","visible":false,"id":"getrecords"}],["AWS/DynamoDB","SystemErrors","Operation","PutItem","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum","visible":false,"id":"putitem"}],["AWS/DynamoDB","SystemErrors","Operation","DeleteItem","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum","visible":false,"id":"deleteitem"}],["AWS/DynamoDB","SystemErrors","Operation","UpdateItem","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum","visible":false,"id":"updateitem"}],["AWS/DynamoDB","SystemErrors","Operation","BatchWriteItem","TableName","'
+            - Ref: DynamoDBtableF8E87752
+            - '",{"period":60,"stat":"Sum","visible":false,"id":"batchwriteitem"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":20,"y":18,"properties":{"view":"timeSeries","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/DynamoDB","UserErrors",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"text","width":4,"height":6,"x":0,"y":24,"properties":{"markdown":"# Presign/Upload Metrics\n\t\t\t\t\t\nThese components (AGW, Lambda and s3 bucket) are responsible to allow users to upload to a private bucket.\n\t\t\t\t\t"}},{"type":"metric","width":4,"height":6,"x":4,"y":24,"properties":{"view":"timeSeries","title":"Lambda throttles/errors","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/Lambda","Throttles","FunctionName","'
+            - Ref: ApiLambdaB75D04FB
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","Errors","FunctionName","'
+            - Ref: ApiLambdaB75D04FB
+            - '",{"period":60,"stat":"Sum"}],["AWS/Lambda","ConcurrentExecutions","FunctionName","'
+            - Ref: ApiLambdaB75D04FB
+            - '",{"period":60,"stat":"Maximum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":8,"y":24,"properties":{"view":"timeSeries","title":"Uploaded","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/S3","BytesUploaded","BucketName","'
+            - Ref: BucketsUpload0B7F8F15
+            - '","FilterId","metric",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":12,"y":24,"properties":{"view":"timeSeries","title":"Bucket objects + size","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/S3","NumberOfObjects","BucketName","'
+            - Ref: BucketsUpload0B7F8F15
+            - '","StorageType","AllStorageTypes",{"period":60,"stat":"Sum"}],["AWS/S3","BucketSizeBytes","BucketName","'
+            - Ref: BucketsUpload0B7F8F15
+            - '","StorageType","StandardStorage",{"period":60,"stat":"Sum","yAxis":"right"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":16,"y":24,"properties":{"view":"timeSeries","title":"Bucket errors","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/S3","4xxErrors","BucketName","'
+            - Ref: BucketsUpload0B7F8F15
+            - '","FilterId","metric",{"period":60,"stat":"Sum"}],["AWS/S3","5xxErros","BucketName","'
+            - Ref: BucketsUpload0B7F8F15
+            - '","FilterId","metric",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":20,"y":24,"properties":{"view":"timeSeries","title":"ApiGateway errors","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/ApiGateway","4xx","ApiId","'
+            - Ref: ApiApiA3C0F448
+            - '",{"period":60,"stat":"Sum"}],["AWS/ApiGateway","5xx","ApiId","'
+            - Ref: ApiApiA3C0F448
+            - '",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"text","width":4,"height":6,"x":0,"y":30,"properties":{"markdown":"# SNS\n\t\t\t\t\t\nfans out processing of the combatlogs\n\t\t\t\t\t"}},{"type":"metric","width":4,"height":6,"x":4,"y":30,"properties":{"view":"timeSeries","title":"Number of messages published","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/SNS","NumberOfMessagesPublished","TopicName","'
+            - Fn::GetAtt:
+                - ConvertTopic05CCE428
+                - TopicName
+            - '",{"period":60,"stat":"Sum"}],["AWS/SNS","NumberOfMessagesPublished","TopicName","'
+            - Fn::GetAtt:
+                - QueryKeysTopicE594304E
+                - TopicName
+            - '",{"period":60,"stat":"Sum"}],["AWS/SNS","NumberOfMessagesPublished","TopicName","'
+            - Fn::GetAtt:
+                - QueryPlayerDamageDoneTopic2308E4CA
+                - TopicName
+            - '",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":8,"y":30,"properties":{"view":"timeSeries","title":"Number Notifications delivered","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/SNS","NumberOfNotificationsDelivered","TopicName","'
+            - Fn::GetAtt:
+                - ConvertTopic05CCE428
+                - TopicName
+            - '",{"period":60,"stat":"Sum"}],["AWS/SNS","NumberOfNotificationsDelivered","TopicName","'
+            - Fn::GetAtt:
+                - QueryKeysTopicE594304E
+                - TopicName
+            - '",{"period":60,"stat":"Sum"}],["AWS/SNS","NumberOfNotificationsDelivered","TopicName","'
+            - Fn::GetAtt:
+                - QueryPlayerDamageDoneTopic2308E4CA
+                - TopicName
+            - '",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":12,"y":30,"properties":{"view":"timeSeries","title":"Number Notifications failed","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/SNS","NumberOfNotificationsFailed","TopicName","'
+            - Fn::GetAtt:
+                - ConvertTopic05CCE428
+                - TopicName
+            - '",{"period":60,"stat":"Sum"}],["AWS/SNS","NumberOfNotificationsFailed","TopicName","'
+            - Fn::GetAtt:
+                - QueryKeysTopicE594304E
+                - TopicName
+            - '",{"period":60,"stat":"Sum"}],["AWS/SNS","NumberOfNotificationsFailed","TopicName","'
+            - Fn::GetAtt:
+                - QueryPlayerDamageDoneTopic2308E4CA
+                - TopicName
+            - '",{"period":60,"stat":"Sum"}]],"yAxis":{}}},{"type":"metric","width":4,"height":6,"x":16,"y":30,"properties":{"view":"timeSeries","title":"Avg Size of messages published","region":"'
+            - Ref: AWS::Region
+            - '","stacked":false,"metrics":[["AWS/SNS","PublishSize","TopicName","'
+            - Fn::GetAtt:
+                - ConvertTopic05CCE428
+                - TopicName
+            - '",{"period":60}],["AWS/SNS","PublishSize","TopicName","'
+            - Fn::GetAtt:
+                - QueryKeysTopicE594304E
+                - TopicName
+            - '",{"period":60}],["AWS/SNS","PublishSize","TopicName","'
+            - Fn::GetAtt:
+                - QueryPlayerDamageDoneTopic2308E4CA
+                - TopicName
+            - '",{"period":60}]],"yAxis":{}}}]}'
+    Metadata:
+      aws:cdk:path: wm-dev/Etl-/Dashboard/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAAA21T227bMAz9lr0r6rKuwPa2LNmwAh3aOUXfaZlx2diSq0uCQPC/j5Ka2Lu8mDyHlHjx0VJ+/iTfv/sCR7dQzf4qKmNRxq0HtRdro523QXmx3ukKnQlWYfLvgx+CFxdq5Rx6PtOSbsU6OG/6efpPGAaOjCJVie5axq9B7TFf++YV82A6UqeJLngUnnrkThB6GTm4AQ81uHz3I9QdjqI5aehNU8uYiVmkg75uQMbvQStPRqfQ3H9A25Nzb+gOTmif0Ga85aY79GbK/3ZA7W/1weyRl7OjNp35l8zMNs//Nvsl7w92FJRGqkzpONtpB+fp3fUiQtqwk3nRosGhM6eeb5NlT5sLwfOa1sk701boGaemYaAWPB7hdPgg4w/vh9VAqUAyCaY/lxsoTqIqE3zxbrXH1sJ5XX/BnDcKhdbTjhSX6UHzJVZutHuCjhqmmvUUFqozodlZw83He0ssmQpfA//eafD/0RtiAVAdzoXneBQ2tXHDwlpVyApuimCTt+V9rQCgIF7mq5PxV8CQBy5O/k7lZ5DzNec/moFU1lR2tqF2ytJw7mWOxzLgEbx6lnED7rk2UBq6gPGsykWX5LbgZ6E6kqujW3eUFTgKbRqUL+7qsLyRy4/8RF8c0cIGnd6CrIr9DZ2HiPG+AwAA
+    Metadata:
+      aws:cdk:path: wm-dev/CDKMetadata/Default
+Outputs:
+  TimestreamHttpApiEndpoint3CB78217:
+    Value:
+      Fn::GetAtt:
+        - Timestreamtable60CD8F37
+        - Arn
+  ApiHttpApiEndpoint102EBE0A:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: ApiApiA3C0F448
+          - .execute-api.us-east-1.
+          - Ref: AWS::URLSuffix
+          - /
+Mappings:
+  AWSCloudFrontPartitionHostedZoneIdMap:
+    aws:
+      zoneId: Z2FDTNDATAQYW2
+    aws-cn:
+      zoneId: Z3RFFRIM2A3IF5
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store.
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 4 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+

@@ -59,7 +59,9 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 	}
 	logData.CombatlogUUID = combatlogUUID
 
-	result, err := svc.GetItemWithContext(ctx, &dynamodb.GetItemInput{
+	var result *dynamodb.GetItemOutput
+
+	input := &dynamodb.GetItemInput{
 		TableName: &ddbTableName,
 		Key: map[string]*dynamodb.AttributeValue{
 			"pk": {
@@ -70,7 +72,13 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 			},
 		},
 		ReturnConsumedCapacity: aws.String("TOTAL"),
-	})
+	}
+
+	if os.Getenv("LOCAL") == "true" {
+		result, err = svc.GetItem(input)
+	} else {
+		result, err = svc.GetItemWithContext(ctx, input)
+	}
 	if err != nil {
 		return golib.AGW500(), logData, err
 	}
@@ -114,7 +122,10 @@ func main() {
 		return
 	}
 	svc = dynamodb.New(sess)
-	xray.AWS(svc.Client)
+
+	if os.Getenv("LOCAL") == "false" {
+		xray.AWS(svc.Client)
+	}
 
 	lambda.Start(handler)
 }

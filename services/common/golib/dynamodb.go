@@ -59,8 +59,14 @@ func DynamoDBPutItem2(client *dynamodb2.Client, ddbTableName *string, record int
 
 // DynamoDBQuery is a helper to simplify querying a dynamo db table
 func DynamoDBQuery(ctx aws.Context, svc *dynamodb.DynamoDB, input dynamodb.QueryInput) (*dynamodb.QueryOutput, error) {
+	var err error
+	var result *dynamodb.QueryOutput
 
-	result, err := svc.QueryWithContext(ctx, &input)
+	if os.Getenv("LOCAL") == "true" {
+		result, err = svc.Query(&input)
+	} else {
+		// result, err = svc.QueryWithContext(ctx, &input)
+	}
 	if err != nil {
 		return nil, err
 	}
