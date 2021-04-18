@@ -194,7 +194,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		return resp, err
 	}
 
-	date, err := golib.Atoi64(*queryResult.Rows[0].Data[13].ScalarValue)
+	date, err := golib.Atoi64(*queryResult.Rows[0].Data[15].ScalarValue)
 	if err != nil {
 		return resp, err
 	}
