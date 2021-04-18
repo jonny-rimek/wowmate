@@ -41,7 +41,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 		// premature optimization for now
 		row := splitString(scanner.Text(), "  ")
 
-
 		params := splitAtCommas(&row[1])
 
 		// don' add events if they are outside of a combatlog
