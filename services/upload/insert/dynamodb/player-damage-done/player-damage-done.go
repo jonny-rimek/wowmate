@@ -194,6 +194,11 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		return resp, err
 	}
 
+	date, err := golib.Atoi64(*queryResult.Rows[0].Data[13].ScalarValue)
+	if err != nil {
+		return resp, err
+	}
+
 	resp = golib.DynamoDBPlayerDamageDone{
 		Pk:            fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
 		Sk:            fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
@@ -206,6 +211,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		CombatlogUUID: combatlogUUID,
 		Finished:      finished != 0, // if 0 false, else 1
 		Intime:        intime,
+		Date:          date,
 	}
 
 	for _, el := range m {

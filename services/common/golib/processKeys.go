@@ -97,7 +97,8 @@ func KeysResponseToJson(result *dynamodb.QueryOutput, sorted, firstPage bool) (s
 			DungeonName:   el.DungeonName,
 			DungeonID:     el.DungeonID,
 			CombatlogUUID: el.CombatlogUUID,
-			Date:          el.Date,
+			// TODO: format for what is needed. probably just 1924-12-29, atm it is unix timestamp
+			Date: el.Date,
 		}
 		r = append(r, resp)
 	}
