@@ -113,26 +113,13 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 	currentTimeInSeconds = time.Now().Unix()
 	rand.Seed(time.Now().UnixNano())
 
-	key := strconv.Itoa(spellID)
+	key := fmt.Sprintf("%s-%d", casterID, spellID)
 
 	record := &timestreamwrite.Record{
 		Dimensions: []*timestreamwrite.Dimension{
 			{
-				Name:  aws.String("caster_id"),
-				Value: aws.String(casterID),
-			},
-			{
-				Name:  aws.String("caster_name"),
-				Value: aws.String(casterName),
-			},
-			{
-				Name:  aws.String("caster_type"),
-				Value: aws.String(casterType),
-			},
-			{
 				Name:  aws.String("rnd"),
 				Value: aws.String(strconv.Itoa(rand.Int())),
-				// TODO: replace with time from log
 			},
 		},
 		MeasureValue: aws.String(strconv.FormatInt(actualAmount, 10)),
@@ -140,6 +127,18 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 	writeInput := &timestreamwrite.WriteRecordsInput{
 		CommonAttributes: &timestreamwrite.Record{
 			Dimensions: []*timestreamwrite.Dimension{
+				{
+					Name:  aws.String("caster_id"),
+					Value: aws.String(casterID),
+				},
+				{
+					Name:  aws.String("caster_name"),
+					Value: aws.String(casterName),
+				},
+				{
+					Name:  aws.String("caster_type"),
+					Value: aws.String(casterType),
+				},
 				{
 					Name:  aws.String("spell_id"),
 					Value: aws.String(strconv.Itoa(spellID)),

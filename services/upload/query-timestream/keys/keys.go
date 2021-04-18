@@ -31,6 +31,7 @@ type logData struct {
 func handler(ctx aws.Context, e events.SNSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
+		//goland:noinspection GoNilness
 		golib.CanonicalLog(map[string]interface{}{
 			"combatlog_uuid":    logData.CombatlogUUID,
 			"billed_megabytes":  logData.BilledMegabytes,
@@ -163,6 +164,17 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		        time between ago(15m) and now() AND
 		        measure_name = 'patch'
 		),        
+        date AS (
+		    SELECT
+		        measure_value::bigint AS date,
+		        combatlog_uuid
+			FROM
+				"wowmate-analytics"."combatlogs"
+			WHERE
+				combatlog_uuid = '%v'  AND
+		        time between ago(15m) and now() AND
+		        measure_name = 'date'
+		),        
 		damage as (
 			SELECT
 				SUM(measure_value::bigint) AS damage,
@@ -195,7 +207,8 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			four_affix_id, 
 			seven_affix_id, 
 			ten_affix_id,
-			patch
+			patch,
+			date
 		FROM
 			damage
 		JOIN
@@ -225,7 +238,11 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
         JOIN
 			patch
 		    ON patch.combatlog_uuid = dungeon.combatlog_uuid            
+        JOIN
+			date
+		    ON date.combatlog_uuid = dungeon.combatlog_uuid            
 		`,
+		combatlogUUID,
 		combatlogUUID,
 		combatlogUUID,
 		combatlogUUID,

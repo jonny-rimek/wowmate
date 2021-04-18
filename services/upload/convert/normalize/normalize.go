@@ -41,13 +41,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 		// premature optimization for now
 		row := splitString(scanner.Text(), "  ")
 
-		// NOTE: not written to DB atm https://github.com/jonny-rimek/wowmate/issues/129
-		// gonna use it later again
-		// timestamp, err := timestampMilli(row[0])
-		// if err != nil {
-		// 	return err
-		// }
-
 		params := splitAtCommas(&row[1])
 
 		// don' add events if they are outside of a combatlog
@@ -83,13 +76,15 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 			// }
 
 		case "CHALLENGE_MODE_START":
-			// COMBAT_LOG_VERSION is not a good place to create this, because after this event, a new
-			// COMBAT_LOG_VERSION is always part of the log, but there are a couple of lines in between
-			// which would mean those wouldn't have the combatlog_uuid info
+			timestamp, err := parseTimestamp(&row[0])
+			if err != nil {
+				return nil, err
+			}
+
 			combatlogUUID = uuid.Must(uuid.NewV4()).String()
 			rec[combatlogUUID] = make(map[string][]*timestreamwrite.WriteRecordsInput)
 
-			err := challengeModeStart(params, uploadUUID, combatlogUUID, rec)
+			err = challengeModeStart(params, uploadUUID, combatlogUUID, rec, timestamp)
 			if err != nil {
 				return rec, err
 			}

@@ -48,6 +48,7 @@ type DynamoDBPlayerDamageDone struct {
 	CombatlogUUID string             `json:"combatlog_uuid"`
 	Finished      bool               `json:"finished"`
 	Intime        int                `json:"intime"`
+	Date          int64              `json:"date"`
 }
 
 /*

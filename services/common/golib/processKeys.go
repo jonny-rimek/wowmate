@@ -33,6 +33,7 @@ type DynamoDBKeys struct {
 	CombatlogUUID string         `json:"combatlog_uuid"`
 	Finished      bool           `json:"finished"`
 	Intime        int            `json:"intime"`
+	Date          int64          `json:"date"`
 }
 
 type JSONKeysResponse struct {
@@ -51,6 +52,7 @@ type JSONKeys struct {
 	DungeonName   string         `json:"dungeon_name"`
 	DungeonID     int            `json:"dungeon_id"`
 	CombatlogUUID string         `json:"combatlog_uuid"`
+	Date          int64          `json:"date"`
 }
 
 // KeysResponseToJson takes a dynamodb query output and converts it to be consumed by the frontend
@@ -95,6 +97,8 @@ func KeysResponseToJson(result *dynamodb.QueryOutput, sorted, firstPage bool) (s
 			DungeonName:   el.DungeonName,
 			DungeonID:     el.DungeonID,
 			CombatlogUUID: el.CombatlogUUID,
+			// TODO: format for what is needed. probably just 1924-12-29, atm it is unix timestamp
+			Date: el.Date,
 		}
 		r = append(r, resp)
 	}
