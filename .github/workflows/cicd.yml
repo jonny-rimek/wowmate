@@ -132,27 +132,52 @@ jobs:
       - name: Compile cdk typescript
         run: ./wm.sh build cdk
 
-      - name: Specify cdk stack to deploy
+      # DEPLOY TO dev if branch != prod
+      - name: Specify cdk stack to deploy - dev
         if: steps.extract-branch.outputs.branch != 'prod'
         run: echo "##[set-output name=stack;]$(echo wm-dev)"
         id: cdk-stack
 
       - name: Deploy to dev
+        if: steps.extract-branch.outputs.branch != 'prod'
         env:
           CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
-        run: ./wm.sh deploy dev
+        run: ./wm.sh deploy $CDK_STACK
 
       - name: Configure AWS prod credentials
+        if: steps.extract-branch.outputs.branch != 'prod'
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      # post diff to prod in pr comment
       - name: Diff
+        if: steps.extract-branch.outputs.branch != 'prod'
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: ./wm.sh diff prod
+
+      # DEPLOY TO PROD if branch == prod
+      - name: Specify cdk stack to deploy - prod
+        if: steps.extract-branch.outputs.branch == 'prod'
+        run: echo "##[set-output name=stack;]$(echo wm-dev)"
+        id: cdk-prod-stack
+
+      - name: Configure AWS prod credentials
+        if: steps.extract-branch.outputs.branch == 'prod'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to prod
+        if: steps.extract-branch.outputs.branch == 'prod'
+        env:
+          CDK_STACK: ${{ steps.cdk-prod-stack.outputs.stack }}
+        run: ./wm.sh deploy $CDK_STACK
 
       # https://github.com/youyo/aws-cdk-github-actions/blob/master/entrypoint.sh#L63
 #      - name: Diff against prod
