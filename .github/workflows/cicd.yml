@@ -232,7 +232,7 @@ jobs:
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract-branch
 
-      - name: Audit Mythicplus plage
+      - name: Audit Mythicplus page
         if: steps.extract-branch.outputs.branch != 'prod'
         uses: treosh/lighthouse-ci-action@v7
         with:
@@ -243,7 +243,7 @@ jobs:
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
           configPath: '.lighthouserc.json'
 
-      - name: Audit Mythicplus plage
+      - name: Audit Mythicplus page
         if: steps.extract-branch.outputs.branch != 'prod'
         uses: treosh/lighthouse-ci-action@v7
         with:
