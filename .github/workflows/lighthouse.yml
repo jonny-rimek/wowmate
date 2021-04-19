@@ -1,15 +1,28 @@
 name: Lighthouse CI
 on: push
 jobs:
-  lighthouse:
+  lighthouse-landingpage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Audit URLs using Lighthouse
+      - name: Audit Landingpgage
         uses: treosh/lighthouse-ci-action@v7
         with:
           urls: |
             https://wowmate.io/
+          budgetPath: ./misc/budget.json # test performance budgets
+          uploadArtifacts: true # save results as an action artifacts
+          temporaryPublicStorage: true # upload lighthouse report to the temporary storage
+          configPath: '.lighthouserc.json'
+
+  lighthouse-mythicplus:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Audit Landingpgage
+        uses: treosh/lighthouse-ci-action@v7
+        with:
+          urls: |
             https://wowmate.io/mythicplus
           budgetPath: ./budget.json # test performance budgets
           uploadArtifacts: true # save results as an action artifacts
