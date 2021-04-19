@@ -133,16 +133,11 @@ jobs:
         run: ./wm.sh build cdk
 
       # DEPLOY TO dev if branch != prod
-      - name: Specify cdk stack to deploy - dev
-        if: steps.extract-branch.outputs.branch != 'prod'
-        run: echo "##[set-output name=stack;]$(echo wm-dev)"
-        id: cdk-stack
-
       - name: Deploy to dev
         if: steps.extract-branch.outputs.branch != 'prod'
         env:
           CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
-        run: ./wm.sh deploy $CDK_STACK
+        run: ./wm.sh deploy dev
 
       - name: Configure AWS prod credentials
         if: steps.extract-branch.outputs.branch != 'prod'
@@ -160,11 +155,6 @@ jobs:
         run: ./wm.sh diff prod
 
       # DEPLOY TO PROD if branch == prod
-      - name: Specify cdk stack to deploy - prod
-        if: steps.extract-branch.outputs.branch == 'prod'
-        run: echo "##[set-output name=stack;]$(echo wm)"
-        id: cdk-prod-stack
-
       - name: Configure AWS prod credentials
         if: steps.extract-branch.outputs.branch == 'prod'
         uses: aws-actions/configure-aws-credentials@v1
@@ -177,7 +167,7 @@ jobs:
         if: steps.extract-branch.outputs.branch == 'prod'
         env:
           CDK_STACK: ${{ steps.cdk-prod-stack.outputs.stack }}
-        run: ./wm.sh deploy $CDK_STACK
+        run: ./wm.sh deploy prod
 
       # https://github.com/youyo/aws-cdk-github-actions/blob/master/entrypoint.sh#L63
 #      - name: Diff against prod
