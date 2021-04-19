@@ -132,27 +132,52 @@ jobs:
       - name: Compile cdk typescript
         run: ./wm.sh build cdk
 
-      - name: Specify cdk stack to deploy
+      # DEPLOY TO dev if branch != prod
+      - name: Specify cdk stack to deploy - dev
         if: steps.extract-branch.outputs.branch != 'prod'
         run: echo "##[set-output name=stack;]$(echo wm-dev)"
         id: cdk-stack
 
       - name: Deploy to dev
+        if: steps.extract-branch.outputs.branch != 'prod'
         env:
           CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
-        run: ./wm.sh deploy dev
+        run: ./wm.sh deploy $CDK_STACK
 
       - name: Configure AWS prod credentials
+        if: steps.extract-branch.outputs.branch != 'prod'
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Diff
+      # post diff to prod in pr comment
+      - name: Post cdk Diff as comment to PR
+        if: steps.extract-branch.outputs.branch != 'prod'
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: ./wm.sh diff prod
+
+      # DEPLOY TO PROD if branch == prod
+      - name: Specify cdk stack to deploy - prod
+        if: steps.extract-branch.outputs.branch == 'prod'
+        run: echo "##[set-output name=stack;]$(echo wm)"
+        id: cdk-prod-stack
+
+      - name: Configure AWS prod credentials
+        if: steps.extract-branch.outputs.branch == 'prod'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to prod
+        if: steps.extract-branch.outputs.branch == 'prod'
+        env:
+          CDK_STACK: ${{ steps.cdk-prod-stack.outputs.stack }}
+        run: ./wm.sh deploy $CDK_STACK
 
       # https://github.com/youyo/aws-cdk-github-actions/blob/master/entrypoint.sh#L63
 #      - name: Diff against prod
@@ -183,7 +208,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v2
-      - name: Audit Landingpgage
+      - name: Audit Mythicplus plage
         uses: treosh/lighthouse-ci-action@v7
         with:
           urls: |
@@ -192,3 +217,77 @@ jobs:
           uploadArtifacts: true # save results as an action artifacts
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
           configPath: '.lighthouserc.json'
+
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'go', 'javascript' ]
+        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python' ]
+        # Learn more:
+        # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: ${{ matrix.language }}
+          # If you wish to specify custom queries, you can do so here or in a config file.
+          # By default, queries listed here will override any specified in a config file.
+          # Prefix the list here with "+" to use these queries and those in the config file.
+          # queries: ./path/to/local/query, your-org/your-repo/queries@main
+
+      # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
+      # If this step fails, then you should remove it and run the build manually (see below)
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v1
+
+      # ℹ️ Command-line programs to run using the OS shell.
+      # 📚 https://git.io/JvXDl
+
+      # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
+      #    and modify them (or add more) to build your code if your project
+      #    uses a compiled language
+
+      #- run: |
+      #   make bootstrap
+      #   make release
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+
+  go-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS dev credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16.3'
+
+      # caches all go dependencies
+      - name: Cache go deps
+        uses: actions/cache@v2
+        id: go-cache
+        with:
+          path: ~/go/pkg/mod
+          key: go-${{ hashFiles('**/go.sum') }}
+          restore-keys: go-
+
+      - name: Lint Golang
+        run: ./wm.sh lint go
