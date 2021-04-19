@@ -139,6 +139,12 @@ jobs:
           CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
         run: ./wm.sh deploy dev
 
+      - name: cfn_nag dev
+        if: steps.extract-branch.outputs.branch != 'prod'
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: cdk.out/wm-dev.template.json
+
       - name: Configure AWS prod credentials
         if: steps.extract-branch.outputs.branch != 'prod'
         uses: aws-actions/configure-aws-credentials@v1
@@ -169,14 +175,11 @@ jobs:
           CDK_STACK: ${{ steps.cdk-prod-stack.outputs.stack }}
         run: ./wm.sh deploy prod
 
-      # https://github.com/youyo/aws-cdk-github-actions/blob/master/entrypoint.sh#L63
-#      - name: Diff against prod
-#        run: ./wm.sh diff prod
-
-#      - name: cfn_nag test
-#        uses: stelligent/cfn_nag@master
-#        with:
-#          input_path: cdk.out/wm-dev.template.json
+      - name: cfn_nag prod
+        if: steps.extract-branch.outputs.branch == 'prod'
+        uses: stelligent/cfn_nag@master
+        with:
+          input_path: cdk.out/wm.template.json
 
   lighthouse-landingpage:
     runs-on: ubuntu-latest
