@@ -1,0 +1,86 @@
+[
+  {
+    "path": "/*",
+    "options": {
+      "firstPartyHostnames": ["*.wowmate.io", "wowmate.io"]
+    },
+    "timings": [
+      {
+        "metric": "first-contentful-paint",
+        "budget": 2000
+      },
+      {
+        "metric": "interactive",
+        "budget": 3000
+      },
+      {
+        "metric": "first-meaningful-paint",
+        "budget": 2000
+      },
+      {
+        "metric": "estimated-input-latency",
+        "budget": 2700
+      },
+      {
+        "metric": "total-blocking-time",
+        "budget": 200
+      },
+      {
+        "metric": "speed-index",
+        "budget": 2000
+      },
+      {
+        "metric": "largest-contentful-paint",
+        "budget": 3000
+      },
+      {
+        "metric": "cumulative-layout-shift",
+        "budget": 0.01
+      }
+    ],
+    "resourceSizes": [
+      {
+        "resourceType": "total",
+        "budget": 205
+      },
+      {
+        "resourceType": "image",
+        "budget": 0
+      },
+      {
+        "resourceType": "script",
+        "budget": 110
+      },
+      {
+        "resourceType": "document",
+        "budget": 5
+      },
+      {
+        "resourceType": "stylesheet",
+        "budget": 0
+      },
+      {
+        "resourceType": "font",
+        "budget": 0
+      },
+      {
+        "resourceType": "media",
+        "budget": 0
+      },
+      {
+        "resourceType": "third-party",
+        "budget": 0
+      },
+      {
+        "resourceType": "other",
+        "budget": 600
+      }
+    ],
+    "resourceCounts": [
+      {
+        "resourceType": "third-party",
+        "budget": 0
+      }
+    ]
+  }
+]
