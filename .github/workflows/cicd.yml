@@ -162,3 +162,33 @@ jobs:
 #        uses: stelligent/cfn_nag@master
 #        with:
 #          input_path: cdk.out/wm-dev.template.json
+
+  lighthouse-landingpage:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - name: Audit Landingpgage
+        uses: treosh/lighthouse-ci-action@v7
+        with:
+          urls: |
+            https://dev.wowmate.io/
+          budgetPath: ./misc/budget.json # test performance budgets
+          uploadArtifacts: true # save results as an action artifacts
+          temporaryPublicStorage: true # upload lighthouse report to the temporary storage
+          configPath: '.lighthouserc.json'
+
+  lighthouse-mythicplus:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - name: Audit Landingpgage
+        uses: treosh/lighthouse-ci-action@v7
+        with:
+          urls: |
+            https://dev.wowmate.io/mythicplus
+          budgetPath: ./budget.json # test performance budgets
+          uploadArtifacts: true # save results as an action artifacts
+          temporaryPublicStorage: true # upload lighthouse report to the temporary storage
+          configPath: '.lighthouserc.json'
