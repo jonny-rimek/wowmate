@@ -183,11 +183,29 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v2
-      - name: Audit Landingpgage
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract-branch
+
+      - name: Audit Dev Landingpgage
+        if: steps.extract-branch.outputs.branch != 'prod'
         uses: treosh/lighthouse-ci-action@v7
         with:
           urls: |
             https://dev.wowmate.io/
+          budgetPath: ./misc/budget.json # test performance budgets
+          uploadArtifacts: true # save results as an action artifacts
+          temporaryPublicStorage: true # upload lighthouse report to the temporary storage
+          configPath: '.lighthouserc.json'
+
+      - name: Audit Prod Landingpgage
+        if: steps.extract-branch.outputs.branch != 'prod'
+        uses: treosh/lighthouse-ci-action@v7
+        with:
+          urls: |
+            https://wowmate.io/
           budgetPath: ./misc/budget.json # test performance budgets
           uploadArtifacts: true # save results as an action artifacts
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
@@ -198,12 +216,30 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v2
-      - name: Audit Mythicplus plage
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract-branch
+
+      - name: Audit Mythicplus page
+        if: steps.extract-branch.outputs.branch != 'prod'
         uses: treosh/lighthouse-ci-action@v7
         with:
           urls: |
             https://dev.wowmate.io/mythicplus
-          budgetPath: ./budget.json # test performance budgets
+          budgetPath: ./misc/budget-mythicplus.json # test performance budgets
+          uploadArtifacts: true # save results as an action artifacts
+          temporaryPublicStorage: true # upload lighthouse report to the temporary storage
+          configPath: '.lighthouserc.json'
+
+      - name: Audit Mythicplus page
+        if: steps.extract-branch.outputs.branch != 'prod'
+        uses: treosh/lighthouse-ci-action@v7
+        with:
+          urls: |
+            https://wowmate.io/mythicplus
+          budgetPath: ./misc/budget-mythicplus.json # test performance budgets
           uploadArtifacts: true # save results as an action artifacts
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
           configPath: '.lighthouserc.json'

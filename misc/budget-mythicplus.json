@@ -31,7 +31,7 @@
       },
       {
         "metric": "largest-contentful-paint",
-        "budget": 3000
+        "budget": 3200
       },
       {
         "metric": "cumulative-layout-shift",
@@ -45,7 +45,7 @@
       },
       {
         "resourceType": "image",
-        "budget": 0
+        "budget": 90000
       },
       {
         "resourceType": "script",
