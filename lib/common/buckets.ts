@@ -9,7 +9,14 @@ export class Buckets extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id)
 
+        const s3AccessLog = new s3.Bucket(this, 'S3AccessLog', {
+			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+			encryption: s3.BucketEncryption.S3_MANAGED,
+		})
+
 		this.uploadBucket = new s3.Bucket(this, 'Upload', {
+			serverAccessLogsPrefix: "uploadBucket",
+			serverAccessLogsBucket: s3AccessLog,
 			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 		    encryption: s3.BucketEncryption.S3_MANAGED,
 			removalPolicy: RemovalPolicy.DESTROY, //TODO: remove
