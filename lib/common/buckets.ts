@@ -51,5 +51,18 @@ export class Buckets extends cdk.Construct {
 				}]
 			}]
 		})
+
+		const cfnBucket = this.uploadBucket.node.defaultChild as s3.CfnBucket
+		cfnBucket.cfnOptions.metadata = {
+			cfn_nag: {
+				rules_to_suppress: [
+					{
+						id: 'W51',
+						reason: "suppress 'S3 bucket should likely have a bucket policy', because this bucket doesn't need a  policy",
+					},
+				]
+			}
+		}
+
 	}
 }
