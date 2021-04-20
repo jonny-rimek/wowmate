@@ -145,6 +145,10 @@ jobs:
         uses: stelligent/cfn_nag@master
         with:
           input_path: cdk.out/wm-dev.template.json
+          extra_args: |
+            --print-suppression
+            --blacklist-path misc/cfn-nag-blacklist.yml
+            --fail-on-warnings
 
       - name: Configure AWS prod credentials
         if: steps.extract-branch.outputs.branch != 'prod'
@@ -181,7 +185,9 @@ jobs:
         uses: stelligent/cfn_nag@master
         with:
           input_path: cdk.out/wm.template.json
-          extra_args: --blacklist-path misc/cfn-nag-blacklist.yml
+          extra_args: |
+            --fail-on-warnings
+#          --blacklist-path="misc/cfn-nag-blacklist.yml"
 
   lighthouse-landingpage:
     runs-on: ubuntu-latest
