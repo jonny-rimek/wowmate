@@ -45,7 +45,7 @@ export class Convert extends cdk.Construct {
 			enableKeyRotation: true,
 		})
         const topic = new sns.Topic(this, 'Topic', {
-			masterKey: key
+			masterKey: key,
 		})
         this.topic = topic
 

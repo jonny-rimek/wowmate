@@ -13,6 +13,8 @@ import cloudfront = require('@aws-cdk/aws-cloudfront');
 import route53= require('@aws-cdk/aws-route53');
 import acm = require('@aws-cdk/aws-certificatemanager');
 import targets = require('@aws-cdk/aws-route53-targets');
+import * as kms from "@aws-cdk/aws-kms";
+import * as iam from "@aws-cdk/aws-iam";
 
 interface Props extends cdk.StackProps {
 	dynamoDB: dynamodb.Table,
@@ -106,7 +108,8 @@ export class Api extends cdk.Construct {
 			handler: 'index.handler',
 			environment: {
 				LOCAL: "false",
-				BUCKET_NAME: props.uploadBucket.bucketName
+				BUCKET_NAME: props.uploadBucket.bucketName,
+				AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
 			},
 			memorySize: 128,
 			reservedConcurrentExecutions: 100,
@@ -187,6 +190,18 @@ export class Api extends cdk.Construct {
 		})
 
 		const log = new logs.LogGroup(this, 'HttpApiLog')
+		const cfnLog = log.node.defaultChild as logs.CfnLogGroup
+		cfnLog.cfnOptions.metadata = {
+			cfn_nag: {
+				rules_to_suppress: [
+					{
+						id: 'W84',
+						reason: "Log group is encrypted with the default kms key by default, no need to specify one",
+					},
+				]
+			}
+		}
+
 		const stage = this.api.defaultStage?.node.defaultChild as agwv2.CfnStage;
 		stage.accessLogSettings = {
 			destinationArn: log.logGroupArn,
