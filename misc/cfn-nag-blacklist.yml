@@ -2,3 +2,5 @@
 RulesToSuppress:
   - id: W89
     reason: Always ignore lambda must be inside VPC, because I don't need/use a VPC
+  - id: W58
+    reason: Always ignore 'Lambda functions require permission to write CloudWatch Logs', because that is handled by a cdk custom resource
