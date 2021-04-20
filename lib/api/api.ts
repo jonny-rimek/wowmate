@@ -1,9 +1,11 @@
 import cdk = require('@aws-cdk/core');
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import { HttpApi, HttpMethod } from '@aws-cdk/aws-apigatewayv2';
+import * as agwv2 from '@aws-cdk/aws-apigatewayv2';
 import { LambdaProxyIntegration } from '@aws-cdk/aws-apigatewayv2-integrations';
 import lambda = require('@aws-cdk/aws-lambda');
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
+import * as logs from '@aws-cdk/aws-logs';
 import s3 = require('@aws-cdk/aws-s3');
 import { CfnOutput } from '@aws-cdk/core';
 import * as origins from "@aws-cdk/aws-cloudfront-origins";
@@ -183,6 +185,24 @@ export class Api extends cdk.Construct {
 			logBucket: props.accessLogBucket,
 			logFilePrefix: 'apiCloudfront',
 		})
+
+		const log = new logs.LogGroup(this, 'HttpApiLog')
+		const stage = this.api.defaultStage?.node.defaultChild as agwv2.CfnStage;
+		stage.accessLogSettings = {
+			destinationArn: log.logGroupArn,
+			format: JSON.stringify({
+				"requestId": "$context.requestId",
+				"ip": "$context.identity.sourceIp",
+				"caller": "$context.identity.caller",
+				"user": "$context.identity.user",
+				"requestTime": "$context.requestTime",
+				"httpMethod": "$context.httpMethod",
+				"resourcePath": "$context.resourcePath",
+				"status": "$context.status",
+				"protocol": "$context.protocol",
+				"responseLength": "$context.responseLength"
+			})
+		}
 
 		const cfnDist = this.cloudfront.node.defaultChild as cloudfront.CfnDistribution;
 		cfnDist.addPropertyOverride('DistributionConfig.Origins.0.OriginShield', {
