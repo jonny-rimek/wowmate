@@ -12,6 +12,7 @@ interface Props extends cdk.StackProps {
 	hostedZoneId: string
 	hostedZoneName: string
 	domainName: string
+    accessLogBucket: s3.Bucket
 }
 
 export class Frontend extends cdk.Construct {
@@ -96,6 +97,8 @@ export class Frontend extends cdk.Construct {
 			certificate: cert,
 			domainNames: [props.domainName],
 			comment: "wowmate.io frontend",
+			logBucket: props.accessLogBucket,
+			logFilePrefix: 'frontendCloudfront',
 		})
 
 		const cfnDist = this.cloudfront.node.defaultChild as cloudfront.CfnDistribution;

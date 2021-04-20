@@ -5,18 +5,20 @@ import { RemovalPolicy } from '@aws-cdk/core';
 export class Buckets extends cdk.Construct {
 	// public readonly csvBucket: s3.Bucket;
 	public readonly uploadBucket: s3.Bucket;
+	public readonly accessLogBucket: s3.Bucket;
 
 	constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
 		super(scope, id)
 
-        const s3AccessLog = new s3.Bucket(this, 'S3AccessLog', {
+        this.accessLogBucket = new s3.Bucket(this, 'S3AccessLog', {
 			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 			encryption: s3.BucketEncryption.S3_MANAGED,
+			serverAccessLogsPrefix: "accessLogBucket",
 		})
 
 		this.uploadBucket = new s3.Bucket(this, 'Upload', {
 			serverAccessLogsPrefix: "uploadBucket",
-			serverAccessLogsBucket: s3AccessLog,
+			serverAccessLogsBucket: this.accessLogBucket,
 			blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 		    encryption: s3.BucketEncryption.S3_MANAGED,
 			removalPolicy: RemovalPolicy.DESTROY, //TODO: remove
@@ -59,13 +61,24 @@ export class Buckets extends cdk.Construct {
 			}]
 		})
 
+		const cfnAccessLogBucket = this.accessLogBucket.node.defaultChild as s3.CfnBucket
+		cfnAccessLogBucket.cfnOptions.metadata = {
+			cfn_nag: {
+				rules_to_suppress: [
+					{
+						id: 'W51',
+						reason: "suppress 'S3 bucket should likely have a bucket policy', because this bucket doesn't need a policy",
+					},
+				]
+			}
+		}
 		const cfnBucket = this.uploadBucket.node.defaultChild as s3.CfnBucket
 		cfnBucket.cfnOptions.metadata = {
 			cfn_nag: {
 				rules_to_suppress: [
 					{
 						id: 'W51',
-						reason: "suppress 'S3 bucket should likely have a bucket policy', because this bucket doesn't need a  policy",
+						reason: "suppress 'S3 bucket should likely have a bucket policy', because this bucket doesn't need a policy",
 					},
 				]
 			}
