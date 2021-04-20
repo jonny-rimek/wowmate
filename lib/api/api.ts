@@ -18,6 +18,7 @@ interface Props extends cdk.StackProps {
 	hostedZoneId: string
 	hostedZoneName: string
 	apiDomainName: string
+	accessLogBucket: s3.Bucket
 }
 
 export class Api extends cdk.Construct {
@@ -179,6 +180,8 @@ export class Api extends cdk.Construct {
 			certificate: cert,
 			domainNames: [props.apiDomainName],
 			comment: "wowmate.io API",
+			logBucket: props.accessLogBucket,
+			logFilePrefix: 'apiCloudfront',
 		})
 
 		const cfnDist = this.cloudfront.node.defaultChild as cloudfront.CfnDistribution;

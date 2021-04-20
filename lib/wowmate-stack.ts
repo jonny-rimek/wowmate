@@ -39,6 +39,7 @@ export class Wowmate extends Stack {
 			hostedZoneId: props.hostedZoneId,
 			hostedZoneName: props.hostedZoneName,
 			apiDomainName: props.apiDomainName,
+			accessLogBucket: buckets.accessLogBucket,
 		})
 
 		const frontend = new Frontend(this, "Frontend-", {
