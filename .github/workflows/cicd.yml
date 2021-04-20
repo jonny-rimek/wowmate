@@ -202,7 +202,7 @@ jobs:
           budgetPath: ./misc/budget.json # test performance budgets
           uploadArtifacts: true # save results as an action artifacts
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
-          configPath: '.lighthouserc.json'
+          configPath: misc/.lighthouserc.json
 
       - name: Audit Prod Landingpgage
         if: steps.extract-branch.outputs.branch != 'prod'
@@ -213,7 +213,7 @@ jobs:
           budgetPath: ./misc/budget.json # test performance budgets
           uploadArtifacts: true # save results as an action artifacts
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
-          configPath: '.lighthouserc.json'
+          configPath: misc/.lighthouserc.json
 
   lighthouse-mythicplus:
     runs-on: ubuntu-latest
@@ -235,7 +235,7 @@ jobs:
           budgetPath: ./misc/budget-mythicplus.json # test performance budgets
           uploadArtifacts: true # save results as an action artifacts
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
-          configPath: '.lighthouserc.json'
+          configPath: misc/.lighthouserc.json
 
       - name: Audit Mythicplus page
         if: steps.extract-branch.outputs.branch != 'prod'
@@ -246,7 +246,7 @@ jobs:
           budgetPath: ./misc/budget-mythicplus.json # test performance budgets
           uploadArtifacts: true # save results as an action artifacts
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
-          configPath: '.lighthouserc.json'
+          configPath: misc/.lighthouserc.json
 
   analyze:
     name: Analyze
