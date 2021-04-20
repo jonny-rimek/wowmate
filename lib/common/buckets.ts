@@ -33,7 +33,7 @@ export class Buckets extends cdk.Construct {
 			lifecycleRules: [{
 			    //deletes error content
 				//these are failed uploads only kept for debugging, but mostly faulty uploads
-				expiration: cdk.Duration.days(1), //TODO: increase to 14 after behaviour is verified
+				expiration: cdk.Duration.days(14),
 				prefix: 'error/',
 			},
 			{
