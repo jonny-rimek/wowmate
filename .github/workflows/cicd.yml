@@ -181,6 +181,7 @@ jobs:
         uses: stelligent/cfn_nag@master
         with:
           input_path: cdk.out/wm.template.json
+          extra_args: --blacklist-path misc/cfn-nag-blacklist.yml
 
   lighthouse-landingpage:
     runs-on: ubuntu-latest

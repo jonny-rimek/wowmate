@@ -1,0 +1,4 @@
+---
+RulesToSuppress:
+  - id: W89
+    reason: Always ignore lambda must be inside VPC, because I don't need/use a VPC
