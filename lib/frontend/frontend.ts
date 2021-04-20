@@ -49,11 +49,15 @@ export class Frontend extends cdk.Construct {
 			// encrypting a bucket that can be publicly read is probably not the most useful thing to do
 			// but it's a best practice
 		});
-		
+
 		const cfnBucket = this.bucket.node.defaultChild as s3.CfnBucket
 		cfnBucket.cfnOptions.metadata = {
 			cfn_nag: {
 				rules_to_suppress: [
+					{
+						id: 'W35',
+						reason: "this is a website bucket, so there is no point tracking access to it",
+					},
 					{
 						id: 'W41',
 						reason: "this is a website bucket, it needs to be public, so there is no point in encrypting it",
