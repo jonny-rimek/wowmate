@@ -27,6 +27,7 @@ export class Convert extends cdk.Construct {
 
 		this.DLQ = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
+			encryption: sqs.QueueEncryption.KMS_MANAGED,
 		});
 
 		this.queue = new sqs.Queue(this, 'ProcessingQueue', {
@@ -35,7 +36,8 @@ export class Convert extends cdk.Construct {
 				//maxReceiveCount: 3,
 				maxReceiveCount: 1, //no need during dev
 			},
-			visibilityTimeout: cdk.Duration.minutes(1*6) //6x lambda duration, it's an aws best practice
+			visibilityTimeout: cdk.Duration.minutes(1*6), //6x lambda duration, it's an aws best practice
+			encryption: sqs.QueueEncryption.KMS_MANAGED,
 		});
 
         const topic = new sns.Topic(this, 'Topic', {})

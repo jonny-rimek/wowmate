@@ -24,8 +24,12 @@ export class QueryTimestream extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
-		this.topicDLQ = new sqs.Queue(this, 'TopicDLQ')
-		this.lambdaDLQ = new sqs.Queue(this, 'LambdaDLQ')
+		this.topicDLQ = new sqs.Queue(this, 'TopicDLQ', {
+			encryption: sqs.QueueEncryption.KMS_MANAGED,
+		})
+		this.lambdaDLQ = new sqs.Queue(this, 'LambdaDLQ', {
+			encryption: sqs.QueueEncryption.KMS_MANAGED,
+		})
 
 		//the message to the topic is send inside the lambda via the SDK
 		//the topic in return is subscribed to by the insert summary lambdas
