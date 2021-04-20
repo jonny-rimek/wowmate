@@ -8,6 +8,7 @@ import sqs = require('@aws-cdk/aws-sqs');
 import s3 = require('@aws-cdk/aws-s3');
 import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
+import * as kms from "@aws-cdk/aws-kms";
 
 interface Props extends cdk.StackProps {
 	convertLambda: lambda.Function
@@ -41,8 +42,13 @@ export class EtlDashboard extends cdk.Construct {
 		
 		const presignApiId = props.presignApi.httpApiId
 
-		const errorTopic = new sns.Topic(this, 'errorTopic');
-		errorTopic.addSubscription(new subscriptions.EmailSubscription(props.errorMail));
+		// const key = new kms.Key(this, 'SnsKmsKey', {
+		// 	enableKeyRotation: true,
+		// })
+		// const errorTopic = new sns.Topic(this, 'errorTopic', {
+		// 	masterKey: key,
+		// });
+		// errorTopic.addSubscription(new subscriptions.EmailSubscription(props.errorMail));
 
 		//NOTE widget height viable values: 3, 6, ?
 		new cloudwatch.Dashboard(this, 'Dashboard', {

@@ -6,6 +6,7 @@ import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as iam from "@aws-cdk/aws-iam"
 import * as sns from "@aws-cdk/aws-sns";
 import * as destinations from '@aws-cdk/aws-lambda-destinations';
+import * as kms from "@aws-cdk/aws-kms";
 
 interface Props extends cdk.StackProps {
 	dynamoDB: dynamodb.Table,
@@ -31,9 +32,14 @@ export class QueryTimestream extends cdk.Construct {
 			encryption: sqs.QueueEncryption.KMS_MANAGED,
 		})
 
+		const key = new kms.Key(this, 'SnsKmsKey', {
+			enableKeyRotation: true,
+		})
 		//the message to the topic is send inside the lambda via the SDK
 		//the topic in return is subscribed to by the insert summary lambdas
-		this.topic = new sns.Topic(this, 'Topic')
+		this.topic = new sns.Topic(this, 'Topic', {
+			masterKey: key
+		})
 
 		this.lambda = new lambda.Function(this, 'Lambda', {
 			description: props.lambdaDescription,

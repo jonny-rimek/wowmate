@@ -8,6 +8,7 @@ import lambda = require('@aws-cdk/aws-lambda');
 import { HttpApi } from '@aws-cdk/aws-apigatewayv2';
 import s3 = require('@aws-cdk/aws-s3');
 import cloudfront = require('@aws-cdk/aws-cloudfront');
+import * as kms from "@aws-cdk/aws-kms";
 
 interface Props extends cdk.StackProps {
 	getKeysLambda: lambda.Function
@@ -48,7 +49,13 @@ export class ApiFrontendDashboard extends cdk.Construct {
 			period: cdk.Duration.minutes(5)
 		});
 
-		const errorTopic = new sns.Topic(this, 'errorTopic');
+		// const key = new kms.Key(this, 'SnsKmsKey', {
+		// 	enableKeyRotation: true,
+		// })
+		// const errorTopic = new sns.Topic(this, 'errorTopic', {
+		// 	masterKey: key
+		// });
+		// errorTopic.addSubscription(new subscriptions.EmailSubscription(props.errorMail));
 		//TODO: reactivate in prod
 		// errorTopic.addSubscription(new subscriptions.EmailSubscription(props.errorMail));
 
