@@ -38,31 +38,30 @@ export class Frontend extends cdk.Construct {
 		//result in a slower website, but more importantly it could be used as a denial of wallet
 		//as it doesn't get cached and data transfer out is billed every time. as the bucket name
 		//is random and not having smart redirect seems worse, I'm going with a public website bucket
-		const bucket = new s3.Bucket(this, 'Bucket', {
+		this.bucket = new s3.Bucket(this, 'Bucket', {
 			websiteIndexDocument: 'index.html',
 			publicReadAccess: true,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			metrics: [{
 				id: 'metric',
 			}],
+			encryption: s3.BucketEncryption.S3_MANAGED,
+			// encrypting a bucket that can be publicly read is probably not the most useful thing to do
+			// but it's a best practice
 		});
-		this.bucket = bucket
+		
+		const cfnBucket = this.bucket.node.defaultChild as s3.CfnBucket
+		cfnBucket.cfnOptions.metadata = {
+			cfn_nag: {
+				rules_to_suppress: [
+					{
+						id: 'W41',
+						reason: "this is a website bucket, it needs to be public, so there is no point in encrypting it",
+					},
+				]
+			}
+		}
 
-		// const cfnBucket = this.bucket.node.defaultChild as s3.CfnBucket
-        // cfnBucket.cfnOptions.metadata = {
-		// 	cfn_nag: {
-		// 		rules_to_suppress: [
-		// 			{
-		// 				id: 'W41',
-		// 				reason: "this is a test",
-		// 			},
-		// 			{
-		// 				id: 'F16',
-		// 				reason: "this is a website bucket, it needs to be public",
-		// 			},
-		// 		]
-		// 	}
-		// }
 		const cfnBucketPolicy = this.bucket.policy?.node.defaultChild as iam.CfnPolicy
 		cfnBucketPolicy.cfnOptions.metadata = {
 			cfn_nag: {
@@ -79,7 +78,7 @@ export class Frontend extends cdk.Construct {
 		//https://console.aws.amazon.com/cloudfront/v2/home#/monitoring
 		this.cloudfront = new cloudfront.Distribution(this, 'Distribution', {
 			defaultBehavior: {
-				origin: new origins.S3Origin(bucket),
+				origin: new origins.S3Origin(this.bucket),
 				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
 				originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
 				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -103,7 +102,7 @@ export class Frontend extends cdk.Construct {
 
 		new s3deploy.BucketDeployment(this, 'DeployWebsite', {
 			sources: [s3deploy.Source.asset('services/frontend/dist')],
-			destinationBucket: bucket,
+			destinationBucket: this.bucket,
 			distribution: this.cloudfront,
 		});
 
