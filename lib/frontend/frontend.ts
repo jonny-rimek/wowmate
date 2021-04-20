@@ -6,6 +6,7 @@ import cloudfront = require('@aws-cdk/aws-cloudfront');
 import route53= require('@aws-cdk/aws-route53');
 import acm = require('@aws-cdk/aws-certificatemanager');
 import * as origins from "@aws-cdk/aws-cloudfront-origins"
+import * as iam from "@aws-cdk/aws-iam"
 
 interface Props extends cdk.StackProps {
 	hostedZoneId: string
@@ -46,6 +47,33 @@ export class Frontend extends cdk.Construct {
 			}],
 		});
 		this.bucket = bucket
+
+		// const cfnBucket = this.bucket.node.defaultChild as s3.CfnBucket
+        // cfnBucket.cfnOptions.metadata = {
+		// 	cfn_nag: {
+		// 		rules_to_suppress: [
+		// 			{
+		// 				id: 'W41',
+		// 				reason: "this is a test",
+		// 			},
+		// 			{
+		// 				id: 'F16',
+		// 				reason: "this is a website bucket, it needs to be public",
+		// 			},
+		// 		]
+		// 	}
+		// }
+		const cfnBucketPolicy = this.bucket.policy?.node.defaultChild as iam.CfnPolicy
+		cfnBucketPolicy.cfnOptions.metadata = {
+			cfn_nag: {
+				rules_to_suppress: [
+					{
+						id: 'F16',
+						reason: "this is a website bucket, it needs to be public",
+					},
+				]
+			}
+		}
 
 		//make sure enhanced metrics is enabled via the GUI no CF support =(
 		//https://console.aws.amazon.com/cloudfront/v2/home#/monitoring
