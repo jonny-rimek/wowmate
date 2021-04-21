@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -42,25 +43,41 @@ func handler(e codeDeployEvent) error {
 }
 
 func handle() error {
-	lambdaARN := os.Getenv("LAMBDA_ARN")
-	if lambdaARN == "" {
-		return fmt.Errorf("lambda_arn not set")
+	functionName := os.Getenv("FUNCTION_NAME")
+	if functionName == "" {
+		return fmt.Errorf("FUNCTION_NAME not set")
 	}
-	lambdaVersion := os.Getenv("LAMBDA_VERSION")
-	if lambdaVersion == "" {
-		return fmt.Errorf("lambda_version not set")
-	}
+	log.Printf("function name: %s", functionName)
 
 	// invoke lambda via sdk
-	lambdaSvc.Invoke(&lambdaService.InvokeInput{
-		FunctionName: &lambdaARN,
+	input := &lambdaService.InvokeInput{
+		FunctionName: &functionName,
 		Payload:      nil,
-		Qualifier:    &lambdaVersion,
+		LogType:      aws.String(lambdaService.LogTypeTail), // returns the log in the response
+		// Qualifier:    &functionVersion,
 
 		// ClientContext:  nil,
-		// InvocationType: nil, // default synchronous
-		// LogType:        nil, // returns the log in the response
-	})
+		InvocationType: aws.String(lambdaService.InvocationTypeRequestResponse), // synchronous - default
+	}
+	err := input.Validate()
+	if err != nil {
+		return fmt.Errorf("validating the input failed: %v", err)
+	}
+
+	resp, err := lambdaSvc.Invoke(input)
+	if err != nil {
+		return fmt.Errorf("failed to invoke lambda: %v", err)
+	}
+
+	decodeString, err := base64.StdEncoding.DecodeString(*resp.LogResult)
+	if err != nil {
+		return fmt.Errorf("failed to decode the log: %v", err)
+	}
+	log.Printf("log result: %s", decodeString)
+
+	if resp.FunctionError != nil {
+		return fmt.Errorf("lambda was invoked but returned error: %s", *resp.FunctionError)
+	}
 	return nil
 }
 

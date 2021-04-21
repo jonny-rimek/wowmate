@@ -139,7 +139,7 @@ jobs:
           CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
         run: ./wm.sh deploy dev
 
-      - name: cfn_nag dev
+      - name: Check cfn bestpractices with cfn_nag for dev
         if: steps.extract-branch.outputs.branch != 'prod'
         uses: stelligent/cfn_nag@master
         with:
@@ -179,7 +179,7 @@ jobs:
           CDK_STACK: ${{ steps.cdk-prod-stack.outputs.stack }}
         run: ./wm.sh deploy prod
 
-      - name: cfn_nag prod
+      - name: Check cfn bestpractices with cfn_nag for prod
         if: steps.extract-branch.outputs.branch == 'prod'
         uses: stelligent/cfn_nag@master
         with:

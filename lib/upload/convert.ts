@@ -102,13 +102,19 @@ export class Convert extends cdk.Construct {
 			memorySize: 128,
 			timeout: cdk.Duration.minutes(1),
 			environment: {
-				LAMBDA_ARN: this.lambda.currentVersion.functionArn,
-				LAMBDA_VERSION: this.lambda.currentVersion.version,
+				FUNCTION_NAME: this.lambda.currentVersion.functionName,
 			},
 			reservedConcurrentExecutions: 5,
 			logRetention: RetentionDays.ONE_WEEK,
 		})
-		this.lambda.grantInvoke(preHook)
+		// this.lambda.grantInvoke(preHook) // this doesn't work, I need to grant invoke to all functions :s
+		preHook.addToRolePolicy(new iam.PolicyStatement({
+			actions: [
+				"lambda:InvokeFunction",
+			],
+			resources: ["*"],
+			effect: iam.Effect.ALLOW,
+		}))
 
 		const application = new codedeploy.LambdaApplication(this, 'CodeDeployApplication')
 		new codedeploy.LambdaDeploymentGroup(this, 'CanaryDeployment', {
