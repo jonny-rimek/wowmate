@@ -1,0 +1,10 @@
+---
+RulesToSuppress:
+  - id: W89
+    reason: Always ignore lambda must be inside VPC, because I don't need/use a VPC
+  - id: W58
+    reason: Always ignore 'Lambda functions require permission to write CloudWatch Logs', because that is handled by a cdk custom resource
+  - id: W92
+    reason: Always ignore 'Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions', because I can't control the reserved concurrency of cdk custom resource lambdas
+  - id: W12
+    reason: Always ignore 'IAM policy should not allow * resource', because the xray permission always has resource '*'

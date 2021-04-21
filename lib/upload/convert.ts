@@ -8,6 +8,7 @@ import { RetentionDays } from '@aws-cdk/aws-logs';
 import s3n = require('@aws-cdk/aws-s3-notifications');
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import * as iam from "@aws-cdk/aws-iam"
+import * as kms from '@aws-cdk/aws-kms';
 
 interface Props extends cdk.StackProps {
 	uploadBucket: s3.Bucket
@@ -27,6 +28,7 @@ export class Convert extends cdk.Construct {
 
 		this.DLQ = new sqs.Queue(this, 'DeadLetterQueue', {
 			retentionPeriod: cdk.Duration.days(14),
+			encryption: sqs.QueueEncryption.KMS_MANAGED,
 		});
 
 		this.queue = new sqs.Queue(this, 'ProcessingQueue', {
@@ -35,10 +37,16 @@ export class Convert extends cdk.Construct {
 				//maxReceiveCount: 3,
 				maxReceiveCount: 1, //no need during dev
 			},
-			visibilityTimeout: cdk.Duration.minutes(1*6) //6x lambda duration, it's an aws best practice
+			visibilityTimeout: cdk.Duration.minutes(1*6), //6x lambda duration, it's an aws best practice
+			encryption: sqs.QueueEncryption.KMS_MANAGED,
 		});
 
-        const topic = new sns.Topic(this, 'Topic', {})
+		const key = new kms.Key(this, 'SnsKmsKey', {
+			enableKeyRotation: true,
+		})
+        const topic = new sns.Topic(this, 'Topic', {
+			masterKey: key,
+		})
         this.topic = topic
 
 		props.queryTimestreamLambdas.forEach(function(l){

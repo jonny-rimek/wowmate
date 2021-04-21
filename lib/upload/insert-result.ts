@@ -23,7 +23,9 @@ export class InsertResult extends cdk.Construct {
 	constructor(scope: cdk.Construct, id: string, props: Props) {
 		super(scope, id)
 
-		this.lambdaDLQ = new sqs.Queue(this, 'LambdaDLQ')
+		this.lambdaDLQ = new sqs.Queue(this, 'LambdaDLQ', {
+			encryption: sqs.QueueEncryption.KMS_MANAGED,
+		})
 
 		this.lambda = new lambda.Function(this, 'Lambda', {
 			description: props.description,

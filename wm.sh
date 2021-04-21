@@ -346,6 +346,9 @@ main() {
     then
       cdk_diff "wm-dev"
     fi
+  elif [ "$1" == "synth" ]
+  then
+    cdk_synth
   fi
   if [ "$1" == "lint" ]
   then

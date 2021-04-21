@@ -1,9 +1,11 @@
 import cdk = require('@aws-cdk/core');
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import { HttpApi, HttpMethod } from '@aws-cdk/aws-apigatewayv2';
+import * as agwv2 from '@aws-cdk/aws-apigatewayv2';
 import { LambdaProxyIntegration } from '@aws-cdk/aws-apigatewayv2-integrations';
 import lambda = require('@aws-cdk/aws-lambda');
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
+import * as logs from '@aws-cdk/aws-logs';
 import s3 = require('@aws-cdk/aws-s3');
 import { CfnOutput } from '@aws-cdk/core';
 import * as origins from "@aws-cdk/aws-cloudfront-origins";
@@ -11,6 +13,8 @@ import cloudfront = require('@aws-cdk/aws-cloudfront');
 import route53= require('@aws-cdk/aws-route53');
 import acm = require('@aws-cdk/aws-certificatemanager');
 import targets = require('@aws-cdk/aws-route53-targets');
+import * as kms from "@aws-cdk/aws-kms";
+import * as iam from "@aws-cdk/aws-iam";
 
 interface Props extends cdk.StackProps {
 	dynamoDB: dynamodb.Table,
@@ -18,6 +22,7 @@ interface Props extends cdk.StackProps {
 	hostedZoneId: string
 	hostedZoneName: string
 	apiDomainName: string
+	accessLogBucket: s3.Bucket
 }
 
 export class Api extends cdk.Construct {
@@ -103,7 +108,8 @@ export class Api extends cdk.Construct {
 			handler: 'index.handler',
 			environment: {
 				LOCAL: "false",
-				BUCKET_NAME: props.uploadBucket.bucketName
+				BUCKET_NAME: props.uploadBucket.bucketName,
+				AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
 			},
 			memorySize: 128,
 			reservedConcurrentExecutions: 100,
@@ -179,7 +185,39 @@ export class Api extends cdk.Construct {
 			certificate: cert,
 			domainNames: [props.apiDomainName],
 			comment: "wowmate.io API",
+			logBucket: props.accessLogBucket,
+			logFilePrefix: 'apiCloudfront',
 		})
+
+		const log = new logs.LogGroup(this, 'HttpApiLog')
+		const cfnLog = log.node.defaultChild as logs.CfnLogGroup
+		cfnLog.cfnOptions.metadata = {
+			cfn_nag: {
+				rules_to_suppress: [
+					{
+						id: 'W84',
+						reason: "Log group is encrypted with the default kms key by default, no need to specify one",
+					},
+				]
+			}
+		}
+
+		const stage = this.api.defaultStage?.node.defaultChild as agwv2.CfnStage;
+		stage.accessLogSettings = {
+			destinationArn: log.logGroupArn,
+			format: JSON.stringify({
+				"requestId": "$context.requestId",
+				"ip": "$context.identity.sourceIp",
+				"caller": "$context.identity.caller",
+				"user": "$context.identity.user",
+				"requestTime": "$context.requestTime",
+				"httpMethod": "$context.httpMethod",
+				"resourcePath": "$context.resourcePath",
+				"status": "$context.status",
+				"protocol": "$context.protocol",
+				"responseLength": "$context.responseLength"
+			})
+		}
 
 		const cfnDist = this.cloudfront.node.defaultChild as cloudfront.CfnDistribution;
 		cfnDist.addPropertyOverride('DistributionConfig.Origins.0.OriginShield', {
