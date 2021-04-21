@@ -10,6 +10,7 @@ goDirs=(
   "services/api/combatlogs/keys/index/get"
   "services/upload/convert/normalize"
   "services/upload/convert"
+  "services/upload/convert-pre-hook"
   "services/upload/query-timestream/keys"
   "services/upload/query-timestream/player-damage-done"
   "services/upload/insert/dynamodb/keys"

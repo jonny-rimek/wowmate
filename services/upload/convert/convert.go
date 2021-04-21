@@ -123,7 +123,7 @@ var writeSvc *timestreamwrite.TimestreamWrite
 func handler(ctx aws.Context, e golib.SQSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
-		// reactivate to release, ruins my load tests
+		// TODO: reactivate to release, ruins my load tests
 		// err2 := golib.RenameFileS3(
 		// 	ctx,
 		// 	s3Svc,
@@ -178,7 +178,7 @@ func handler(ctx aws.Context, e golib.SQSEvent) error {
 func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	var logData logData
 
-	topicArn := os.Getenv("TOPIC_ARN")
+	topicArn := os.Getenv("TOPIC_ARN") // +deploy trigger
 	if topicArn == "" {
 		return logData, fmt.Errorf("arn topic env var is empty")
 	}

@@ -9,6 +9,7 @@ import s3n = require('@aws-cdk/aws-s3-notifications');
 import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import * as iam from "@aws-cdk/aws-iam"
 import * as kms from '@aws-cdk/aws-kms';
+import * as codedeploy from '@aws-cdk/aws-codedeploy';
 
 interface Props extends cdk.StackProps {
 	uploadBucket: s3.Bucket
@@ -87,6 +88,44 @@ export class Convert extends cdk.Construct {
 			batchSize: 1,
 			//leave at one, simplifies the code and invocation costs of lambda are very likely not gonna matter
 		}))
+
+		const versionAlias = new lambda.Alias(this, 'Alias', {
+			aliasName: "alias",
+			version: this.lambda.currentVersion,
+		})
+
+		const preHook = new lambda.Function(this, 'LambdaPreHook', {
+			description: "pre hook",
+			code: lambda.Code.fromAsset('dist/upload/convert-pre-hook'),
+			handler: 'main',
+			runtime: lambda.Runtime.GO_1_X,
+			memorySize: 128,
+			timeout: cdk.Duration.minutes(1),
+			environment: {
+				LAMBDA_ARN: this.lambda.currentVersion.functionArn,
+				LAMBDA_VERSION: this.lambda.currentVersion.version,
+			},
+			reservedConcurrentExecutions: 5,
+			logRetention: RetentionDays.ONE_WEEK,
+		})
+		this.lambda.grantInvoke(preHook)
+
+		const application = new codedeploy.LambdaApplication(this, 'CodeDeployApplication')
+		new codedeploy.LambdaDeploymentGroup(this, 'CanaryDeployment', {
+			application: application,
+			alias: versionAlias,
+			deploymentConfig: codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE,
+			preHook: preHook,
+            autoRollback: {
+				failedDeployment: true,
+				stoppedDeployment: true,
+				deploymentInAlarm: false,
+			},
+            ignorePollAlarmsFailure: false,
+            // alarms:
+			// autoRollback: codedeploy.A
+            // postHook:
+		})
 
 		topic.grantPublish(this.lambda)
 
