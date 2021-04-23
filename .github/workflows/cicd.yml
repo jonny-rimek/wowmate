@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-deploy:
+  setup:
     runs-on: ubuntu-latest
 
     steps:
@@ -133,11 +133,11 @@ jobs:
         run: ./wm.sh build cdk
 
       # DEPLOY TO dev if branch != prod
-      - name: Deploy to dev
-        if: steps.extract-branch.outputs.branch != 'prod'
-        env:
-          CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
-        run: ./wm.sh deploy dev
+#      - name: Deploy to dev
+#        if: steps.extract-branch.outputs.branch != 'prod'
+#        env:
+#          CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
+#        run: ./wm.sh deploy dev
 
 #      - name: Check cfn bestpractices with cfn_nag for dev
 #        if: steps.extract-branch.outputs.branch != 'prod'
@@ -149,35 +149,35 @@ jobs:
 #            --blacklist-path misc/cfn-nag-blacklist.yml
 #            --fail-on-warnings
 
-      - name: Configure AWS prod credentials
-        if: steps.extract-branch.outputs.branch != 'prod'
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+#      - name: Configure AWS prod credentials
+#        if: steps.extract-branch.outputs.branch != 'prod'
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: us-east-1
 
       # post diff to prod in pr comment
-      - name: Post cdk Diff as comment to PR
-        if: steps.extract-branch.outputs.branch != 'prod'
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        run: ./wm.sh diff prod
+#      - name: Post cdk Diff as comment to PR
+#        if: steps.extract-branch.outputs.branch != 'prod'
+#        env:
+#          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+#        run: ./wm.sh diff prod
 
       # DEPLOY TO PROD if branch == prod
-      - name: Configure AWS prod credentials
-        if: steps.extract-branch.outputs.branch == 'prod'
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+#      - name: Configure AWS prod credentials
+#        if: steps.extract-branch.outputs.branch == 'prod'
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: us-east-1
 
-      - name: Deploy to prod
-        if: steps.extract-branch.outputs.branch == 'prod'
-        env:
-          CDK_STACK: ${{ steps.cdk-prod-stack.outputs.stack }}
-        run: ./wm.sh deploy prod
+#      - name: Deploy to prod
+#        if: steps.extract-branch.outputs.branch == 'prod'
+#        env:
+#          CDK_STACK: ${{ steps.cdk-prod-stack.outputs.stack }}
+#        run: ./wm.sh deploy prod
 
 #      - name: Check cfn bestpractices with cfn_nag for prod
 #        if: steps.extract-branch.outputs.branch == 'prod'
@@ -191,125 +191,13 @@ jobs:
 
   cfn-nag:
     runs-on: ubuntu-latest
+    needs: setup
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Configure AWS dev credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '^1.16.3'
-
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 15.x
-
-      # BUILD CACHES
-      # if no go file changes the binaries are cached and don't have to be rebuild
-      - name: Cache go builds
-        uses: actions/cache@v2
-        id: go-build-cache
-        with:
-          path: dist
-          key: go-build-${{ hashFiles('services/**/*.go') }}-${{ hashFiles('services/**/go.sum') }}
-
-      # if no js or vue file changes the services/frontend/dist dir is cached
-      - name: Cache frontend build
-        uses: actions/cache@v2
-        id: frontend-build-cache
-        with:
-          path: services/frontend/dist
-          key: frontend-build-${{ hashFiles('services/frontend/**/*.vue') }}-${{ hashFiles('services/frontend/**/*.js') }}-${{ hashFiles('services/upload/package-lock.json') }}
-          restore-keys: frontend-build-
-
-      # INSTALL CACHES
-      # caches all go dependencies
-      # can't not get cache if the go build did not change
-      - name: Cache go deps
-        uses: actions/cache@v2
-        id: go-cache
-        with:
-          path: ~/go/pkg/mod
-          key: go-${{ hashFiles('**/go.sum') }}
-          restore-keys: go-
-
-      # caches node_modules of presign lambda
-      - name: Cache presign npm
-        uses: actions/cache@v2
-        id: presign-cache
-        with:
-          path: services/upload/presign/node_modules
-          key: presign-${{ hashFiles('services/upload/package-lock.json') }}
-          restore-keys: presign-
-
-      # cache dependencies for cdk
-      - name: Cache cdk npm
-        uses: actions/cache@v2
-        id: cdk-cache
-        with:
-          path: node_modules
-          key: cdk-${{ hashFiles('package-lock.json') }}
-          restore-keys: cdk-
-
-      # cache dependencies for nuxt frontend
-      - name: Cache frontend yarn
-        uses: actions/cache@v2
-        id: frontend-cache
-        with:
-          path: services/frontend/node_modules
-          key: frontend-${{ hashFiles('services/frontend/yarn.lock') }}
-          restore-keys: frontend-
-
-      # INSTALL:
-      - name: Install cdk
-        if: steps.cdk-cache.outputs.cache-hit != 'true'
-        run: ./wm.sh install cdk
-
-      - name: Install go
-        if: steps.go-cache.outputs.cache-hit != 'true'
-        run: ./wm.sh install go
-
-      - name: Install presign
-        if: steps.presign-cache.outputs.cache-hit != 'true'
-        run: ./wm.sh install presign
-
-      - name: Install frontend
-        if: steps.frontend-cache.outputs.cache-hit != 'true'
-        run: ./wm.sh install frontend
-
-      # BUILD:
-      # GO
-      - name: Build go
-        if: steps.go-build-cache.outputs.cache-hit != 'true'
-        run: ./wm.sh build go
-
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract-branch
-
-      # FRONTEND
-      - name: Export frontend build env if not prod
-        if: steps.extract-branch.outputs.branch != 'prod'
-        run: echo "##[set-output name=nuxt_env;]$(echo dev)"
-        id: frontend-env
-        # this env var is only set in non prod, because it controls the urls the frontend calls
-        # if env var is set it's api.dev.wowmate.io, if not it is api.wowmate.io
-
-      - name: Build frontend
-        env:
-          NUXT_ENV: ${{ steps.frontend-env.outputs.nuxt_env }}
-        if: steps.frontend-build-cache.outputs.cache-hit != 'true'
-        run: ./wm.sh build frontend
-
-      - name: Compile cdk typescript
-        run: ./wm.sh build cdk
 
       - name: Compile cdk typescript
         run: ./wm.sh synth
@@ -324,14 +212,6 @@ jobs:
             --blacklist-path misc/cfn-nag-blacklist.yml
             --fail-on-warnings
 
-      - name: Configure AWS prod credentials
-        if: steps.extract-branch.outputs.branch != 'prod'
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
       - name: Check cfn bestpractices with cfn_nag for prod
         if: steps.extract-branch.outputs.branch == 'prod'
         uses: stelligent/cfn_nag@master
@@ -344,7 +224,7 @@ jobs:
 
   lighthouse-landingpage:
     runs-on: ubuntu-latest
-    needs: build-deploy
+    needs: setup
     steps:
       - uses: actions/checkout@v2
 
@@ -377,7 +257,7 @@ jobs:
 
   lighthouse-mythicplus:
     runs-on: ubuntu-latest
-    needs: build-deploy
+    needs: setup
     steps:
       - uses: actions/checkout@v2
 
