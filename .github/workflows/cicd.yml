@@ -387,14 +387,8 @@ jobs:
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
           configPath: misc/.lighthouserc.json
 
-  analyze:
-    name: Analyze
+  analyze-go:
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'go', 'javascript' ]
 
     steps:
       - name: Checkout repository
@@ -403,11 +397,25 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
         with:
-          languages: ${{ matrix.language }}
-          # If you wish to specify custom queries, you can do so here or in a config file.
-          # By default, queries listed here will override any specified in a config file.
-          # Prefix the list here with "+" to use these queries and those in the config file.
-          # queries: ./path/to/local/query, your-org/your-repo/queries@main
+          languages: 'go'
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v1
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+
+  analyze-js:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: 'javascript'
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v1
@@ -432,7 +440,6 @@ jobs:
         with:
           go-version: '^1.16.3'
 
-      # caches all go dependencies
       - name: Cache go deps
         uses: actions/cache@v2
         id: go-cache
@@ -448,7 +455,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - go-lint
-      - analyze
+      - analyze-go
+      - analyze-js
       - cfn-nag
     steps:
       - uses: actions/checkout@v2
@@ -482,11 +490,35 @@ jobs:
       - name: Deploy to preprod
         run: ./wm.sh deploy preprod
 
+  lambda-integration-test:
+    runs-on: ubuntu-latest
+    needs:
+      - deploy-preprod
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16.3'
+
+      - name: Configure AWS dev credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.PREPROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PREPROD_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to preprod
+        run: |
+          cd services/upload/convert-integration-test/
+          go run .
+
   deploy-prod:
     runs-on: ubuntu-latest
     needs:
       - lighthouse-landingpage
       - lighthouse-mythicplus
+      - lambda-integration-test
     steps:
       - uses: actions/checkout@v2
 
