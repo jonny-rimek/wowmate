@@ -89,50 +89,6 @@ export class Convert extends cdk.Construct {
 			//leave at one, simplifies the code and invocation costs of lambda are very likely not gonna matter
 		}))
 
-		const versionAlias = new lambda.Alias(this, 'Alias', {
-			aliasName: "alias",
-			version: this.lambda.currentVersion,
-		})
-
-		const preHook = new lambda.Function(this, 'LambdaPreHook', {
-			description: "pre hook",
-			code: lambda.Code.fromAsset('dist/upload/convert-pre-hook'),
-			handler: 'main',
-			runtime: lambda.Runtime.GO_1_X,
-			memorySize: 128,
-			timeout: cdk.Duration.minutes(1),
-			environment: {
-				FUNCTION_NAME: this.lambda.currentVersion.functionName,
-			},
-			reservedConcurrentExecutions: 5,
-			logRetention: RetentionDays.ONE_WEEK,
-		})
-		// this.lambda.grantInvoke(preHook) // this doesn't work, I need to grant invoke to all functions :s
-		preHook.addToRolePolicy(new iam.PolicyStatement({
-			actions: [
-				"lambda:InvokeFunction",
-			],
-			resources: ["*"],
-			effect: iam.Effect.ALLOW,
-		}))
-
-		const application = new codedeploy.LambdaApplication(this, 'CodeDeployApplication')
-		new codedeploy.LambdaDeploymentGroup(this, 'CanaryDeployment', {
-			application: application,
-			alias: versionAlias,
-			deploymentConfig: codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE,
-			preHook: preHook,
-            autoRollback: {
-				failedDeployment: true,
-				stoppedDeployment: true,
-				deploymentInAlarm: false,
-			},
-            ignorePollAlarmsFailure: false,
-            // alarms:
-			// autoRollback: codedeploy.A
-            // postHook:
-		})
-
 		topic.grantPublish(this.lambda)
 
 		//only trigger convert lambda if file end on one of these suffixes
@@ -169,3 +125,53 @@ export class Convert extends cdk.Construct {
 		}))
 	}
 }
+
+// this is code to use lambda canary deployments to run integration tests during deployments and potentially
+// rollback a deployment in case of errors. It doesn't work very well for long workflows and I don't want my
+// integration tests to write data in my prod account, especially because you can't delete data in timestream
+/*
+const versionAlias = new lambda.Alias(this, 'Alias', {
+    aliasName: "alias",
+    version: this.lambda.currentVersion,
+})
+
+const preHook = new lambda.Function(this, 'LambdaPreHook', {
+    description: "pre hook",
+    code: lambda.Code.fromAsset('dist/upload/convert-pre-hook'),
+    handler: 'main',
+    runtime: lambda.Runtime.GO_1_X,
+    memorySize: 128,
+    timeout: cdk.Duration.minutes(1),
+    environment: {
+        FUNCTION_NAME: this.lambda.currentVersion.functionName,
+    },
+    reservedConcurrentExecutions: 5,
+    logRetention: RetentionDays.ONE_WEEK,
+})
+// this.lambda.grantInvoke(preHook) // this doesn't work, I need to grant invoke to all functions :s
+preHook.addToRolePolicy(new iam.PolicyStatement({
+    actions: [
+        "lambda:InvokeFunction",
+    ],
+    resources: ["*"],
+    effect: iam.Effect.ALLOW,
+}))
+
+const application = new codedeploy.LambdaApplication(this, 'CodeDeployApplication')
+new codedeploy.LambdaDeploymentGroup(this, 'CanaryDeployment', {
+    application: application,
+    alias: versionAlias,
+    deploymentConfig: codedeploy.LambdaDeploymentConfig.ALL_AT_ONCE,
+    preHook: preHook,
+    autoRollback: {
+        failedDeployment: true,
+        stoppedDeployment: true,
+        deploymentInAlarm: false,
+    },
+    ignorePollAlarmsFailure: false,
+    // alarms:
+    // autoRollback: codedeploy.A
+    // postHook:
+})
+
+ */

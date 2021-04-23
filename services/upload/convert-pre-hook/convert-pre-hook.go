@@ -51,12 +51,9 @@ func handle() error {
 
 	// invoke lambda via sdk
 	input := &lambdaService.InvokeInput{
-		FunctionName: &functionName,
-		Payload:      nil,
-		LogType:      aws.String(lambdaService.LogTypeTail), // returns the log in the response
-		// Qualifier:    &functionVersion,
-
-		// ClientContext:  nil,
+		FunctionName:   &functionName,
+		Payload:        nil,
+		LogType:        aws.String(lambdaService.LogTypeTail),                   // returns the log in the response
 		InvocationType: aws.String(lambdaService.InvocationTypeRequestResponse), // synchronous - default
 	}
 	err := input.Validate()
