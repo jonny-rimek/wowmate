@@ -13,12 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Configure AWS dev credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
 
       - uses: actions/setup-go@v2
         with:
@@ -134,11 +128,7 @@ jobs:
             dist
             services/frontend/dist
 
-#      - name: Upload cdk.out
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: cdk.out
-#          path: cdk.out
+
       # DEPLOY TO dev if branch != prod
 #      - name: Deploy to dev
 #        if: steps.extract-branch.outputs.branch != 'prod'
@@ -146,15 +136,6 @@ jobs:
 #          CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
 #        run: ./wm.sh deploy dev
 
-#      - name: Check cfn bestpractices with cfn_nag for dev
-#        if: steps.extract-branch.outputs.branch != 'prod'
-#        uses: stelligent/cfn_nag@master
-#        with:
-#          input_path: cdk.out/wm-dev.template.json
-#          extra_args: |
-#            --print-suppression
-#            --blacklist-path misc/cfn-nag-blacklist.yml
-#            --fail-on-warnings
 
 #      - name: Configure AWS prod credentials
 #        if: steps.extract-branch.outputs.branch != 'prod'
@@ -186,20 +167,10 @@ jobs:
 #          CDK_STACK: ${{ steps.cdk-prod-stack.outputs.stack }}
 #        run: ./wm.sh deploy prod
 
-#      - name: Check cfn bestpractices with cfn_nag for prod
-#        if: steps.extract-branch.outputs.branch == 'prod'
-#        uses: stelligent/cfn_nag@master
-#        with:
-#          input_path: cdk.out/wm.template.json
-#          extra_args: |
-#            --print-suppression
-#            --blacklist-path misc/cfn-nag-blacklist.yml
-#            --fail-on-warnings
 
   cfn-nag:
     runs-on: ubuntu-latest
     needs: setup
-
     steps:
       - uses: actions/checkout@v2
 
@@ -251,6 +222,71 @@ jobs:
             --print-suppression
             --blacklist-path misc/cfn-nag-blacklist.yml
             --fail-on-warnings
+
+  deploy-dev:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15.x
+
+        # cache dependencies for cdk
+      - name: Cache cdk npm
+        uses: actions/cache@v2
+        id: cdk-cache
+        with:
+          path: node_modules
+          key: cdk-${{ hashFiles('package-lock.json') }}
+          restore-keys: cdk-
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: go-binaries-and-frontend
+
+        # CDK
+      - name: Compile cdk typescript
+        run: ./wm.sh build cdk
+
+      - name: Synthezise CDK to CFN
+        run: ./wm.sh synth
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract-branch
+
+      - name: Configure AWS dev credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+        # DEPLOY TO dev if branch != prod
+      - name: Deploy to dev
+        if: steps.extract-branch.outputs.branch != 'prod'
+        env:
+          CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
+        run: ./wm.sh deploy dev
+
+        #DEPLOY TO PROD if branch == prod
+      - name: Configure AWS prod credentials
+        if: steps.extract-branch.outputs.branch == 'prod'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to prod
+        if: steps.extract-branch.outputs.branch == 'prod'
+        env:
+          CDK_STACK: ${{ steps.cdk-prod-stack.outputs.stack }}
+        run: ./wm.sh deploy prod
+
 
   lighthouse-landingpage:
     runs-on: ubuntu-latest
