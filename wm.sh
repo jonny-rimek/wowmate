@@ -155,7 +155,7 @@ ${output}
 }
 
 cdk_deploy() {
- npm run cdk deploy -- --require-approval=never "$1" || exit 1
+ npx cdk deploy --require-approval=never "$1" || exit 1
 }
 
 cdk_diff() {
@@ -260,7 +260,7 @@ build_go() {
 build_cdk() {
   cd "$wowmateDir" || exit 1
   echo "start typescript compile"
-  npm run tsc || exit 1 #compile cdk typescript
+  npx tsc || exit 1 #compile cdk typescript
 }
 
 build_frontend() {

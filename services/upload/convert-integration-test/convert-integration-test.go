@@ -6,43 +6,14 @@ import (
 	"log"
 	"os"
 
-	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/codedeploy"
 	lambdaService "github.com/aws/aws-sdk-go/service/lambda"
 )
 
-var svc *codedeploy.CodeDeploy
 var lambdaSvc *lambdaService.Lambda
 
-type codeDeployEvent struct {
-	DeploymentId                  string `json:"deploymentId"`
-	LifecycleEventHookExecutionId string `json:"lifecycleEventHookExecutionId"`
-}
-
-func handler(e codeDeployEvent) error {
-	params := &codedeploy.PutLifecycleEventHookExecutionStatusInput{
-		DeploymentId:                  &e.DeploymentId,
-		LifecycleEventHookExecutionId: &e.LifecycleEventHookExecutionId,
-	}
-	err := handle()
-	if err != nil {
-		log.Println(err)
-		params.Status = aws.String(codedeploy.LifecycleEventStatusFailed)
-	} else {
-		params.Status = aws.String(codedeploy.LifecycleEventStatusSucceeded)
-	}
-
-	_, err = svc.PutLifecycleEventHookExecutionStatus(params)
-	if err != nil {
-		return fmt.Errorf("failed putting the lifecycle event hook execution status. the status was %s", *params.Status)
-	}
-
-	return nil
-}
-
-func handle() error {
+func invokeConvert() error {
 	functionName := os.Getenv("FUNCTION_NAME")
 	if functionName == "" {
 		return fmt.Errorf("FUNCTION_NAME not set")
@@ -81,9 +52,13 @@ func handle() error {
 func main() {
 	sess, err := session.NewSession()
 	if err != nil {
+		log.Printf("failed to create a session: %v", err)
 		return
 	}
-	svc = codedeploy.New(sess)
 	lambdaSvc = lambdaService.New(sess)
-	lambda.Start(handler)
+
+	err = invokeConvert()
+	if err != nil {
+		return
+	}
 }
