@@ -345,6 +345,9 @@ main() {
     elif [ "$2" == "dev" ]
     then
       cdk_diff "wm-dev"
+    elif [ "$2" == "preprod" ]
+    then
+      cdk_diff "wm-preprod"
     fi
   elif [ "$1" == "synth" ]
   then
