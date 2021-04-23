@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -14,18 +13,15 @@ import (
 var lambdaSvc *lambdaService.Lambda
 
 func invokeConvert() error {
-	functionName := os.Getenv("FUNCTION_NAME")
-	if functionName == "" {
-		return fmt.Errorf("FUNCTION_NAME not set")
-	}
-	log.Printf("function name: %s", functionName)
-
+	functionName := "ConvertLambda3540DCCB"
 	// invoke lambda via sdk
 	input := &lambdaService.InvokeInput{
 		FunctionName:   &functionName,
 		Payload:        nil,
-		LogType:        aws.String(lambdaService.LogTypeTail),                   // returns the log in the response
 		InvocationType: aws.String(lambdaService.InvocationTypeRequestResponse), // synchronous - default
+
+		// DOESN'T WORK LOCALLY
+		// LogType:        aws.String(lambdaService.LogTypeTail),                   // returns the log in the response
 	}
 	err := input.Validate()
 	if err != nil {
@@ -36,12 +32,13 @@ func invokeConvert() error {
 	if err != nil {
 		return fmt.Errorf("failed to invoke lambda: %v", err)
 	}
+	log.Printf("%s", resp.Payload)
 
-	decodeString, err := base64.StdEncoding.DecodeString(*resp.LogResult)
-	if err != nil {
-		return fmt.Errorf("failed to decode the log: %v", err)
-	}
-	log.Printf("log result: %s", decodeString)
+	// decodeString, err := base64.StdEncoding.DecodeString(*resp.LogResult)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to decode the log: %v", err)
+	// }
+	// log.Printf("log result: %s", decodeString)
 
 	if resp.FunctionError != nil {
 		return fmt.Errorf("lambda was invoked but returned error: %s", *resp.FunctionError)
@@ -50,15 +47,23 @@ func invokeConvert() error {
 }
 
 func main() {
-	sess, err := session.NewSession()
+	sess, err := session.NewSession(
+		&aws.Config{
+			Endpoint:   aws.String("http://127.0.0.1:3001"),
+			DisableSSL: aws.Bool(true),
+			Region:     aws.String("us-east-1"),
+			MaxRetries: aws.Int(0),
+		})
 	if err != nil {
-		log.Printf("failed to create a session: %v", err)
-		return
+		log.Println(err)
+		os.Exit(1)
 	}
-	lambdaSvc = lambdaService.New(sess)
+	lambdaSvc = lambdaService.New(sess) // , aws.NewConfig().WithEndpoint("http://localhost:3001").WithRegion("us-east-1"))
 
 	err = invokeConvert()
 	if err != nil {
-		return
+		log.Printf("failed to invoke lambda: %s", err)
+		os.Exit(1)
 	}
+	log.Println("invoke finished")
 }
