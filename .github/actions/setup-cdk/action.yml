@@ -1,0 +1,24 @@
+name: 'Setup CDK'
+description: 'Installs CDK and the dependencies to allow running the CLI'
+#inputs:
+#  who-to-greet:  # id of input
+#    description: 'Who to greet'
+#    required: true
+#    default: 'World'
+#outputs:
+#  random-number:
+#    description: "Random number"
+#    value: ${{ steps.random-number-generator.outputs.random-id }}
+runs:
+  using: "composite"
+  steps:
+      # THIS IS UNUSED, just an example
+      # YOU CAN ONLY execute run here, no uses, to use other actions in your
+      # composite action
+    - name: Compile CDK typescript
+      shell: bash
+      run: ./wm.sh build cdk
+
+    - name: Synthezise CDK to CFN
+      shell: bash
+      run: ./wm.sh synth
