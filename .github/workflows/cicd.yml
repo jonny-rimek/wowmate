@@ -5,13 +5,11 @@ on:
     branches: [ prod ]
   push:
     branches: [ prod ]
-
   workflow_dispatch:
 
 jobs:
   setup:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
 
@@ -128,10 +126,19 @@ jobs:
         if: steps.frontend-build-cache.outputs.cache-hit != 'true'
         run: ./wm.sh build frontend
 
-      # CDK
-      - name: Compile cdk typescript
-        run: ./wm.sh build cdk
+      - name: Upload go binaries and frontend
+        uses: actions/upload-artifact@v2
+        with:
+          name: go-binaries-and-frontend
+          path: |
+            dist
+            services/frontend/dist
 
+#      - name: Upload cdk.out
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: cdk.out
+#          path: cdk.out
       # DEPLOY TO dev if branch != prod
 #      - name: Deploy to dev
 #        if: steps.extract-branch.outputs.branch != 'prod'
@@ -194,13 +201,36 @@ jobs:
     needs: setup
 
     steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15.x
+
+      # cache dependencies for cdk
+      - name: Cache cdk npm
+        uses: actions/cache@v2
+        id: cdk-cache
+        with:
+          path: node_modules
+          key: cdk-${{ hashFiles('package-lock.json') }}
+          restore-keys: cdk-
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: go-binaries-and-frontend
+
+      # CDK!
+      - name: Compile cdk typescript
+        run: ./wm.sh build cdk
+
+      - name: Synthezise CDK to CFN
+        run: ./wm.sh synth
+
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract-branch
-
-      - name: Compile cdk typescript
-        run: ./wm.sh synth
 
       - name: Check cfn bestpractices with cfn_nag for dev
         if: steps.extract-branch.outputs.branch != 'prod'
