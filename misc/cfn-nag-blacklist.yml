@@ -8,3 +8,5 @@ RulesToSuppress:
     reason: Always ignore 'Lambda functions should define ReservedConcurrentExecutions to reserve simultaneous executions', because I can't control the reserved concurrency of cdk custom resource lambdas
   - id: W12
     reason: Always ignore 'IAM policy should not allow * resource', because the xray permission always has resource '*'
+  - id: W76
+    reason: Always ignore 'SPCM for IAM policy document is higher than 25', my convert lambda breaks this rule and I didn't find a way to white list it on the role. The lambda is pretty fat and needs a lot of permissions because it does a lot of things. Splitting it up doesn't make a lot of sense, because it handles large files and would require to reupload the file to s3 every time, which is slower and more expensive

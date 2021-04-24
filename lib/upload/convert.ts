@@ -91,8 +91,6 @@ export class Convert extends cdk.Construct {
         key.grantEncryptDecrypt(this.lambda)
 		topic.grantPublish(this.lambda)
 
-		// TODO: white lst W76 on convert lambda role
-
 		//only trigger convert lambda if file end on one of these suffixes
         //in theory files with a wrong ending could linger in the bucket forever without being processed
 		//but the presign lambda refuses uploads if the ending is not one of the mentioned
