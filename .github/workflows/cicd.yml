@@ -37,7 +37,7 @@ jobs:
         id: go-build-cache
         with:
           path: dist
-          key: go-build-${{ hashFiles('services/**/*.go') }}-${{ hashFiles('services/**/go.sum') }}
+          key: go-build--${{ hashFiles('services/**/*.go') }}-${{ hashFiles('services/**/go.sum') }}
 
       # if no js or vue file changes the services/frontend/dist dir is cached
       - name: Cache frontend build
@@ -45,7 +45,7 @@ jobs:
         id: frontend-build-cache
         with:
           path: services/frontend/dist
-          key: frontend-build-${{ hashFiles('services/frontend/**/*.vue') }}-${{ hashFiles('services/frontend/**/*.js') }}-${{ hashFiles('services/upload/package-lock.json') }}
+          key: frontend-build--${{ hashFiles('services/frontend/**/*.vue') }}-${{ hashFiles('services/frontend/**/*.js') }}-${{ hashFiles('services/upload/package-lock.json') }}
 
       # INSTALL CACHES
       # caches all go dependencies
@@ -55,8 +55,8 @@ jobs:
         id: go-cache
         with:
           path: ~/go/pkg/mod
-          key: go-${{ hashFiles('**/go.sum') }}
-          restore-keys: go-
+          key: go--${{ hashFiles('**/go.sum') }}
+          restore-keys: go--
 
       # caches node_modules of presign lambda
       - name: Cache presign npm
@@ -73,8 +73,8 @@ jobs:
         id: cdk-cache
         with:
           path: node_modules
-          key: cdk-${{ hashFiles('package-lock.json') }}
-          restore-keys: cdk-
+          key: cdk--${{ hashFiles('package-lock.json') }}
+          restore-keys: cdk--
 
       # cache dependencies for nuxt frontend
       - name: Cache frontend yarn
@@ -82,9 +82,9 @@ jobs:
         id: frontend-cache
         with:
           path: services/frontend/node_modules
-          key: frontend-${{ hashFiles('services/frontend/yarn.lock') }}
+          key: frontend--${{ hashFiles('services/frontend/yarn.lock') }}
           restore-keys: |
-            frontend-
+            frontend--
 
       # INSTALL:
       - name: Install cdk
