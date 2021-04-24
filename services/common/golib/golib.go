@@ -12,6 +12,7 @@ import (
 
 // MinSecToMilliseconds converts time in the "minute:seconds" format to milliseconds
 func MinSecToMilliseconds(input string) (int64, error) {
+	fmt.Println("trigger ci")
 	input = fmt.Sprintf("1970 %s", input)
 	t, err := time.Parse("2006 04:05", input)
 	if err != nil {

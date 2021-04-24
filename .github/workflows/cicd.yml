@@ -246,9 +246,10 @@ jobs:
         with:
           name: go-binaries-and-frontend
 
-      - run: |
-          cd dist/upload/convert
-          ls -lisah
+      - name: Fix file permissions
+        run: |
+          chmod -R 755 dist
+          chmod -R 755 services/frontend/dist
 
       - name: Compile CDK typescript
         run: ./wm.sh build cdk
@@ -486,6 +487,11 @@ jobs:
         with:
           name: go-binaries-and-frontend
 
+      - name: Fix file permissions
+        run: |
+          chmod -R 755 dist
+          chmod -R 755 services/frontend/dist
+
       - name: Compile CDK typescript
         run: ./wm.sh build cdk
 
@@ -546,6 +552,11 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: go-binaries-and-frontend
+
+      - name: Fix file permissions
+        run: |
+          chmod -R 755 dist
+          chmod -R 755 services/frontend/dist
 
       - name: Compile CDK typescript
         run: ./wm.sh build cdk
