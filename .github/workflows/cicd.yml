@@ -502,8 +502,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.PREPROD_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Deploy to preprod
-        run: ./wm.sh deploy preprod
+#      - name: Deploy to preprod
+#        run: ./wm.sh deploy preprod
 
   lambda-integration-test:
     runs-on: ubuntu-latest

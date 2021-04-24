@@ -69,8 +69,6 @@ export class Convert extends cdk.Construct {
 			// timestream write api has some sort of cold start, where at the beginning
 			// it's super slow, that's why the max duration needs to be way higher than
 			// the median duration
-			// at two cores, I couldn't observe that behavior anymore, not sure if it is really the cause
-			// kinda doubt it tbh
 			environment: {
 				TOPIC_ARN: topic.topicArn,
 				...props.envVars,
@@ -90,7 +88,10 @@ export class Convert extends cdk.Construct {
 			//leave at one, simplifies the code and invocation costs of lambda are very likely not gonna matter
 		}))
 
+        key.grantEncryptDecrypt(this.lambda)
 		topic.grantPublish(this.lambda)
+
+		// TODO: white lst W76 on convert lambda role
 
 		//only trigger convert lambda if file end on one of these suffixes
         //in theory files with a wrong ending could linger in the bucket forever without being processed
