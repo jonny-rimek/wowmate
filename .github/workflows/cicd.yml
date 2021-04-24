@@ -100,6 +100,10 @@ jobs:
         if: steps.go-build-cache.outputs.cache-hit != 'true'
         run: ./wm.sh build go
 
+      - run: |
+          cd dist/upload/convert
+          ls -lisah
+
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
@@ -241,6 +245,10 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: go-binaries-and-frontend
+
+      - run: |
+          cd dist/upload/convert
+          ls -lisah
 
       - name: Compile CDK typescript
         run: ./wm.sh build cdk
@@ -509,7 +517,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.PREPROD_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Deploy to preprod
+      - name: Run convert integration test
         run: |
           cd services/upload/convert-integration-test/
           go run .
@@ -549,9 +557,5 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Deploy to prod
-        run: ./wm.sh deploy prod
-        # TODO:
-        # deploy to pre prod should need all stages, except dev deploy
-        # integration test stage should need only pre prod stage
-        # prod deploy stage needs integration test stage
+#      - name: Deploy to prod
+#        run: ./wm.sh deploy prod

@@ -285,7 +285,8 @@ var levelTenAffixes = map[int]string{
 // AffixIDsToString takes an array of affix ids and converts them to a readable list of array names
 // separated by commas
 // TODO:
-// 	- rethink if I actually need this, displaying a list of affixes as string takes a lot of space, should just return an array of ids and display icons
+// 	- rethink if I actually need this, displaying a list of affixes as string takes a lot of space,
+// 	should just return an array of ids and string and display icons and display the name on hover
 func AffixIDsToString(levelTwoID, levelFourID, levelSevenID, levelTenID int) string {
 	affixes := levelTwoAffixes[levelTwoID]
 
