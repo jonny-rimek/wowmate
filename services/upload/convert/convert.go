@@ -194,7 +194,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	req := golib.S3Event{}
 	err := json.Unmarshal([]byte(msg.Body), &req)
 	if err != nil {
-		return logData, fmt.Errorf("failed to unmarshal s3 event from message body to json: %v", err)
+		return logData, fmt.Errorf("failed to unmarshal s3 event from message body to json: body: %s error: %v", msg.Body, err)
 	}
 
 	if len(req.Records) != 1 {

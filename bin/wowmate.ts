@@ -22,7 +22,7 @@ new Wowmate(app, 'wm-dev', {
 
 new Wowmate(app, 'wm-preprod', {
 	env: {region: "us-east-1", account: "500489575211"},
-	hostedZoneId: "Z09026202SZR8MRVSF1BQ",
+	hostedZoneId: "Z032568916CSFI9JRNR8I",
 	hostedZoneName: "preprod.wowmate.io",
 	domainName: "preprod.wowmate.io",
 	apiDomainName: "api.preprod.wowmate.io",

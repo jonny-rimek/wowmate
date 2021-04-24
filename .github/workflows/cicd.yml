@@ -106,16 +106,17 @@ jobs:
         id: extract-branch
 
       # FRONTEND
-      - name: Export frontend build env if not prod
-        if: steps.extract-branch.outputs.branch != 'prod'
-        run: echo "##[set-output name=nuxt_env;]$(echo dev)"
-        id: frontend-env
+      # TODO: built another version for preprod and prod
+#      - name: Export frontend build env if not prod
+#        if: steps.extract-branch.outputs.branch != 'prod'
+#        run: echo "##[set-output name=nuxt_env;]$(echo dev)"
+#        id: frontend-env
         # this env var is only set in non prod, because it controls the urls the frontend calls
         # if env var is set it's api.dev.wowmate.io, if not it is api.wowmate.io
 
       - name: Build frontend
         env:
-          NUXT_ENV: ${{ steps.frontend-env.outputs.nuxt_env }}
+          NUXT_ENV: dev
         if: steps.frontend-build-cache.outputs.cache-hit != 'true'
         run: ./wm.sh build frontend
 
@@ -480,7 +481,7 @@ jobs:
       - name: Compile CDK typescript
         run: ./wm.sh build cdk
 
-      - name: Configure AWS dev credentials
+      - name: Configure AWS preprod credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.PREPROD_AWS_ACCESS_KEY_ID }}
