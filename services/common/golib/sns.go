@@ -19,10 +19,17 @@ func SNSPublishMsg(ctx aws.Context, snsSvc *sns.SNS, input string, topicArn *str
 	var err error
 
 	if os.Getenv("LOCAL") == "true" {
-		_, err = snsSvc.Publish(&sns.PublishInput{
-			Message:  aws.String(input),
-			TopicArn: topicArn,
-		})
+		return nil
+		// publishing encrypted messages to SNS doesn't work from SAM+CDK, I suspect that SAM uses an incomplete name
+		// CDK, auto generates a name, but those names aren't used locally
+		// e.g. wm-dev-DynamoDBtableF8E87752-HSV525WR7KN3 is the name of the ddb in the cloud
+		// locally it the name it knows is wm-dev-DynamoDBtableF8E87752 the last bit is missing
+		// the same is gonna be the problem for the KMS key, and I don't know how or if I can pass in the complete key
+
+		// _, err = snsSvc.Publish(&sns.PublishInput{
+		// 	Message:  aws.String(input),
+		// 	TopicArn: topicArn,
+		// })
 	} else {
 		_, err = snsSvc.PublishWithContext(ctx, &sns.PublishInput{
 			Message:  aws.String(input),

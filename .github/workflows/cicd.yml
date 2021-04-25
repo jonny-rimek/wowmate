@@ -58,15 +58,6 @@ jobs:
           key: presign-${{ hashFiles('services/upload/package-lock.json') }}
           restore-keys: presign-
 
-      # cache dependencies for cdk
-      - name: Cache cdk npm
-        uses: actions/cache@v2
-        id: cdk-cache
-        with:
-          path: node_modules
-          key: cdk-${{ hashFiles('package-lock.json') }}
-          restore-keys: cdk-
-
       # cache dependencies for nuxt frontend
       - name: Cache frontend yarn
         uses: actions/cache@v2
@@ -78,9 +69,6 @@ jobs:
             frontend-
 
       # INSTALL:
-      - name: Install cdk
-        if: steps.cdk-cache.outputs.cache-hit != 'true'
-        run: ./wm.sh install cdk
 
       - name: Install go
         if: steps.go-cache.outputs.cache-hit != 'true'
@@ -100,17 +88,12 @@ jobs:
         if: steps.go-build-cache.outputs.cache-hit != 'true'
         run: ./wm.sh build go
 
-      - run: |
-          cd dist/upload/convert
-          ls -lisah
-
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract-branch
 
       # FRONTEND
-      # TODO: built another version for preprod and prod
 #      - name: Export frontend build env if not prod
 #        if: steps.extract-branch.outputs.branch != 'prod'
 #        run: echo "##[set-output name=nuxt_env;]$(echo dev)"
@@ -123,51 +106,7 @@ jobs:
           NUXT_ENV: dev
         if: steps.frontend-build-cache.outputs.cache-hit != 'true'
         run: ./wm.sh build frontend
-
-      - name: Upload go binaries and frontend
-        uses: actions/upload-artifact@v2
-        with:
-          name: go-binaries-and-frontend
-          path: |
-            dist
-            services/frontend/dist
-
-      # DEPLOY TO dev if branch != prod
-#      - name: Deploy to dev
-#        if: steps.extract-branch.outputs.branch != 'prod'
-#        env:
-#          CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
-#        run: ./wm.sh deploy dev
-
-#      - name: Configure AWS prod credentials
-#        if: steps.extract-branch.outputs.branch != 'prod'
-#        uses: aws-actions/configure-aws-credentials@v1
-#        with:
-#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: us-east-1
-
-      # post diff to prod in pr comment
-#      - name: Post cdk Diff as comment to PR
-#        if: steps.extract-branch.outputs.branch != 'prod'
-#        env:
-#          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-#        run: ./wm.sh diff prod
-
-      # DEPLOY TO PROD if branch == prod
-#      - name: Configure AWS prod credentials
-#        if: steps.extract-branch.outputs.branch == 'prod'
-#        uses: aws-actions/configure-aws-credentials@v1
-#        with:
-#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: us-east-1
-
-#      - name: Deploy to prod
-#        if: steps.extract-branch.outputs.branch == 'prod'
-#        env:
-#          CDK_STACK: ${{ steps.cdk-prod-stack.outputs.stack }}
-#        run: ./wm.sh deploy prod
+#        TODO: build frontend in parallel jobs with each their own cache
 
   cfn-nag:
     runs-on: ubuntu-latest
@@ -189,9 +128,19 @@ jobs:
           key: cdk-${{ hashFiles('package-lock.json') }}
           restore-keys: cdk-
 
-      - uses: actions/download-artifact@v2
+      - name: Cache go builds
+        uses: actions/cache@v2
+        id: go-build-cache
         with:
-          name: go-binaries-and-frontend
+          path: dist
+          key: go-build-${{ hashFiles('services/**/*.go') }}-${{ hashFiles('services/**/go.sum') }}
+
+      - name: Cache frontend build
+        uses: actions/cache@v2
+        id: frontend-build-cache
+        with:
+          path: services/frontend/dist
+          key: frontend-build-${{ hashFiles('services/frontend/**/*.vue') }}-${{ hashFiles('services/frontend/**/*.js') }}-${{ hashFiles('services/upload/package-lock.json') }}
 
       - name: Compile CDK typescript
         run: ./wm.sh build cdk
@@ -240,16 +189,30 @@ jobs:
         with:
           path: node_modules
           key: cdk-${{ hashFiles('package-lock.json') }}
-          restore-keys: cdk-
 
-      - uses: actions/download-artifact@v2
+      - name: Cache go builds
+        uses: actions/cache@v2
+        id: go-build-cache
         with:
-          name: go-binaries-and-frontend
+          path: dist
+          key: go-build-${{ hashFiles('services/**/*.go') }}-${{ hashFiles('services/**/go.sum') }}
 
-      - name: Fix file permissions
-        run: |
-          chmod -R 755 dist
-          chmod -R 755 services/frontend/dist
+      - name: Cache presign npm
+        uses: actions/cache@v2
+        id: presign-cache
+        with:
+          path: services/upload/presign/node_modules
+          key: presign-${{ hashFiles('services/upload/package-lock.json') }}
+
+      - name: Cache frontend build
+        uses: actions/cache@v2
+        id: frontend-build-cache
+        with:
+          path: services/frontend/dist
+          key: frontend-build-${{ hashFiles('services/frontend/**/*.vue') }}-${{ hashFiles('services/frontend/**/*.js') }}-${{ hashFiles('services/upload/package-lock.json') }}
+
+      - name: Fix file permissions # files are zipped during uploading to the artifact store, which loses the file permission
+        run: chmod -R 755 dist
 
       - name: Compile CDK typescript
         run: ./wm.sh build cdk
@@ -273,21 +236,6 @@ jobs:
           CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
         run: ./wm.sh deploy dev
 
-        #DEPLOY TO PROD if branch == prod
-#      - name: Configure AWS prod credentials
-#        if: steps.extract-branch.outputs.branch == 'prod'
-#        uses: aws-actions/configure-aws-credentials@v1
-#        with:
-#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: us-east-1
-#
-#      - name: Deploy to prod
-#        if: steps.extract-branch.outputs.branch == 'prod'
-#        env:
-#          CDK_STACK: ${{ steps.cdk-prod-stack.outputs.stack }}
-#        run: ./wm.sh deploy prod
-
   cdk-diff:
     runs-on: ubuntu-latest
     needs: setup
@@ -306,9 +254,19 @@ jobs:
           key: cdk-${{ hashFiles('package-lock.json') }}
           restore-keys: cdk-
 
-      - uses: actions/download-artifact@v2
+      - name: Cache go builds
+        uses: actions/cache@v2
+        id: go-build-cache
         with:
-          name: go-binaries-and-frontend
+          path: dist
+          key: go-build-${{ hashFiles('services/**/*.go') }}-${{ hashFiles('services/**/go.sum') }}
+
+      - name: Cache frontend build
+        uses: actions/cache@v2
+        id: frontend-build-cache
+        with:
+          path: services/frontend/dist
+          key: frontend-build-${{ hashFiles('services/frontend/**/*.vue') }}-${{ hashFiles('services/frontend/**/*.js') }}-${{ hashFiles('services/upload/package-lock.json') }}
 
       - name: Compile CDK typescript
         run: ./wm.sh build cdk
@@ -483,14 +441,29 @@ jobs:
           key: cdk-${{ hashFiles('package-lock.json') }}
           restore-keys: cdk-
 
-      - uses: actions/download-artifact@v2
+      - name: Cache go builds
+        uses: actions/cache@v2
+        id: go-build-cache
         with:
-          name: go-binaries-and-frontend
+          path: dist
+          key: go-build-${{ hashFiles('services/**/*.go') }}-${{ hashFiles('services/**/go.sum') }}
+
+      - name: Cache presign npm
+        uses: actions/cache@v2
+        id: presign-cache
+        with:
+          path: services/upload/presign/node_modules
+          key: presign-${{ hashFiles('services/upload/package-lock.json') }}
+
+      - name: Cache frontend build
+        uses: actions/cache@v2
+        id: frontend-build-cache
+        with:
+          path: services/frontend/dist
+          key: frontend-build-${{ hashFiles('services/frontend/**/*.vue') }}-${{ hashFiles('services/frontend/**/*.js') }}-${{ hashFiles('services/upload/package-lock.json') }}
 
       - name: Fix file permissions
-        run: |
-          chmod -R 755 dist
-          chmod -R 755 services/frontend/dist
+        run: chmod -R 755 dist
 
       - name: Compile CDK typescript
         run: ./wm.sh build cdk
@@ -502,8 +475,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.PREPROD_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-#      - name: Deploy to preprod
-#        run: ./wm.sh deploy preprod
+      - name: Deploy to preprod
+        run: ./wm.sh deploy preprod
 
   lambda-integration-test:
     runs-on: ubuntu-latest
@@ -554,9 +527,7 @@ jobs:
           name: go-binaries-and-frontend
 
       - name: Fix file permissions
-        run: |
-          chmod -R 755 dist
-          chmod -R 755 services/frontend/dist
+        run: chmod -R 755 dist
 
       - name: Compile CDK typescript
         run: ./wm.sh build cdk

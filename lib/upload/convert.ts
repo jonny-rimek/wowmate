@@ -47,6 +47,11 @@ export class Convert extends cdk.Construct {
 		})
         const topic = new sns.Topic(this, 'Topic', {
 			masterKey: key,
+			// publishing encrypted messages to SNS doesn't work from SAM+CDK, I suspect that SAM uses an incomplete name
+			// CDK, auto generates a name, but those names aren't used locally
+			// e.g. wm-dev-DynamoDBtableF8E87752-HSV525WR7KN3 is the name of the ddb in the cloud
+			// locally it the name it knows is wm-dev-DynamoDBtableF8E87752 the last bit is missing
+            // the same is gonna be the problem for the KMS key, and I don't know how or if I can pass in the complete key
 		})
         this.topic = topic
 
