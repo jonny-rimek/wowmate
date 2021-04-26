@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  setup:
+  setup-go:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,9 +17,9 @@ jobs:
         with:
           go-version: '^1.16.3'
 
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 15.x
+#      - uses: actions/setup-node@v1
+#        with:
+#          node-version: 15.x
 
       # BUILD CACHES
       # if no go file changes the binaries are cached and don't have to be rebuild
@@ -31,12 +31,12 @@ jobs:
           key: go-build-${{ hashFiles('services/**/*.go') }}-${{ hashFiles('services/**/go.sum') }}
 
       # if no js or vue file changes the services/frontend/dist dir is cached
-      - name: Cache frontend build
-        uses: actions/cache@v2
-        id: frontend-build-cache
-        with:
-          path: services/frontend/dist
-          key: frontend-build-${{ hashFiles('services/frontend/**/*.vue') }}-${{ hashFiles('services/frontend/**/*.js') }}-${{ hashFiles('services/upload/package-lock.json') }}
+#      - name: Cache frontend build
+#        uses: actions/cache@v2
+#        id: frontend-build-cache
+#        with:
+#          path: services/frontend/dist
+#          key: frontend-build-${{ hashFiles('services/frontend/**/*.vue') }}-${{ hashFiles('services/frontend/**/*.js') }}-${{ hashFiles('services/upload/package-lock.json') }}
 
       # INSTALL CACHES
       # caches all go dependencies
@@ -59,14 +59,14 @@ jobs:
           restore-keys: presign-
 
       # cache dependencies for nuxt frontend
-      - name: Cache frontend yarn
-        uses: actions/cache@v2
-        id: frontend-cache
-        with:
-          path: services/frontend/node_modules
-          key: frontend-${{ hashFiles('services/frontend/yarn.lock') }}
-          restore-keys: |
-            frontend-
+#      - name: Cache frontend yarn
+#        uses: actions/cache@v2
+#        id: frontend-cache
+#        with:
+#          path: services/frontend/node_modules
+#          key: frontend-${{ hashFiles('services/frontend/yarn.lock') }}
+#          restore-keys: |
+#            frontend-
 
       # INSTALL:
 
@@ -78,15 +78,114 @@ jobs:
         if: steps.presign-cache.outputs.cache-hit != 'true'
         run: ./wm.sh install presign
 
-      - name: Install frontend
-        if: steps.frontend-cache.outputs.cache-hit != 'true'
-        run: ./wm.sh install frontend
+#      - name: Install frontend
+#        if: steps.frontend-cache.outputs.cache-hit != 'true'
+#        run: ./wm.sh install frontend
 
       # BUILD:
       # GO
       - name: Build go
         if: steps.go-build-cache.outputs.cache-hit != 'true'
         run: ./wm.sh build go
+
+#      - name: Extract branch name
+#        shell: bash
+#        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+#        id: extract-branch
+
+        # FRONTEND
+        #      - name: Export frontend build env if not prod
+        #        if: steps.extract-branch.outputs.branch != 'prod'
+        #        run: echo "##[set-output name=nuxt_env;]$(echo dev)"
+        #        id: frontend-env
+        # this env var is only set in non prod, because it controls the urls the frontend calls
+        # if env var is set it's api.dev.wowmate.io, if not it is api.wowmate.io
+
+#      - name: Build frontend
+#        env:
+#          NUXT_ENV: dev
+#        if: steps.frontend-build-cache.outputs.cache-hit != 'true'
+#        run: ./wm.sh build frontend
+
+  setup-frontend-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+#      - uses: actions/setup-go@v2
+#        with:
+#          go-version: '^1.16.3'
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15.x
+
+      # BUILD CACHES
+      # if no go file changes the binaries are cached and don't have to be rebuild
+#      - name: Cache go builds
+#        uses: actions/cache@v2
+#        id: go-build-cache
+#        with:
+#          path: dist
+#          key: go-build-${{ hashFiles('services/**/*.go') }}-${{ hashFiles('services/**/go.sum') }}
+
+      # if no js or vue file changes the services/frontend/dist dir is cached
+      - name: Cache frontend build
+        uses: actions/cache@v2
+        id: frontend-build-cache
+        with:
+          path: services/frontend/dist
+          key: frontend-build-${{ hashFiles('services/frontend/**/*.vue') }}-${{ hashFiles('services/frontend/**/*.js') }}-${{ hashFiles('services/upload/package-lock.json') }}
+
+      # INSTALL CACHES
+      # caches all go dependencies
+      # can't not get cache if the go build did not change
+#      - name: Cache go deps
+#        uses: actions/cache@v2
+#        id: go-cache
+#        with:
+#          path: ~/go/pkg/mod
+#          key: go-${{ hashFiles('**/go.sum') }}
+#          restore-keys: go-
+
+      # caches node_modules of presign lambda
+#      - name: Cache presign npm
+#        uses: actions/cache@v2
+#        id: presign-cache
+#        with:
+#          path: services/upload/presign/node_modules
+#          key: presign-${{ hashFiles('services/upload/package-lock.json') }}
+#          restore-keys: presign-
+
+      # cache dependencies for nuxt frontend
+      - name: Cache frontend yarn
+        uses: actions/cache@v2
+        id: frontend-cache
+        with:
+          path: services/frontend/node_modules
+          key: frontend-${{ hashFiles('services/frontend/yarn.lock') }}
+          restore-keys: |
+            frontend-
+
+      # INSTALL:
+
+#      - name: Install go
+#        if: steps.go-cache.outputs.cache-hit != 'true'
+#        run: ./wm.sh install go
+#
+#      - name: Install presign
+#        if: steps.presign-cache.outputs.cache-hit != 'true'
+#        run: ./wm.sh install presign
+
+      - name: Install frontend
+        if: steps.frontend-cache.outputs.cache-hit != 'true'
+        run: ./wm.sh install frontend
+
+      # BUILD:
+      # GO
+#      - name: Build go
+#        if: steps.go-build-cache.outputs.cache-hit != 'true'
+#        run: ./wm.sh build go
 
       - name: Extract branch name
         shell: bash
@@ -106,11 +205,13 @@ jobs:
           NUXT_ENV: dev
         if: steps.frontend-build-cache.outputs.cache-hit != 'true'
         run: ./wm.sh build frontend
-#        TODO: build frontend in parallel jobs with each their own cache
+
 
   cfn-nag:
     runs-on: ubuntu-latest
-    needs: setup
+    needs:
+      - setup-go
+      - setup-frontend-dev
     steps:
         # composite actions (https://docs.github.com/en/actions/creating-actions/creating-a-composite-run-steps-action)
         # can only execute run steps and not uses, which means I can't DRY up the setup steps
@@ -175,7 +276,9 @@ jobs:
 
   deploy-dev:
     runs-on: ubuntu-latest
-    needs: setup
+    needs:
+      - setup-go
+      - setup-frontend-dev
     steps:
       - uses: actions/checkout@v2
 
@@ -238,7 +341,9 @@ jobs:
 
   cdk-diff:
     runs-on: ubuntu-latest
-    needs: setup
+    needs:
+      - setup-go
+      - setup-frontend-dev
     steps:
       - uses: actions/checkout@v2
 
