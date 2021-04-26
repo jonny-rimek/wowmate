@@ -123,6 +123,7 @@ var writeSvc *timestreamwrite.TimestreamWrite
 func handler(ctx aws.Context, e golib.SQSEvent) error {
 	logData, err := handle(ctx, e)
 	if err != nil {
+		// create custom error types https://blog.golang.org/error-handling-and-go
 		// TODO: reactivate to release, ruins my load tests
 		// err2 := golib.RenameFileS3(
 		// 	ctx,

@@ -10,7 +10,7 @@ export default {
     const logs = await context.app.$wowmateApi.getPerDungeonSummaries()
     return { logs }
   },
-  layout: 'mythicplus', //trigger!
+  layout: 'mythicplus', //trigger
   data() {
     return {
       logs: {},
