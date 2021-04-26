@@ -39,8 +39,19 @@ export class Convert extends cdk.Construct {
 				maxReceiveCount: 1, //no need during dev
 			},
 			visibilityTimeout: cdk.Duration.minutes(1*6), //6x lambda duration, it's an aws best practice
-			encryption: sqs.QueueEncryption.KMS_MANAGED,
+			// encryption: sqs.QueueEncryption.KMS_MANAGED,
 		});
+		const cfnQueue = this.queue.node.defaultChild as sqs.CfnQueue
+		cfnQueue.cfnOptions.metadata = {
+			cfn_nag: {
+				rules_to_suppress: [
+					{
+						id: 'W48',
+						reason: "can't or at least don't know how to create s3 notification for encrypted sqs queue",
+					},
+				]
+			}
+		}
 
 		const key = new kms.Key(this, 'SnsKmsKey', {
 			enableKeyRotation: true,
@@ -97,34 +108,34 @@ export class Convert extends cdk.Construct {
         key.grantEncryptDecrypt(this.lambda)
 		topic.grantPublish(this.lambda)
 
-		props.uploadBucket.addToResourcePolicy(new iam.PolicyStatement({
-			effect: Effect.ALLOW,
-			actions: [
-				'kms:GenerateDataKey*',
-				'kms:Decrypt',
-				'kms:Encrypt',
-				'kms:ReEncrypt*',
-			],
-			resources: ["*"],
-			// resources: [this.queue.encryptionMasterKey?.keyArn!],
-			principals: [new iam.ServicePrincipal('s3.amazonaws.com')],
-		}))
+		// props.uploadBucket.addToResourcePolicy(new iam.PolicyStatement({
+		// 	effect: Effect.ALLOW,
+		// 	actions: [
+		// 		'kms:GenerateDataKey*',
+		// 		'kms:Decrypt',
+		// 		'kms:Encrypt',
+		// 		'kms:ReEncrypt*',
+		// 	],
+		// 	resources: ["*"],
+		// 	// resources: [this.queue.encryptionMasterKey?.keyArn!],
+		// 	principals: [new iam.ServicePrincipal('s3.amazonaws.com')],
+		// }))
 
 		//only trigger convert lambda if file end on one of these suffixes
         //in theory files with a wrong ending could linger in the bucket forever without being processed
 		//but the presign lambda refuses uploads if the ending is not one of the mentioned
-		// props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
-		// 	suffix: ".txt",
-		// 	prefix: "upload/"
-		// })
-		// props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
-		// 	suffix: ".txt.gz",
-		// 	prefix: "upload/"
-		// })
-		// props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
-		// 	suffix: ".zip",
-		// 	prefix: "upload/"
-		// })
+		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
+			suffix: ".txt",
+			prefix: "upload/"
+		})
+		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
+			suffix: ".txt.gz",
+			prefix: "upload/"
+		})
+		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
+			suffix: ".zip",
+			prefix: "upload/"
+		})
 
 		props.uploadBucket.grantReadWrite(this.lambda)
 
