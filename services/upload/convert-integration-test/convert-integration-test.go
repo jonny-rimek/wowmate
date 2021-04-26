@@ -43,7 +43,7 @@ func invokeConvert(local bool) error {
 			}
 		`)
 	} else {
-		functionName = "wm-preprod-ConvertLambda3540DCCB-7AWDGGCRUN1G"
+		functionName = "wm-preprod-ConvertLambda3540DCCB-1898ZUCBEU62K"
 		logType = aws.String(lambdaService.LogTypeTail)
 	}
 
