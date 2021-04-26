@@ -1,15 +1,15 @@
 import cdk = require('@aws-cdk/core');
 import s3 = require('@aws-cdk/aws-s3');
 import sqs = require('@aws-cdk/aws-sqs');
+import lambda = require('@aws-cdk/aws-lambda');
+import s3n = require('@aws-cdk/aws-s3-notifications');
 import * as sns from '@aws-cdk/aws-sns';
 import * as subs from '@aws-cdk/aws-sns-subscriptions';
-import lambda = require('@aws-cdk/aws-lambda');
-import { RetentionDays } from '@aws-cdk/aws-logs';
-import s3n = require('@aws-cdk/aws-s3-notifications');
-import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
+import {RetentionDays} from '@aws-cdk/aws-logs';
+import {SqsEventSource} from '@aws-cdk/aws-lambda-event-sources';
 import * as iam from "@aws-cdk/aws-iam"
+import {Effect} from "@aws-cdk/aws-iam"
 import * as kms from '@aws-cdk/aws-kms';
-import * as codedeploy from '@aws-cdk/aws-codedeploy';
 
 interface Props extends cdk.StackProps {
 	uploadBucket: s3.Bucket
@@ -52,6 +52,7 @@ export class Convert extends cdk.Construct {
 			// e.g. wm-dev-DynamoDBtableF8E87752-HSV525WR7KN3 is the name of the ddb in the cloud
 			// locally it the name it knows is wm-dev-DynamoDBtableF8E87752 the last bit is missing
             // the same is gonna be the problem for the KMS key, and I don't know how or if I can pass in the complete key
+			// my solution is to skip the sns publishing locally
 		})
         this.topic = topic
 
@@ -90,27 +91,41 @@ export class Convert extends cdk.Construct {
 		})
 		this.lambda.addEventSource(new SqsEventSource(this.queue, {
 			batchSize: 1,
-			//leave at one, simplifies the code and invocation costs of lambda are very likely not gonna matter
+			//leave at one, simplifies the code and invocation costs of lambda are negligible compared to the rest
 		}))
 
         key.grantEncryptDecrypt(this.lambda)
 		topic.grantPublish(this.lambda)
 
+		props.uploadBucket.addToResourcePolicy(new iam.PolicyStatement({
+			effect: Effect.ALLOW,
+			actions: [
+				'kms:GenerateDataKey*',
+				'kms:Decrypt',
+				'kms:Encrypt',
+				'kms:ReEncrypt*',
+			],
+			resources: ["*"],
+			// resources: [this.queue.encryptionMasterKey?.keyArn!],
+			principals: [new iam.ServicePrincipal('s3.amazonaws.com')],
+		}))
+
 		//only trigger convert lambda if file end on one of these suffixes
         //in theory files with a wrong ending could linger in the bucket forever without being processed
 		//but the presign lambda refuses uploads if the ending is not one of the mentioned
-		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
-			suffix: ".txt",
-			prefix: "upload/"
-		})
-		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
-			suffix: ".txt.gz",
-			prefix: "upload/"
-		})
-		props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
-			suffix: ".zip",
-			prefix: "upload/"
-		})
+		// props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
+		// 	suffix: ".txt",
+		// 	prefix: "upload/"
+		// })
+		// props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
+		// 	suffix: ".txt.gz",
+		// 	prefix: "upload/"
+		// })
+		// props.uploadBucket.addEventNotification(s3.EventType.OBJECT_CREATED, new s3n.SqsDestination(this.queue), {
+		// 	suffix: ".zip",
+		// 	prefix: "upload/"
+		// })
+
 		props.uploadBucket.grantReadWrite(this.lambda)
 
 		this.lambda.addToRolePolicy(new iam.PolicyStatement({
