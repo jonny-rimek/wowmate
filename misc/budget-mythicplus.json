@@ -11,7 +11,7 @@
       },
       {
         "metric": "interactive",
-        "budget": 3000
+        "budget": 3300
       },
       {
         "metric": "first-meaningful-paint",
@@ -23,7 +23,7 @@
       },
       {
         "metric": "total-blocking-time",
-        "budget": 200
+        "budget": 230
       },
       {
         "metric": "speed-index",
@@ -31,7 +31,7 @@
       },
       {
         "metric": "largest-contentful-paint",
-        "budget": 3200
+        "budget": 3400
       },
       {
         "metric": "cumulative-layout-shift",
@@ -41,7 +41,7 @@
     "resourceSizes": [
       {
         "resourceType": "total",
-        "budget": 205
+        "budget": 220
       },
       {
         "resourceType": "image",
