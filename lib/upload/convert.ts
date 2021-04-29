@@ -38,7 +38,7 @@ export class Convert extends cdk.Construct {
 				//maxReceiveCount: 3,
 				maxReceiveCount: 1, //no need during dev
 			},
-			visibilityTimeout: cdk.Duration.minutes(1*6), //6x lambda duration, it's an aws best practice
+			visibilityTimeout: cdk.Duration.minutes(5*6), //6x lambda duration, it's an aws best practice
 			// encryption: sqs.QueueEncryption.KMS_MANAGED,
 		});
 		const cfnQueue = this.queue.node.defaultChild as sqs.CfnQueue
@@ -82,7 +82,7 @@ export class Convert extends cdk.Construct {
             // probably my goroutines that write to timestream leak memory
 			memorySize: 3584, //exactly 2 core
 			// memorySize: 1792, //exactly 1 core
-			timeout: cdk.Duration.minutes(1),
+			timeout: cdk.Duration.minutes(5),
 			// timestream write api has some sort of cold start, where at the beginning
 			// it's super slow, that's why the max duration needs to be way higher than
 			// the median duration

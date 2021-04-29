@@ -62,6 +62,7 @@ export class QueryTimestream extends cdk.Construct {
 			//TODO: on success destination doesn't work with xray DON'T USE until fixed
 		})
 
+		key.grantEncryptDecrypt(this.lambda)
 		this.topic.grantPublish(this.lambda)
 
         //extract to function in timestream construct

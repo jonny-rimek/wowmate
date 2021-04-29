@@ -1,11 +1,12 @@
 import cdk = require('@aws-cdk/core');
 import sqs = require('@aws-cdk/aws-sqs');
 import lambda = require('@aws-cdk/aws-lambda');
-import { RetentionDays } from '@aws-cdk/aws-logs';
+import {RetentionDays} from '@aws-cdk/aws-logs';
 import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as sns from "@aws-cdk/aws-sns";
 import * as subs from "@aws-cdk/aws-sns-subscriptions";
 import * as destinations from '@aws-cdk/aws-lambda-destinations';
+import {QueueEncryption} from "@aws-cdk/aws-sqs";
 
 interface Props extends cdk.StackProps {
 	dynamoDB: dynamodb.Table,
@@ -48,10 +49,12 @@ export class InsertResult extends cdk.Construct {
 
 			//on success destination doesn't work with xray DON'T USE until fixed
 		})
+
         //temp queue to get message content easily
 		//this is not the whole event one needs to invoke it locally only the SNS part
-		// const q = new sqs.Queue(this, 'QQQQQQQQQQQQQQQQQQQQQQQ') //long name so it's ez to find the temp queue^^
-		// props.topic.addSubscription(new subs.SqsSubscription(q))
+		//long name so it's ez to find the temp queue^^
+		const q = new sqs.Queue(this, 'QQQQQQQQQQQQQQQQQQQQQQQ')
+		props.topic.addSubscription(new subs.SqsSubscription(q))
 
 		props.topic.addSubscription(new subs.LambdaSubscription(this.lambda, {
 			deadLetterQueue: props.topicDLQ,

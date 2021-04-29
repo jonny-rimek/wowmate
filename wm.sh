@@ -17,6 +17,18 @@ goDirs=(
   "services/upload/insert/timestream/keys"
 )
 
+start-lambda() {
+  build_go
+  build_cdk
+  cdk_synth
+
+  sam local start-lambda \
+    --template cdk.out/wm.template.json \
+    --profile default \
+    --env-vars=misc/env.json \
+    || exit 1
+}
+
 local-api() {
   build_go
   build_cdk
@@ -55,6 +67,7 @@ insert-keys-to-dynamodb() {
     --env-vars=misc/env.json \
     || exit 1
 }
+
 get-keys() {
   build_go
   build_cdk
@@ -360,6 +373,12 @@ main() {
     then
       lint_go
     fi
+  elif [ "$1" == "start-lambda" ]
+  then
+    start-lambda
+  elif [ "$1" == "local-api" ]
+  then
+    local-api
   # invoking lambdas locally
   elif [ "$1" == "invoke" ]
   then
@@ -372,9 +391,6 @@ main() {
     elif [ "$2" == "get-keys-per-dungeon" ]
     then
       get-keys-per-dungeon
-    elif [ "$2" == "local-api" ]
-    then
-      local-api
     elif [ "$2" == "insert-keys-to-dynamodb" ]
     then
       insert-keys-to-dynamodb
