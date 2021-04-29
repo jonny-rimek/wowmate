@@ -582,7 +582,7 @@ jobs:
 
       - name: Run convert integration test
         run: |
-          cd services/upload/convert-integration-test/
+          cd services/upload/convert/integration-test/
           go run .
 
   deploy-prod:
