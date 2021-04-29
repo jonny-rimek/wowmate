@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS combatlogs (
 // https://mholt.github.io/json-to-go/ best tool EVER
 
 type logData struct {
-	CombatlogUUID      []string
+	CombatlogUUIDs     []string
 	UploadUUID         string
 	BucketName         string
 	ObjectKey          string
@@ -119,8 +119,12 @@ var snsSvc *sns.SNS
 var downloader *s3manager.Downloader
 var writeSvc *timestreamwrite.TimestreamWrite
 
+// I need an array of combatlog uuids for my integration test, because I need
+// a recently inserted combatlog uuid, because the timestream query only checks data
+// of the last 15minutes, so if I hardcode a combatlogUUID it would eventually result
+// in an empty query from timestream
 //goland:noinspection GoNilness
-func handler(ctx aws.Context, e golib.SQSEvent) error {
+func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
 	logData, err := handle(ctx, e)
 	if err != nil {
 		// create custom error types https://blog.golang.org/error-handling-and-go
@@ -134,7 +138,7 @@ func handler(ctx aws.Context, e golib.SQSEvent) error {
 		// )
 		// if err2 != nil {
 		// 	golib.CanonicalLog(map[string]interface{}{
-		// 		"combatlog_uuid":  logData.CombatlogUUID,
+		// 		"combatlog_uuid":  logData.CombatlogUUIDs,
 		// 		"file_size_in_kb": logData.FileSize,
 		// 		"file_type":       logData.FileType,
 		// 		"upload_uuid":     logData.UploadUUID,
@@ -149,7 +153,7 @@ func handler(ctx aws.Context, e golib.SQSEvent) error {
 		// 	return err
 		// }
 		golib.CanonicalLog(map[string]interface{}{
-			"combatlog_uuid":       logData.CombatlogUUID,
+			"combatlog_uuid":       logData.CombatlogUUIDs,
 			"file_size_in_kb":      logData.FileSize,
 			"file_type":            logData.FileType,
 			"upload_uuid":          logData.UploadUUID,
@@ -160,11 +164,11 @@ func handler(ctx aws.Context, e golib.SQSEvent) error {
 			"timestream_api_calls": logData.TimestreamAPICalls,
 			"event":                e,
 		})
-		return err
+		return logData.CombatlogUUIDs, err
 	}
 
 	golib.CanonicalLog(map[string]interface{}{
-		"combatlog_uuid":       logData.CombatlogUUID,
+		"combatlog_uuid":       logData.CombatlogUUIDs,
 		"file_size_in_kb":      logData.FileSize,
 		"file_type":            logData.FileType,
 		"upload_uuid":          logData.UploadUUID,
@@ -173,7 +177,7 @@ func handler(ctx aws.Context, e golib.SQSEvent) error {
 		"records":              logData.Records,
 		"timestream_api_calls": logData.TimestreamAPICalls,
 	})
-	return err
+	return logData.CombatlogUUIDs, nil
 }
 
 func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
@@ -290,7 +294,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	}
 
 	for combatlogUUID := range nestedRecord { // group by different keys
-		logData.CombatlogUUID = append(logData.CombatlogUUID, combatlogUUID)
+		logData.CombatlogUUIDs = append(logData.CombatlogUUIDs, combatlogUUID)
 		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
 		if err != nil {
 			return logData, err

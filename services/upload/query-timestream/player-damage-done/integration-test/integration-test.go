@@ -13,23 +13,42 @@ import (
 
 var lambdaSvc *lambdaService.Lambda
 
-func invokeConvert(local bool) error {
+func invokeQueryPlayerDamageDone(local bool) error {
 	var functionName string
 	var logType *string
 	var payload []byte
 	payload = nil
+	var combatlogUUID string
 
 	if local == true {
-		functionName = "" // TODO
+		functionName = "QueryPlayerDamageDoneLambda98AFC037"
 		logType = nil
-		payload = []byte(`
-		`) // TODO
+		combatlogUUID = "e408d5b8-2c98-43bc-9a38-83f4e3c94383"
+		// TODO: the result is probably empty because of the time predicate ago(15m) upload new log
+		// 	and test again, figure out a way to handle it locally and in ci
 	} else {
-		payload = []byte(`
-		`)
-		functionName = "" // TODO
+		combatlogUUID = "" // TODO
+		functionName = ""  // TODO
 		logType = aws.String(lambdaService.LogTypeTail)
 	}
+	payload = []byte(fmt.Sprintf(`
+		{
+		  "Records": [
+			{
+			  "Sns": {
+				"Subject": "unused",
+				"Message": "%s",
+				"MessageAttributes": {
+				  "Test": {
+					"Type": "unused",
+					"Value": "unused"
+				  }
+				}
+			  }
+			}
+		  ]
+		}
+		`, combatlogUUID))
 
 	input := &lambdaService.InvokeInput{
 		FunctionName:   &functionName,
@@ -86,12 +105,12 @@ func main() {
 		sess, err = session.NewSession()
 	}
 	if err != nil {
-		log.Println(err)
+		log.Printf("failed creating a session %s", err.Error())
 		os.Exit(1)
 	}
 	lambdaSvc = lambdaService.New(sess)
 
-	err = invokeConvert(local)
+	err = invokeQueryPlayerDamageDone(local)
 	if err != nil {
 		log.Printf("%s", err)
 		os.Exit(1)

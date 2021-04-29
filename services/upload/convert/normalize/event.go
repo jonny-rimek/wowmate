@@ -9,7 +9,7 @@ type Event struct {
 	//START_BASE_PARAMS
 	// UploadUUID     string
 	// Unsupported    bool //DEBUGGING PARAM
-	// CombatlogUUID  string
+	// CombatlogUUIDs  string
 	// BossFightUUID  string
 	MythicplusUUID string
 	// ColumnUUID     string
