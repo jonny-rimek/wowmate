@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -158,20 +159,24 @@ func invokeQueryPlayerDamageDone(combatlogUUID string, local bool) error {
 
 	return nil
 }
+
 func invokeInsertPlayerDamageDone(local bool) error {
 	log.Println("invoke insert player damage")
 	var functionName string
 	var logType *string
 
 	if local == true {
-		functionName = ""
+		functionName = "InsertPlayerDamageDoneToDynamodbLambda659E0DA7"
 		logType = nil
 	} else {
-		functionName = "" // TODO
+		functionName = "wm-preprod-InsertPlayerDamageDoneToDynamodbLambda6-1AULMHM0IL8N3"
 		logType = aws.String(lambda.LogTypeTail)
 	}
-	payload := []byte(fmt.Sprintf(`
-		`)) // TODO
+
+	payload, err := ioutil.ReadFile("insertPlayerDamageDoneToDynamodbEvent.json")
+	if err != nil {
+		return fmt.Errorf("failed reading the file: %s", err.Error())
+	}
 
 	input := &lambda.InvokeInput{
 		FunctionName:   &functionName,
@@ -181,7 +186,7 @@ func invokeInsertPlayerDamageDone(local bool) error {
 		// even if in aws it's called async via SNS
 		LogType: logType, // returns the log in the response
 	}
-	err := input.Validate()
+	err = input.Validate()
 	if err != nil {
 		return fmt.Errorf("validating the input failed: %s", err.Error())
 	}
@@ -242,6 +247,12 @@ func main() {
 	}
 
 	err = invokeQueryPlayerDamageDone(combatlogUUIDs[0], local)
+	if err != nil {
+		log.Printf("%s", err)
+		os.Exit(1)
+	}
+
+	err = invokeInsertPlayerDamageDone(local)
 	if err != nil {
 		log.Printf("%s", err)
 		os.Exit(1)

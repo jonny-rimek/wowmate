@@ -53,8 +53,8 @@ export class InsertResult extends cdk.Construct {
         //temp queue to get message content easily
 		//this is not the whole event one needs to invoke it locally only the SNS part
 		//long name so it's ez to find the temp queue^^
-		const q = new sqs.Queue(this, 'QQQQQQQQQQQQQQQQQQQQQQQ')
-		props.topic.addSubscription(new subs.SqsSubscription(q))
+		// const q = new sqs.Queue(this, 'QQQQQQQQQQQQQQQQQQQQQQQ')
+		// props.topic.addSubscription(new subs.SqsSubscription(q))
 
 		props.topic.addSubscription(new subs.LambdaSubscription(this.lambda, {
 			deadLetterQueue: props.topicDLQ,
