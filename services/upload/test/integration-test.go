@@ -53,44 +53,87 @@ func invokeConvert(local bool) ([]string, error) {
 			}
 		`, bucketName, objectKey))
 
-	input := &lambda.InvokeInput{
-		FunctionName:   &functionName,
-		Payload:        payload,
-		InvocationType: aws.String(lambda.InvocationTypeRequestResponse), // synchronous - default
-		LogType:        logType,                                          // returns the log in the response
-	}
-	err := input.Validate()
+	response, err := invokeLambda(local, functionName, payload, logType)
 	if err != nil {
-		return nil, fmt.Errorf("validating the input failed: %v", err)
-	}
-
-	resp, err := lambdaSvc.Invoke(input)
-	if err != nil {
-		return nil, fmt.Errorf("failed to invoke lambda: %v", err)
-	}
-
-	if local != true {
-		// log doesn't work locally
-		decodeString, err := base64.StdEncoding.DecodeString(*resp.LogResult)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decode the log: %v", err)
-		}
-		log.Printf("log result: %s", decodeString)
-	}
-
-	if resp.FunctionError != nil {
-		return nil, fmt.Errorf("lambda was invoked but returned error: %s", *resp.FunctionError)
+		return nil, err
 	}
 
 	// parse output and convert to string array
 	var r []string
-	err = json.Unmarshal(resp.Payload, &r)
+	err = json.Unmarshal(response, &r)
 	if err != nil {
 		return nil, err
 	}
 
 	log.Println("convert finished")
 	return r, nil
+}
+
+func invokeQueryKeys(combatlogUUID string, local bool) error {
+	log.Println("invoke query keys")
+	var functionName string
+	var logType *string
+
+	if local == true {
+		functionName = "QueryKeysLambda58DE9A2E"
+		logType = nil
+	} else {
+		functionName = "wm-preprod-QueryKeysLambda58DE9A2E-1BFBY8IVLR3BX"
+		logType = aws.String(lambda.LogTypeTail)
+	}
+	payload := []byte(fmt.Sprintf(`
+		{
+		  "Records": [
+			{
+			  "Sns": {
+				"Subject": "unused",
+				"Message": "%s",
+				"MessageAttributes": {
+				  "Test": {
+					"Type": "unused",
+					"Value": "unused"
+				  }
+				}
+			  }
+			}
+		  ]
+		}
+		`, combatlogUUID))
+
+	_, err := invokeLambda(local, functionName, payload, logType)
+	if err != nil {
+		return err
+	}
+	log.Println("query keys finished")
+
+	return nil
+}
+
+func invokeInsertKeys(local bool) error {
+	log.Println("invoke insert keys")
+	var functionName string
+	var logType *string
+
+	if local == true {
+		functionName = "InsertKeysToDynamodbLambda15825024"
+		logType = nil
+	} else {
+		functionName = "wm-preprod-InsertKeysToDynamodbLambda15825024-81XD2VFVV093"
+		logType = aws.String(lambda.LogTypeTail)
+	}
+
+	payload, err := ioutil.ReadFile("insertKeysToDynamodbEvent.json")
+	if err != nil {
+		return fmt.Errorf("failed reading the file: %s", err.Error())
+	}
+
+	_, err = invokeLambda(local, functionName, payload, logType)
+	if err != nil {
+		return err
+	}
+	log.Println("insert keys finished")
+
+	return nil
 }
 
 func invokeQueryPlayerDamageDone(combatlogUUID string, local bool) error {
@@ -124,36 +167,9 @@ func invokeQueryPlayerDamageDone(combatlogUUID string, local bool) error {
 		}
 		`, combatlogUUID))
 
-	input := &lambda.InvokeInput{
-		FunctionName:   &functionName,
-		Payload:        payload,
-		InvocationType: aws.String(lambda.InvocationTypeRequestResponse), // synchronous - default
-		// it needs to be synchronous so I can assert on the response if an error was returned or not
-		// even if in aws it's called async via SNS
-		LogType: logType, // returns the log in the response
-	}
-	err := input.Validate()
+	_, err := invokeLambda(local, functionName, payload, logType)
 	if err != nil {
-		return fmt.Errorf("validating the input failed: %s", err.Error())
-	}
-
-	resp, err := lambdaSvc.Invoke(input)
-	if err != nil {
-		return fmt.Errorf("failed to invoke lambda: %s", err.Error())
-	}
-	log.Printf("%s", resp.Payload)
-
-	if local != true {
-		// log doesn't work locally
-		decodeString, err := base64.StdEncoding.DecodeString(*resp.LogResult)
-		if err != nil {
-			return fmt.Errorf("failed to decode the log: %s", err.Error())
-		}
-		log.Printf("log result: %s", decodeString)
-	}
-
-	if resp.FunctionError != nil {
-		return fmt.Errorf("lambda was invoked but returned error: %s", *resp.FunctionError)
+		return err
 	}
 	log.Println("query player damage finished")
 
@@ -178,6 +194,16 @@ func invokeInsertPlayerDamageDone(local bool) error {
 		return fmt.Errorf("failed reading the file: %s", err.Error())
 	}
 
+	_, err = invokeLambda(local, functionName, payload, logType)
+	if err != nil {
+		return err
+	}
+	log.Println("insert player damage finished")
+
+	return nil
+}
+
+func invokeLambda(local bool, functionName string, payload []byte, logType *string) (responsePayload []byte, err error) {
 	input := &lambda.InvokeInput{
 		FunctionName:   &functionName,
 		Payload:        payload,
@@ -186,14 +212,15 @@ func invokeInsertPlayerDamageDone(local bool) error {
 		// even if in aws it's called async via SNS
 		LogType: logType, // returns the log in the response
 	}
+
 	err = input.Validate()
 	if err != nil {
-		return fmt.Errorf("validating the input failed: %s", err.Error())
+		return nil, fmt.Errorf("validating the input failed: %s", err.Error())
 	}
 
 	resp, err := lambdaSvc.Invoke(input)
 	if err != nil {
-		return fmt.Errorf("failed to invoke lambda: %s", err.Error())
+		return nil, fmt.Errorf("failed to invoke lambda: %s", err.Error())
 	}
 	log.Printf("%s", resp.Payload)
 
@@ -201,17 +228,15 @@ func invokeInsertPlayerDamageDone(local bool) error {
 		// log doesn't work locally
 		decodeString, err := base64.StdEncoding.DecodeString(*resp.LogResult)
 		if err != nil {
-			return fmt.Errorf("failed to decode the log: %s", err.Error())
+			return nil, fmt.Errorf("failed to decode the log: %s", err.Error())
 		}
 		log.Printf("log result: %s", decodeString)
 	}
 
 	if resp.FunctionError != nil {
-		return fmt.Errorf("lambda was invoked but returned error: %s", *resp.FunctionError)
+		return nil, fmt.Errorf("lambda was invoked but returned error: %s", *resp.FunctionError)
 	}
-	log.Println("query player damage finished")
-
-	return nil
+	return resp.Payload, nil
 }
 
 func main() {
@@ -242,19 +267,31 @@ func main() {
 
 	combatlogUUIDs, err := invokeConvert(local)
 	if err != nil {
-		log.Printf("%s", err)
-		os.Exit(1)
+		handleError(err)
+	}
+
+	err = invokeQueryKeys(combatlogUUIDs[0], local)
+	if err != nil {
+		handleError(err)
+	}
+
+	err = invokeInsertKeys(local)
+	if err != nil {
+		handleError(err)
 	}
 
 	err = invokeQueryPlayerDamageDone(combatlogUUIDs[0], local)
 	if err != nil {
-		log.Printf("%s", err)
-		os.Exit(1)
+		handleError(err)
 	}
 
 	err = invokeInsertPlayerDamageDone(local)
 	if err != nil {
-		log.Printf("%s", err)
-		os.Exit(1)
+		handleError(err)
 	}
+}
+
+func handleError(err error) {
+	log.Printf("%s", err)
+	os.Exit(1)
 }
