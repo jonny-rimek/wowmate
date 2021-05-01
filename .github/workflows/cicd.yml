@@ -438,8 +438,14 @@ jobs:
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
           configPath: misc/.lighthouserc.json
 
-  analyze-go:
+  analyze:
+    name: Analyze
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'go' ]
 
     steps:
       - name: Checkout repository
@@ -448,25 +454,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
         with:
-          languages: 'go'
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v1
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v1
-
-  analyze-js:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v1
-        with:
-          languages: 'javascript'
+          languages: ${{ matrix.language }}
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v1
@@ -506,8 +494,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - go-lint
-      - analyze-go
-      - analyze-js
+      - analyze
       - cfn-nag
       - setup-frontend-preprod
     steps:
