@@ -10,6 +10,7 @@ import { DynamoDB } from "./common/dynamodb";
 import { Buckets } from "./common/buckets";
 import { Cloudtrail } from "./common/cloudtrail";
 import { Timestream } from "./common/timestream";
+import { Synthetics } from "./synthetics/synthetics";
 
 interface Props extends StackProps {
 	hostedZoneId: string
@@ -158,5 +159,7 @@ export class Wowmate extends Stack {
 			queryPlayerDamageDoneTopic: queryPlayerDamageDone.topic,
 			errorMail: errorMail,
 		})
+
+		new Synthetics(this, 'Canary', {})
 	}
 }
