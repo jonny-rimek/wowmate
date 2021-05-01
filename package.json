@@ -50,6 +50,7 @@
     "@aws-cdk/aws-sns": "^1.91.0",
     "@aws-cdk/aws-stepfunctions": "^1.91.0",
     "@aws-cdk/aws-stepfunctions-tasks": "^1.91.0",
+    "@aws-cdk/aws-synthetics": "^1.101.0",
     "@aws-cdk/aws-timestream": "^1.91.0",
     "@aws-cdk/core": "^1.91.0",
     "@aws-cdk/pipelines": "^1.91.0",
