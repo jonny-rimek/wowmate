@@ -46,7 +46,18 @@ jobs:
           key: presign-${{ hashFiles('services/upload/package-lock.json') }}
           restore-keys: presign-
 
+      - name: Cache cdk npm dependencies
+        uses: actions/cache@v2
+        id: cdk-cache
+        with:
+          path: node_modules
+          key: cdk-${{ hashFiles('package-lock.json') }}
+
       # INSTALL:
+      - name: Install CDK
+        if: steps.cdk-cache.outputs.cache-hit != 'true'
+        run: ./wm.sh install cdk
+
       - name: Install go
         if: steps.go-cache.outputs.cache-hit != 'true'
         run: ./wm.sh install go
@@ -207,7 +218,6 @@ jobs:
         with:
           path: node_modules
           key: cdk-${{ hashFiles('package-lock.json') }}
-          restore-keys: cdk-
 
       - name: Cache go builds
         uses: actions/cache@v2
@@ -337,7 +347,6 @@ jobs:
         with:
           path: node_modules
           key: cdk-${{ hashFiles('package-lock.json') }}
-          restore-keys: cdk-
 
       - name: Cache go builds
         uses: actions/cache@v2
@@ -438,29 +447,29 @@ jobs:
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
           configPath: misc/.lighthouserc.json
 
-  analyze:
-    name: Analyze
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'go' ]
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v1
-        with:
-          languages: ${{ matrix.language }}
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v1
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v1
+#  analyze:
+#    name: Analyze
+#    runs-on: ubuntu-latest
+#
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        language: [ 'go' ]
+#
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v2
+#
+#      - name: Initialize CodeQL
+#        uses: github/codeql-action/init@v1
+#        with:
+#          languages: ${{ matrix.language }}
+#
+#      - name: Autobuild
+#        uses: github/codeql-action/autobuild@v1
+#
+#      - name: Perform CodeQL Analysis
+#        uses: github/codeql-action/analyze@v1
 
   go-lint:
     runs-on: ubuntu-latest
@@ -494,7 +503,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - go-lint
-      - analyze
       - cfn-nag
       - setup-frontend-preprod
     steps:
@@ -510,7 +518,6 @@ jobs:
         with:
           path: node_modules
           key: cdk-${{ hashFiles('package-lock.json') }}
-          restore-keys: cdk-
 
       - name: Cache go builds
         uses: actions/cache@v2
@@ -613,7 +620,6 @@ jobs:
         with:
           path: node_modules
           key: cdk-${{ hashFiles('package-lock.json') }}
-          restore-keys: cdk-
 
       - name: Fix file permissions
         run: chmod -R 755 dist
