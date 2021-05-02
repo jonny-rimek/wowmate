@@ -164,6 +164,7 @@ export class Wowmate extends Stack {
 		new Synthetics(this, 'Canary-',  {
 			errorMail: errorMail,
 			stage: props.stage,
+			apiUrl: api.api.url!,
 		})
 	}
 }

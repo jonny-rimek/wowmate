@@ -33,7 +33,7 @@ func main() {
 
 func startCanary() error {
 	_, err := svc.StartCanary(&synthetics.StartCanaryInput{
-		Name: aws.String("wmdevcanaryapi2f446b3"),
+		Name: aws.String("wmpreprodcanaryf2cb3d"),
 	})
 	if err != nil {
 		return err
