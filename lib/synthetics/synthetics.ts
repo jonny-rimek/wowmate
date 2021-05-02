@@ -23,7 +23,7 @@ export class Synthetics extends cdk.Construct {
             const log = require('SyntheticsLogger');
 
             const apiCanaryBlueprint = async function () {
-                // TODO: read agw v2 url from env var
+                const hostname = process.env.API_URL
                 
                 // Handle validation for positive scenario
                 const validateSuccessful = async function(res) {
@@ -47,7 +47,7 @@ export class Synthetics extends cdk.Construct {
 
                 // Set request option for Verify /combatlogs/keys
                 let requestOptionsStep1 = {
-                    hostname: 'bhu3zp80bh.execute-api.us-east-1.amazonaws.com',
+                    hostname: hostname,
                     method: 'GET',
                     path: '/combatlogs/keys',
                     port: '443',
@@ -71,7 +71,7 @@ export class Synthetics extends cdk.Construct {
 
                 // Set request option for Verify /presign/{filename}
                 let requestOptionsStep2 = {
-                    hostname: 'bhu3zp80bh.execute-api.us-east-1.amazonaws.com',
+                    hostname: hostname,
                     method: 'POST',
                     path: '/presign/test.txt',
                     port: '443',
@@ -95,7 +95,7 @@ export class Synthetics extends cdk.Construct {
 
                 // Set request option for Verify /combatlogs/keys/{dungeon_id}
                 let requestOptionsStep3 = {
-                    hostname: 'bhu3zp80bh.execute-api.us-east-1.amazonaws.com',
+                    hostname: hostname,
                     method: 'GET',
                     path: '/combatlogs/keys/2291',
                     port: '443',
@@ -119,7 +119,7 @@ export class Synthetics extends cdk.Construct {
 
                 // Set request option for Verify /combatlogs/keys/{combatlog_uuid}/player-damage-done
                 let requestOptionsStep4 = {
-                    hostname: 'bhu3zp80bh.execute-api.us-east-1.amazonaws.com',
+                    hostname: hostname,
                     method: 'GET',
                     path: '/combatlogs/keys/fff28fa9-10fb-4018-9486-c1a1f748862d/player-damage-done',
                     port: '443',
