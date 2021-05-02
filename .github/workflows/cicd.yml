@@ -502,8 +502,6 @@ jobs:
   deploy-preprod:
     runs-on: ubuntu-latest
     needs:
-      - go-lint
-      - cfn-nag
       - setup-frontend-preprod
     steps:
       - uses: actions/checkout@v2
@@ -576,7 +574,7 @@ jobs:
 
       - name: Run convert integration test
         run: |
-          cd services/upload/test/
+          cd services/test/upload-integration-test
           go run .
 
   deploy-prod:
@@ -586,6 +584,10 @@ jobs:
       - lighthouse-mythicplus
       - lambda-integration-test
       - setup-frontend-prod
+      - go-lint
+      - cfn-nag
+      - cdk-diff
+      - deploy-dev
     steps:
       - uses: actions/checkout@v2
 

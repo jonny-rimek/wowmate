@@ -10,6 +10,7 @@ new Wowmate(app, 'wm', {
 	hostedZoneName: "wowmate.io",
 	domainName: "wowmate.io",
 	apiDomainName: "api.wowmate.io",
+	stage: "prod",
 });
 
 new Wowmate(app, 'wm-dev', {
@@ -18,6 +19,7 @@ new Wowmate(app, 'wm-dev', {
 	hostedZoneName: "dev.wowmate.io",
 	domainName: "dev.wowmate.io",
 	apiDomainName: "api.dev.wowmate.io",
+	stage: "dev",
 });
 
 new Wowmate(app, 'wm-preprod', {
@@ -26,4 +28,5 @@ new Wowmate(app, 'wm-preprod', {
 	hostedZoneName: "preprod.wowmate.io",
 	domainName: "preprod.wowmate.io",
 	apiDomainName: "api.preprod.wowmate.io",
+	stage: "preprod",
 });

@@ -1,21 +1,23 @@
 import * as synthetics from '@aws-cdk/aws-synthetics';
+import { SnsAction } from '@aws-cdk/aws-cloudwatch-actions';
+import * as kms from "@aws-cdk/aws-kms";
+import sns = require('@aws-cdk/aws-sns');
+import * as subscriptions from '@aws-cdk/aws-sns-subscriptions';
 import * as iam from '@aws-cdk/aws-iam';
 import cdk = require('@aws-cdk/core');
 import cloudwatch = require('@aws-cdk/aws-cloudwatch');
 import s3 = require('@aws-cdk/aws-s3');
 
 interface Props extends cdk.StackProps {
+    errorMail: string
+    stage: string
 }
 
 export class Synthetics extends cdk.Construct {
 
     constructor(scope: cdk.Construct, id: string, props: Props) {
         super(scope, id)
-
-        const canary = new synthetics.Canary(this, 'Canary', {
-            schedule: synthetics.Schedule.rate(cdk.Duration.minutes(60)),
-            test: synthetics.Test.custom({
-                code: synthetics.Code.fromInline(`
+        const code = `
                     var synthetics = require('Synthetics');
                     const log = require('SyntheticsLogger');
 
@@ -141,11 +143,21 @@ export class Synthetics extends cdk.Construct {
                     exports.handler = async () => {
                         return await apiCanaryBlueprint();
                     };
+                `
 
-                    `),
-                handler: 'index.handler',
-            }),
+        let schedule = synthetics.Schedule.rate(cdk.Duration.minutes(5))
+        if (props.stage == "preprod" || props.stage == "dev") {
+            // u can't invoke the canary manually if it runs on a schedule and I don't need the canary in dev and preprod anyway
+            schedule = synthetics.Schedule.once()
+        }
+
+        const canary = new synthetics.Canary(this, 'API', {
+            schedule: schedule,
             runtime: synthetics.Runtime.SYNTHETICS_NODEJS_PUPPETEER_3_0,
+            test: synthetics.Test.custom({
+                handler: 'index.handler',
+                code: synthetics.Code.fromInline(code),
+            }),
         });
 
         const cfnBucket = canary.artifactsBucket.node.defaultChild as s3.CfnBucket
@@ -163,7 +175,6 @@ export class Synthetics extends cdk.Construct {
                 ]
             }
         }
-
         const cfnRole = canary.role.node.defaultChild as iam.CfnRole
         cfnRole.cfnOptions.metadata = {
             cfn_nag: {
@@ -176,13 +187,20 @@ export class Synthetics extends cdk.Construct {
             }
         }
 
+        const key = new kms.Key(this, 'SnsKmsKey', {
+        	enableKeyRotation: true,
+        })
+        const errorTopic = new sns.Topic(this, 'errorTopic', {
+        	masterKey: key
+        });
+        errorTopic.addSubscription(new subscriptions.EmailSubscription(props.errorMail));
+
         new cloudwatch.Alarm(this, 'CanaryAlarm', {
             metric: canary.metricSuccessPercent(),
             evaluationPeriods: 2,
             threshold: 100,
             comparisonOperator: cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
-        });
-        //addAlarmAction(new SnsAction(errorTopic))
+        }).addAlarmAction(new SnsAction(errorTopic))
 
 
     }

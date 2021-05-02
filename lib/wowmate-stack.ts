@@ -17,6 +17,7 @@ interface Props extends StackProps {
 	hostedZoneName: string
 	domainName: string
 	apiDomainName: string
+	stage: string
 }
 
 export class Wowmate extends Stack {
@@ -160,6 +161,9 @@ export class Wowmate extends Stack {
 			errorMail: errorMail,
 		})
 
-		new Synthetics(this, 'Canary', {})
+		new Synthetics(this, 'Canary-',  {
+			errorMail: errorMail,
+			stage: props.stage,
+		})
 	}
 }
