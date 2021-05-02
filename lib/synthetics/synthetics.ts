@@ -1,6 +1,8 @@
 import * as synthetics from '@aws-cdk/aws-synthetics';
+import * as iam from '@aws-cdk/aws-iam';
 import cdk = require('@aws-cdk/core');
 import cloudwatch = require('@aws-cdk/aws-cloudwatch');
+import s3 = require('@aws-cdk/aws-s3');
 
 interface Props extends cdk.StackProps {
 }
@@ -145,6 +147,34 @@ export class Synthetics extends cdk.Construct {
             }),
             runtime: synthetics.Runtime.SYNTHETICS_NODEJS_PUPPETEER_3_0,
         });
+
+        const cfnBucket = canary.artifactsBucket.node.defaultChild as s3.CfnBucket
+        cfnBucket.cfnOptions.metadata = {
+            cfn_nag: {
+                rules_to_suppress: [
+                    {
+                        id: 'W35',
+                        reason: "this is a canary bucket, so there is no point tracking access to it",
+                    },
+                    {
+                        id: 'W51',
+                        reason: "this is a canary bucket, it doesn't need a bucket policy",
+                    },
+                ]
+            }
+        }
+
+        const cfnRole = canary.role.node.defaultChild as iam.CfnRole
+        cfnRole.cfnOptions.metadata = {
+            cfn_nag: {
+                rules_to_suppress: [
+                    {
+                        id: 'W11',
+                        reason: "this is a CDK role #trust",
+                    },
+                ]
+            }
+        }
 
         new cloudwatch.Alarm(this, 'CanaryAlarm', {
             metric: canary.metricSuccessPercent(),
