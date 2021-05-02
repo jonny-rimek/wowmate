@@ -109,19 +109,22 @@ export class Synthetics extends cdk.Construct {
                 let stepConfig3 = {
                     includeRequestHeaders: false,
                     includeResponseHeaders: false,
-                    includeRequestBody: false,
+                    includeRequestBody: false, 
                     includeResponseBody: false,
                     restrictedHeaders: [],
                     continueOnHttpStepFailure: true
                 };
 
+                // TODO: XMLHttpRequest
+                // TODO: check response, must include body
                 await synthetics.executeHttpStep('Verify /combatlogs/keys/{dungeon_id}', requestOptionsStep3, validateSuccessful, stepConfig3);
-
+                
+                const combatlogUUID = getCombatlogUUID(hostname)
                 // Set request option for Verify /combatlogs/keys/{combatlog_uuid}/player-damage-done
                 let requestOptionsStep4 = {
                     hostname: hostname,
                     method: 'GET',
-                    path: '/combatlogs/keys/fff28fa9-10fb-4018-9486-c1a1f748862d/player-damage-done',
+                    path: '/combatlogs/keys/' + combatlogUUID,
                     port: '443',
                     protocol: 'https:',
                     body: "",
@@ -141,6 +144,20 @@ export class Synthetics extends cdk.Construct {
 
                 await synthetics.executeHttpStep('Verify /combatlogs/keys/{combatlog_uuid}/player-damage-done', requestOptionsStep4, validateSuccessful, stepConfig4);
             };
+            
+            // neither fetch or XMLHttpRequest works and I can't install packages with inline code
+            function getCombatlogUUID(apiUrl) {
+                if (process.env.STAGE === "prod") {
+                    return "ac18f293-e573-4994-8745-2a291d12bf9a"
+                }
+                return "2ac44ef5-d053-4232-881e-c8c21300ec4f"
+                // let url = "https://" + apiUrl + "/combatlogs/keys"
+                // let xmlHttp = new XMLHttpRequest()
+                // xmlHttp.open( "GET", url, false ) // false for synchronous request
+                // xmlHttp.send( null )
+                // const resp = JSON.parse(xmlHttp.responseText)
+                // return resp.data[0].combatlog_uuid
+            }
 
             exports.handler = async () => {
                 return await apiCanaryBlueprint();
@@ -149,7 +166,7 @@ export class Synthetics extends cdk.Construct {
 
         let schedule = synthetics.Schedule.rate(cdk.Duration.minutes(5))
         if (props.stage == "preprod" || props.stage == "dev") {
-            // u can't invoke the canary manually if it runs on a schedule and I don't need the canary in dev and preprod anyway
+            // u can't invoke the canary manually if it runs on a schedule and I don't need the canary on a schedule in dev and preprod anyway
             schedule = synthetics.Schedule.once()
         }
 
@@ -163,7 +180,8 @@ export class Synthetics extends cdk.Construct {
         });
         const cfnCanary = canary.node.defaultChild as synthetics.CfnCanary
         cfnCanary.addPropertyOverride('RunConfig.EnvironmentVariables', {
-            API_URL: props.apiUrl.replace('https://','').replace('/','')
+            API_URL: props.apiUrl.replace('https://','').replace('/',''),
+            STAGE: props.stage,
         })
 
         const cfnBucket = canary.artifactsBucket.node.defaultChild as s3.CfnBucket
