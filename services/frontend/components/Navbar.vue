@@ -45,6 +45,7 @@
                 prefetch=true
                 link="mythicplus"
                 class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5"
+                data-cy='mythicplus'
               >
                 Mythic+
               </NavbarLink>

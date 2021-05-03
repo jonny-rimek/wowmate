@@ -478,7 +478,7 @@ jobs:
         uses: cypress-io/github-action@v2
         with:
           working-directory: services/frontend
-          config: baseUrl=https://preprod.wowmate.io
+          config-file: cypress-ci.json
           browser: chrome
           record: true
         env:
@@ -497,7 +497,7 @@ jobs:
         uses: cypress-io/github-action@v2
         with:
           working-directory: services/frontend
-          config: baseUrl=https://preprod.wowmate.io
+          config-file: cypress-ci.json
           browser: firefox
           record: true
         env:
