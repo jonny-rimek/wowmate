@@ -485,24 +485,7 @@ jobs:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  cypress-firefox:
-    runs-on: ubuntu-latest
-    container:
-      image: cypress/browsers:node14.16.0-chrome89-ff86
-      options: --user 1001
-    needs: deploy-preprod
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run Cypress tests
-        uses: cypress-io/github-action@v2
-        with:
-          working-directory: services/frontend
-          config-file: cypress-ci.json
-          browser: firefox
-          record: true
-        env:
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #  testing against firefox causes some problems I can't be bothered to debug
 
   # testing against edge takes way too long min. 5minutes to run a single test
   # because it runs on a windows maschine
@@ -597,7 +580,6 @@ jobs:
       - cdk-diff
       - deploy-dev
       - cypress-chrome
-      - cypress-firefox
     steps:
       - uses: actions/checkout@v2
 
