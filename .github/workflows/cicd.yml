@@ -360,37 +360,6 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: ./wm.sh diff prod
 
-  lighthouse-landingpage:
-    runs-on: ubuntu-latest
-    needs: deploy-preprod
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Audit Preprod Landingpgage
-        uses: treosh/lighthouse-ci-action@v7
-        with:
-          urls: https://preprod.wowmate.io/
-          budgetPath: ./misc/budget.json # test performance budgets
-          uploadArtifacts: true # save results as an action artifacts
-          temporaryPublicStorage: true # upload lighthouse report to the temporary storage
-          configPath: misc/.lighthouserc.json
-
-  lighthouse-mythicplus:
-    runs-on: ubuntu-latest
-    needs: deploy-preprod
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Audit Mythicplus page
-        if: steps.extract-branch.outputs.branch != 'prod'
-        uses: treosh/lighthouse-ci-action@v7
-        with:
-          urls: https://preprod.wowmate.io/mythicplus
-          budgetPath: ./misc/budget-mythicplus.json # test performance budgets
-          uploadArtifacts: true # save results as an action artifacts
-          temporaryPublicStorage: true # upload lighthouse report to the temporary storage
-          configPath: misc/.lighthouserc.json
-
 
 #  analyze:
 #    name: Analyze
@@ -448,6 +417,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - setup-frontend-preprod
+      - setup-go
     steps:
       - uses: actions/checkout@v2
 
@@ -498,6 +468,49 @@ jobs:
 
       - name: Deploy to preprod
         run: ./wm.sh deploy preprod
+
+  cypress:
+    runs-on: ubuntu-latest
+    needs: deploy-preprod
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v2
+        with:
+          working-directory: services/frontend
+          config: baseUrl=https://preprod.wowmate.io
+
+  lighthouse-landingpage:
+    runs-on: ubuntu-latest
+    needs: deploy-preprod
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Audit Preprod Landingpgage
+        uses: treosh/lighthouse-ci-action@v7
+        with:
+          urls: https://preprod.wowmate.io/
+          budgetPath: ./misc/budget.json # test performance budgets
+          uploadArtifacts: true # save results as an action artifacts
+          temporaryPublicStorage: true # upload lighthouse report to the temporary storage
+          configPath: misc/.lighthouserc.json
+
+  lighthouse-mythicplus:
+    runs-on: ubuntu-latest
+    needs: deploy-preprod
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Audit Mythicplus page
+        if: steps.extract-branch.outputs.branch != 'prod'
+        uses: treosh/lighthouse-ci-action@v7
+        with:
+          urls: https://preprod.wowmate.io/mythicplus
+          budgetPath: ./misc/budget-mythicplus.json # test performance budgets
+          uploadArtifacts: true # save results as an action artifacts
+          temporaryPublicStorage: true # upload lighthouse report to the temporary storage
+          configPath: misc/.lighthouserc.json
 
   api-tests:
     runs-on: ubuntu-latest
