@@ -24,6 +24,7 @@
     "@nuxtjs/tailwindcss": "^4.0.1",
     "@vue/test-utils": "^1.0.0-beta.27",
     "babel-jest": "^24.1.0",
+    "cypress": "^7.2.0",
     "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-prettier": "^3.1.2",
     "jest": "^24.1.0",

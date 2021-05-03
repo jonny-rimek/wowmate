@@ -45,6 +45,7 @@
                 prefetch=true
                 link="mythicplus"
                 class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5"
+                data-cy='mythicplus'
               >
                 Mythic+
               </NavbarLink>
@@ -104,6 +105,7 @@
           >
             <button
               class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 focus:outline-none focus:bg-gray-500 transition duration-150 ease-in-out"
+              data-cy='mobile-menu-btn'
             >
               <!-- Icon when menu is closed. -->
               <!-- Menu open: "hidden", Menu closed: "block" -->
@@ -141,16 +143,20 @@
       </div>
 
       <!--MOBILE MENU-->
-      <div :class="mobileMenu ? 'block' : 'hidden'" class="lg:hidden">
+      <div
+        :class="mobileMenu ? 'block' : 'hidden'"
+        class="lg:hidden"
+        data-cy='mobile-menu'
+      >
         <div class="pt-2 pb-3">
-          <MobileNavbarLink link="mythicplus-mobile">
+          <MobileNavbarLink link="mythicplus-mobile" data-cy='mythicplus-mobile'>
             Mythic+
             <!--TODO: Add all m+ links and expand on click, add overall option  -->
           </MobileNavbarLink>
-          <MobileNavbarLink link="news">
+          <MobileNavbarLink link="news" data-cy='news'>
             News
           </MobileNavbarLink>
-          <MobileNavbarLink link="upload">
+          <MobileNavbarLink link="upload" data-cy='upload'>
             Upload
           </MobileNavbarLink>
         </div>

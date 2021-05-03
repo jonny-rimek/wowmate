@@ -1,0 +1,7 @@
+{
+  "baseUrl": "http://localhost:3003",
+  "projectId": "b4nvt5",
+  "chromeWebSecurity": false,
+  "viewportWidth": 375,
+  "viewportHeight": 667
+}

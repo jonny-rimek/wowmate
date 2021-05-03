@@ -115,7 +115,9 @@
                       name: 'mythicplus-log-id-damage',
                       params: { id: log.combatlog_uuid }
                     }"
-                  class="text-2xl text-red-600 hover:text-red-800"
+                    class="text-2xl text-red-600 hover:text-red-800"
+                    data-cy='log'
+
                   >
                     > <!-- TODO: replace with icon^^ -->
                   </nuxt-link>
@@ -133,6 +135,7 @@
               :prefetch="false"
               active-class=""
               class="relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200"
+              data-cy='prev'
             >
               Previous
             </nuxt-link>
@@ -142,6 +145,7 @@
               :prefetch="false"
               active-class=""
               class="ml-3 relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md border-gray-300 text-gray-700 bg-gray-100 hover:bg-gray-200"
+              data-cy='next'
             >
               Next
             </nuxt-link>
