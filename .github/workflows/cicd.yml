@@ -194,7 +194,7 @@ jobs:
       # FRONTEND
       - name: Build frontend
 #        env:
-#          NUXT_ENV: preprod
+#          NUXT_ENV: prod
 #         no env var defaults to api.wowmate.io
         run: ./wm.sh build frontend
 
@@ -239,23 +239,7 @@ jobs:
       - name: Synthezise CDK to CFN
         run: ./wm.sh synth
 
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract-branch
-
-      - name: Check cfn bestpractices with cfn_nag for dev
-        if: steps.extract-branch.outputs.branch != 'prod'
-        uses: stelligent/cfn_nag@master
-        with:
-          input_path: cdk.out/wm-dev.template.json
-          extra_args: |
-            --print-suppression
-            --blacklist-path misc/cfn-nag-blacklist.yml
-            --fail-on-warnings
-
       - name: Check cfn bestpractices with cfn_nag for prod
-        if: steps.extract-branch.outputs.branch == 'prod'
         uses: stelligent/cfn_nag@master
         with:
           input_path: cdk.out/wm.template.json
@@ -310,11 +294,6 @@ jobs:
       - name: Compile CDK typescript
         run: ./wm.sh build cdk
 
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract-branch
-
       - name: Configure AWS dev credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -322,9 +301,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-        # DEPLOY TO dev if branch != prod
       - name: Deploy to dev
-        if: steps.extract-branch.outputs.branch != 'prod'
         env:
           CDK_STACK: ${{ steps.cdk-stack.outputs.stack }}
         run: ./wm.sh deploy dev
@@ -389,24 +366,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract-branch
-
-      - name: Audit Dev Landingpgage
-        if: steps.extract-branch.outputs.branch != 'prod'
-        uses: treosh/lighthouse-ci-action@v7
-        with:
-          urls: |
-            https://dev.wowmate.io/
-          budgetPath: ./misc/budget.json # test performance budgets
-          uploadArtifacts: true # save results as an action artifacts
-          temporaryPublicStorage: true # upload lighthouse report to the temporary storage
-          configPath: misc/.lighthouserc.json
-
-      - name: Audit Prod Landingpgage
-        if: steps.extract-branch.outputs.branch != 'prod'
+      - name: Audit Preprod Landingpgage
         uses: treosh/lighthouse-ci-action@v7
         with:
           urls: https://preprod.wowmate.io/
@@ -421,11 +381,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract-branch
-
       - name: Audit Mythicplus page
         if: steps.extract-branch.outputs.branch != 'prod'
         uses: treosh/lighthouse-ci-action@v7
@@ -436,16 +391,6 @@ jobs:
           temporaryPublicStorage: true # upload lighthouse report to the temporary storage
           configPath: misc/.lighthouserc.json
 
-      - name: Audit Mythicplus page
-        if: steps.extract-branch.outputs.branch != 'prod'
-        uses: treosh/lighthouse-ci-action@v7
-        with:
-          urls: |
-            https://wowmate.io/mythicplus
-          budgetPath: ./misc/budget-mythicplus.json # test performance budgets
-          uploadArtifacts: true # save results as an action artifacts
-          temporaryPublicStorage: true # upload lighthouse report to the temporary storage
-          configPath: misc/.lighthouserc.json
 
 #  analyze:
 #    name: Analyze
@@ -641,7 +586,6 @@ jobs:
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract-branch
 
-      # TODO: only deploy on prod branch
       - name: Deploy to prod
         if: steps.extract-branch.outputs.branch == 'prod'
         run: ./wm.sh deploy prod
