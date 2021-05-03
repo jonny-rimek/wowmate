@@ -131,7 +131,7 @@ func paginatedQuery(input paginatedQueryInput) (paginatedQueryOutput, error) {
 			TableName:                 input.ddbTableName,
 			ScanIndexForward:          aws.Bool(false),
 			ReturnConsumedCapacity:    aws.String("TOTAL"),
-			Limit:                     aws.Int64(20 + 1),
+			Limit:                     aws.Int64(10 + 1),
 		},
 		sortAscending: false,
 		firstPage:     true,

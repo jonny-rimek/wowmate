@@ -478,9 +478,12 @@ jobs:
         uses: cypress-io/github-action@v2
         with:
           working-directory: services/frontend
-          # TODO record in dashboard
           config: baseUrl=https://preprod.wowmate.io
           browser: chrome
+          record: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   cypress-firefox:
     runs-on: ubuntu-latest
@@ -496,18 +499,13 @@ jobs:
           working-directory: services/frontend
           config: baseUrl=https://preprod.wowmate.io
           browser: firefox
+          record: true
+        env:
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  cypress-edge:
-    runs-on: windows-latest
-    needs: deploy-preprod
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run Cypress tests
-        uses: cypress-io/github-action@v2
-        with:
-          working-directory: services/frontend
-          config: baseUrl=https://preprod.wowmate.io
-          browser: edge
+  # testing against edge takes way too long min. 5minutes to run a single test
+  # because it runs on a windows maschine
 
   lighthouse-landingpage:
     runs-on: ubuntu-latest
@@ -600,7 +598,6 @@ jobs:
       - deploy-dev
       - cypress-chrome
       - cypress-firefox
-      - cypress-edge
     steps:
       - uses: actions/checkout@v2
 
