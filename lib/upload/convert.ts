@@ -80,13 +80,14 @@ export class Convert extends cdk.Construct {
 			// of the lambda the max memory increases.
 			// e.g. first invoke 1535MB max memory, second 2238MB
             // probably my goroutines that write to timestream leak memory
-			memorySize: 3584, //exactly 2 core
+			memorySize: 2500, //should be enough even with the memory leak
+			// memorySize: 3584, //exactly 2 core
 			// memorySize: 1792, //exactly 1 core
 			timeout: cdk.Duration.seconds(150),
 			// timestream write api has some sort of cold start, where at the beginning
 			// it's super slow, that's why the max duration needs to be way higher than
 			// the median duration
-			// for my example log the cold start is around 120sec and warm is ~40sec
+			// for my example log the cold start is around 120sec and warm is 25-40sec
 			environment: {
 				TOPIC_ARN: topic.topicArn,
 				...props.envVars,
