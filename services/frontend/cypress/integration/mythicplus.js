@@ -1,27 +1,52 @@
-describe('Mythicplus Page', () => {
+describe('Mythicplus Page - Desktop', () => {
   context('1080p resolution', () => {
     beforeEach(() => {
-      // run these tests as if in a desktop
-      // browser with a 720p monitor
       cy.viewport(1920, 1080)
     })
 
-    it('should visit the home page', () => {
+    it('is able to paginate', () => {
       cy.visit('/')
+      cy.get('[data-cy=mythicplus]').click()
+      cy.get('[data-cy=prev]').should('not.exist')
+      cy.get('[data-cy=next]').should('exist').click()
+      cy.get('[data-cy=prev]').should('exist').click()
+      cy.get('[data-cy=prev]').should('not.exist')
     })
 
-    it('should be able to navigate to m+ page', () => {
-      cy.get('[data-cy=mythicplus]').click()
+    it('can check a logs for a specific dungeon', () => {
+      cy.visit('/mythicplus')
+      cy.get('[data-cy=dungeon]').first().click()
+      cy.get('[data-cy=log]').first().click()
     })
-    /*
-      - no previous button
-      - next button
-      - click next
-      - previous btn exists
-      - click prev
-      - prev gone again
-      - go other side
-      - click first log
-     */
+
+  })
+})
+
+describe('Mythicplus Page - Mobile', () => {
+  // default viewport - iphone 8
+
+  it('is able to click away the mobile menu', () => {
+    cy.visit('/')
+    cy.get('[data-cy=mobile-menu]').should('not.be.visible')
+    cy.get('[data-cy=mobile-menu-btn]').click()
+    cy.get('[data-cy=mobile-menu]').should('be.visible')
+    cy.get('h2').click()
+    cy.get('[data-cy=mobile-menu]').should('not.be.visible')
+  })
+
+  it('is able to paginate', () => {
+    cy.visit('/')
+    cy.get('[data-cy=mobile-menu-btn]').click()
+    cy.get('[data-cy=mythicplus-mobile]').click()
+    cy.get('[data-cy=dungeon-mobile]').first().click()
+    cy.get('[data-cy=prev]').should('not.exist')
+    cy.get('[data-cy=next]').should('exist').click({ force: true})
+    cy.get('[data-cy=prev]').should('exist').click({ force: true})
+    cy.get('[data-cy=prev]').should('not.exist')
+  })
+
+  it('can check a logs for a specific dungeon', () => {
+    cy.visit('/mythicplus')
+    cy.get('[data-cy=log]').first().click()
   })
 })

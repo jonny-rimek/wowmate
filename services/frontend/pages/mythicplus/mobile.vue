@@ -5,6 +5,7 @@
       :param="item.id"
       :pathName="item.pathName"
       :key="item.id"
+      data-cy='dungeon-mobile'
     >
       {{ item.name }}
     </SidebarLink>
