@@ -9,6 +9,24 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
+// DynamoDBGetItem gets a single item from dynamodb and always returns consumed capacity
+func DynamoDBGetItem(ctx aws.Context, svc *dynamodb.DynamoDB, input *dynamodb.GetItemInput) (*dynamodb.GetItemOutput, error) {
+	var result *dynamodb.GetItemOutput
+	var err error
+
+	input.ReturnConsumedCapacity = aws.String("TOTAL")
+
+	if os.Getenv("LOCAL") == "true" {
+		result, err = svc.GetItem(input)
+	} else {
+		result, err = svc.GetItemWithContext(ctx, input)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return result, err
+}
+
 // DynamoDBPutItem writes a single item to dynamodb and always returns consumed capacity
 func DynamoDBPutItem(ctx aws.Context, svc *dynamodb.DynamoDB, ddbTableName *string, record interface{}) (*dynamodb.PutItemOutput, error) {
 	av, err := dynamodbattribute.MarshalMap(record)

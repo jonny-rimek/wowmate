@@ -59,8 +59,6 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 	}
 	logData.CombatlogUUID = combatlogUUID
 
-	var result *dynamodb.GetItemOutput
-
 	input := &dynamodb.GetItemInput{
 		TableName: &ddbTableName,
 		Key: map[string]*dynamodb.AttributeValue{
@@ -74,15 +72,11 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 		ReturnConsumedCapacity: aws.String("TOTAL"),
 	}
 
-	if os.Getenv("LOCAL") == "true" {
-		result, err = svc.GetItem(input)
-	} else {
-		result, err = svc.GetItemWithContext(ctx, input)
-	}
+	result, err := golib.DynamoDBGetItem(ctx, svc, input)
 	if err != nil {
 		return golib.AGW500(), logData, err
 	}
-	logData.Rcu = *result.ConsumedCapacity.CapacityUnits //
+	logData.Rcu = *result.ConsumedCapacity.CapacityUnits
 
 	// check if query from dynamodb is empty and return 404
 	if result.Item == nil {

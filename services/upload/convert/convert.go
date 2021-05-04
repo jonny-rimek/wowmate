@@ -254,6 +254,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	if err != nil {
 		return logData, fmt.Errorf("normalizing failed: %v", err)
 	}
+	// deduplication doesn't have a noticeable impact on performance or memory usage!
 	for combatlogUUID, record := range dedup {
 		hash, err := hashstructure.Hash(record, hashstructure.FormatV2, nil)
 		if err != nil {
@@ -263,7 +264,16 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		log.Println(combatlogUUID)
 		log.Println(hash)
 		log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
 	}
+	/*
+		TODO:
+			- move GetItem code from per log dmg api call to golib
+			- ddb GetItem for existing hash pk and sk DEDUP#HASHVALUE + combatloguuid
+			- write to ddb if not exist
+			- save duplicate combatlogUUIDs
+			- skip timestream write and sns publish for duplicate combatlogUUIDs
+	*/
 
 	// return logData, nil
 
