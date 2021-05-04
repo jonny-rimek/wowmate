@@ -38,7 +38,7 @@ export class Convert extends cdk.Construct {
 				//maxReceiveCount: 3,
 				maxReceiveCount: 1, //no need during dev
 			},
-			visibilityTimeout: cdk.Duration.minutes(5*6), //6x lambda duration, it's an aws best practice
+			visibilityTimeout: cdk.Duration.seconds(150*6), //6x lambda duration, it's an aws best practice
 			// encryption: sqs.QueueEncryption.KMS_MANAGED,
 		});
 		const cfnQueue = this.queue.node.defaultChild as sqs.CfnQueue
@@ -79,13 +79,14 @@ export class Convert extends cdk.Construct {
 			// with a file limit of 450MB uncompressed 1792 would be enough, but on repeated invokes
 			// of the lambda the max memory increases.
 			// e.g. first invoke 1535MB max memory, second 2238MB
-            // probably my goroutines that write to timestream leak memory
+			// I'm not sure what the reason is, I'll leave it at two cores for now!
 			memorySize: 3584, //exactly 2 core
 			// memorySize: 1792, //exactly 1 core
-			timeout: cdk.Duration.minutes(5),
+			timeout: cdk.Duration.seconds(150),
 			// timestream write api has some sort of cold start, where at the beginning
 			// it's super slow, that's why the max duration needs to be way higher than
 			// the median duration
+			// for my example log the cold start is around 120sec and warm is 25-40sec
 			environment: {
 				TOPIC_ARN: topic.topicArn,
 				...props.envVars,
