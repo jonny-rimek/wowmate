@@ -254,18 +254,19 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	if err != nil {
 		return logData, fmt.Errorf("normalizing failed: %v", err)
 	}
-
-	hash, err := hashstructure.Hash(dedup, hashstructure.FormatV2, nil)
-	if err != nil {
-		return logData, fmt.Errorf("failed to hash: %v", err.Error())
+	for combatlogUUID, record := range dedup {
+		hash, err := hashstructure.Hash(record, hashstructure.FormatV2, nil)
+		if err != nil {
+			return logData, fmt.Errorf("failed to hash: %v", err.Error())
+		}
+		log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+		log.Println(combatlogUUID)
+		log.Println(hash)
+		log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 	}
-	log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	log.Println(hash)
-	log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-	log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
-	return logData, nil
+	// return logData, nil
+
 	// can process single key log files with 26MB size and 1792 MB memory lambda in ~3sec once timestream is warm
 	maxGoroutines := 15
 	var ch = make(chan *timestreamwrite.WriteRecordsInput, 300) // This number 200 can be anything as long as it's larger than maxGoroutines

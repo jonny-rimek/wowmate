@@ -10,11 +10,11 @@ import (
 
 // Normalize converts the combatlog to a slice of Event structs
 // TODO: rename, we are not really normalizing the data anymore, because I'm not using a relational database anymore
-func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string][]*timestreamwrite.WriteRecordsInput, [][]string, error) {
+func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string][]*timestreamwrite.WriteRecordsInput, map[string][]string, error) {
 	var combatlogUUID string
-	var dedup [][]string
 
 	rec := make(map[string]map[string][]*timestreamwrite.WriteRecordsInput)
+	dedup := make(map[string][]string)
 
 	pets := make(map[string]pet)
 
@@ -103,6 +103,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 			if err != nil {
 				return nil, nil, err
 			}
+			dedup[combatlogUUID] = append(dedup[combatlogUUID], params...)
 
 		case "SPELL_SUMMON":
 			err := summon(params, &uploadUUID, &combatlogUUID, rec, pets)
@@ -115,7 +116,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 			// if err != nil {
 			// 	return nil, nil, fmt.Errorf("failed to hash combat info: %v", err.Error())
 			// }
-			dedup = append(dedup, params)
+			dedup[combatlogUUID] = append(dedup[combatlogUUID], params...)
 
 		default:
 			// e.Unsupported = true
