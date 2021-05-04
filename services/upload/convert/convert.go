@@ -327,9 +327,9 @@ func readFileTypes(fileType string, fileContent *aws.WriteAtBuffer) ([]byte, err
 			return nil, err
 		}
 
-		for i, zipFile := range zipReader.File {
-			log.Printf("zip loop i = %v", i)
-			fmt.Println("Reading file:", zipFile.Name)
+		for _, zipFile := range zipReader.File {
+			// log.Printf("zip loop i = %v", i)
+			// log.Println("Reading file:", zipFile.Name)
 			unzippedFileBytes, err := readZipFile(zipFile)
 			if err != nil {
 				return nil, err
