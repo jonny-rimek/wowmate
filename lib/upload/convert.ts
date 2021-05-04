@@ -87,6 +87,7 @@ export class Convert extends cdk.Construct {
 			// it's super slow, that's why the max duration needs to be way higher than
 			// the median duration
 			// for my example log the cold start is around 120sec and warm is 25-40sec
+			// synchronously making all the timestream api calls takes always around 120sec, 4-5x longer
 			environment: {
 				TOPIC_ARN: topic.topicArn,
 				...props.envVars,

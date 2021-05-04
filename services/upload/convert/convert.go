@@ -25,6 +25,7 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/aws/aws-xray-sdk-go/xraylog"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
+	"github.com/mitchellh/hashstructure/v2"
 	"golang.org/x/net/http2"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -249,11 +250,22 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	s := bufio.NewScanner(bytes.NewReader(data))
 
-	nestedRecord, err := normalize.Normalize(s, uploadUUID)
+	nestedRecord, dedup, err := normalize.Normalize(s, uploadUUID)
 	if err != nil {
 		return logData, fmt.Errorf("normalizing failed: %v", err)
 	}
 
+	hash, err := hashstructure.Hash(dedup, hashstructure.FormatV2, nil)
+	if err != nil {
+		return logData, fmt.Errorf("failed to hash: %v", err.Error())
+	}
+	log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	log.Println(hash)
+	log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
+	return logData, nil
 	// can process single key log files with 26MB size and 1792 MB memory lambda in ~3sec once timestream is warm
 	maxGoroutines := 15
 	var ch = make(chan *timestreamwrite.WriteRecordsInput, 300) // This number 200 can be anything as long as it's larger than maxGoroutines
