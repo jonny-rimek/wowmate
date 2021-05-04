@@ -123,7 +123,8 @@ export class Wowmate extends Stack {
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
 				LOCAL: "false",
-			}
+			},
+			dynamodb: dynamoDB.table,
 		});
 
 		new ApiFrontendDashboard(this, 'UserFacing-', {

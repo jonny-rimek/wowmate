@@ -49,8 +49,7 @@ func handle(ctx aws.Context, request events.APIGatewayV2HTTPRequest) (events.API
 	var logData logData
 	ddbTableName := os.Getenv("DYNAMODB_TABLE_NAME")
 	if ddbTableName == "" {
-		return golib.AGW500(),
-			logData, fmt.Errorf("failed dynamodb table name env var is empty")
+		return golib.AGW500(), logData, fmt.Errorf("failed dynamodb table name env var is empty")
 	}
 
 	combatlogUUID, err := checkInput(request.PathParameters)

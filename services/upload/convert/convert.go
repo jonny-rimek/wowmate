@@ -18,6 +18,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/sns"
@@ -46,14 +47,14 @@ CREATE TABLE IF NOT EXISTS combatlogs (
   advanced_log_enabled int,
   dungeon_name VARCHAR,
   dungeon_id int,
-  key_unkown_1 int,
+  key_unknown_1 int,
   key_level int,
   key_array VARCHAR,
   key_duration bigint,
   encounter_id int,
   encounter_name VARCHAR,
-  encounter_unkown_1 int,
-  encounter_unkown_2 int,
+  encounter_unknown_1 int,
+  encounter_unknown_2 int,
   killed int,
   caster_id VARCHAR,
   caster_name VARCHAR,
@@ -113,12 +114,14 @@ type logData struct {
 	FileSize           int
 	Records            int
 	TimestreamAPICalls int
+	// TODO: wcu and rcu
 }
 
 var s3Svc *s3.S3
 var snsSvc *sns.SNS
 var downloader *s3manager.Downloader
 var writeSvc *timestreamwrite.TimestreamWrite
+var dynamodbSvc *dynamodb.DynamoDB
 
 // I need an array of combatlog uuids for my integration test, because I need
 // a recently inserted combatlog uuid, because the timestream query only checks data
@@ -187,6 +190,11 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	topicArn := os.Getenv("TOPIC_ARN") // +deploy trigger
 	if topicArn == "" {
 		return logData, fmt.Errorf("arn topic env var is empty")
+	}
+
+	ddbTableName := os.Getenv("DYNAMODB_TABLE_NAME")
+	if ddbTableName == "" {
+		return logData, fmt.Errorf("dynamodb table name env var is empty")
 	}
 
 	if len(e.Records) != 1 {
@@ -264,6 +272,23 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		log.Println(combatlogUUID)
 		log.Println(hash)
 		log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
+		input := &dynamodb.GetItemInput{
+			TableName: &ddbTableName,
+			Key: map[string]*dynamodb.AttributeValue{
+				"pk": {
+					S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
+				},
+				"sk": {
+					S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
+				},
+			},
+			ReturnConsumedCapacity: aws.String("TOTAL"),
+		}
+		_, err = golib.DynamoDBGetItem(ctx, dynamodbSvc, input)
+		if err != nil {
+			return logData, err
+		}
 
 	}
 	/*
@@ -424,8 +449,8 @@ func main() {
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
 			KeepAlive: 30 * time.Second,
-			DualStack: true,
-			Timeout:   30 * time.Second,
+			// DualStack: true, // deprecated
+			Timeout: 30 * time.Second,
 		}).DialContext,
 		MaxIdleConns:          100,
 		IdleConnTimeout:       90 * time.Second,
@@ -471,10 +496,11 @@ func main() {
 	}
 
 	writeSvc = timestreamwrite.New(sess)
-
 	if os.Getenv("LOCAL") == "false" {
 		xray.AWS(writeSvc.Client)
 	}
+
+	dynamodbSvc = dynamodb.New(sess)
 	// the aws docs recommend to set custom http settings see here:
 	// https://docs.aws.amazon.com/timestream/latest/developerguide/code-samples.write-client.html
 	// I'm choosing to ignore them and go with default, I'll observer if it leads to any problems

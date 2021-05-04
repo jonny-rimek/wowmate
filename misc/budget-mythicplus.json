@@ -23,7 +23,7 @@
       },
       {
         "metric": "total-blocking-time",
-        "budget": 235
+        "budget": 250
       },
       {
         "metric": "speed-index",

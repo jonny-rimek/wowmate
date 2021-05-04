@@ -10,9 +10,11 @@ import {SqsEventSource} from '@aws-cdk/aws-lambda-event-sources';
 import * as iam from "@aws-cdk/aws-iam"
 import {Effect} from "@aws-cdk/aws-iam"
 import * as kms from '@aws-cdk/aws-kms';
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
 
 interface Props extends cdk.StackProps {
 	uploadBucket: s3.Bucket
+    dynamodb: dynamodb.Table
 	timestreamArn: string
 	queryTimestreamLambdas: lambda.Function[] //to get summary lambda array
 	envVars: {[key: string]: string}
@@ -90,6 +92,7 @@ export class Convert extends cdk.Construct {
 			// synchronously making all the timestream api calls takes always around 120sec, 4-5x longer
 			environment: {
 				TOPIC_ARN: topic.topicArn,
+				DYNAMODB_TABLE_NAME: props.dynamodb.tableName,
 				...props.envVars,
 			},
 			reservedConcurrentExecutions: 15,
@@ -107,6 +110,7 @@ export class Convert extends cdk.Construct {
 			//leave at one, simplifies the code and invocation costs of lambda are negligible compared to the rest
 		}))
 
+		props.dynamodb.grantReadWriteData(this.lambda)
         key.grantEncryptDecrypt(this.lambda)
 		topic.grantPublish(this.lambda)
 
