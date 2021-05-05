@@ -10,6 +10,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Contains checks if a slice of strings contains a specific string as an element
+func Contains(slice []string, el string) bool {
+	for _, a := range slice {
+		if a == el {
+			return true
+		}
+	}
+	return false
+}
+
 // MinSecToMilliseconds converts time in the "minute:seconds" format to milliseconds
 func MinSecToMilliseconds(input string) (int64, error) {
 	// fmt.Println("trigger ci")

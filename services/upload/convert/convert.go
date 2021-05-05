@@ -274,6 +274,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	// deduplication doesn't have a noticeable impact on performance or memory usage!
 
 	var duplicateHashs []uint64
+	var skipCombatlogUUIDs []string
 
 	for combatlogUUID, record := range dedup {
 		hash, err := hashstructure.Hash(record, hashstructure.FormatV2, nil)
@@ -316,12 +317,13 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		} else {
 			// log.Printf("hash exists in db: %d", hash)
 			duplicateHashs = append(duplicateHashs, hash)
+			skipCombatlogUUIDs = append(skipCombatlogUUIDs, combatlogUUID)
 		}
 	}
 	logData.DuplicateHashs = duplicateHashs
 	/*
 		TODO:
-			- skip timestream write and sns publish for duplicate combatlogUUIDs
+			- extract duplicate logic to func
 	*/
 
 	// return logData, nil
@@ -347,7 +349,11 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		}()
 	}
 
-	for _, record := range nestedRecord { // group by different keys
+	for combatlogUUID, record := range nestedRecord { // group by different keys
+		if golib.Contains(skipCombatlogUUIDs, combatlogUUID) {
+			continue
+		}
+
 		for _, writeRecordsInputs := range record { // grouped by key to use common attribute
 			logData.TimestreamAPICalls += len(writeRecordsInputs)
 			for _, e := range writeRecordsInputs { // array of TimestreamWriteInputs
@@ -366,6 +372,9 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	}
 
 	for combatlogUUID := range nestedRecord { // group by different keys
+		if golib.Contains(skipCombatlogUUIDs, combatlogUUID) {
+			continue
+		}
 		logData.CombatlogUUIDs = append(logData.CombatlogUUIDs, combatlogUUID)
 		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
 		if err != nil {

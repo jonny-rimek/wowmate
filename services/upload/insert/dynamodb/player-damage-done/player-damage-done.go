@@ -246,22 +246,12 @@ func getPlayers(result *timestreamquery.QueryOutput) []string {
 
 	for _, el := range result.Rows {
 		player := *el.Data[1].ScalarValue
-		if contains(players, player) == false {
+		if golib.Contains(players, player) == false {
 			players = append(players, player)
 		}
 	}
 
 	return players
-}
-
-// contains dd slice
-func contains(slice []string, el string) bool {
-	for _, a := range slice {
-		if a == el {
-			return true
-		}
-	}
-	return false
 }
 
 func main() {
