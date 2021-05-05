@@ -469,7 +469,7 @@ jobs:
       - name: Deploy to preprod
         run: ./wm.sh deploy preprod
 
-  cypress-chrome:
+  cypress:
     runs-on: ubuntu-latest
     needs: deploy-preprod
     steps:
@@ -579,7 +579,7 @@ jobs:
       - cfn-nag
       - cdk-diff
       - deploy-dev
-      - cypress-chrome
+      - cypress
     steps:
       - uses: actions/checkout@v2
 

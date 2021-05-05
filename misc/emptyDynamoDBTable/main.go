@@ -18,9 +18,11 @@ func main() {
 	svc := dynamodb.New(sess)
 
 	var startKey map[string]*dynamodb.AttributeValue
+	// table := "wm-preprod-DynamoDBtableF8E87752-XIQBZHCM8YN4"
+	table := "wm-dev-DynamoDBtableF8E87752-HSV525WR7KN3"
 	input := dynamodb.ScanInput{
 		ExclusiveStartKey: startKey,
-		TableName:         aws.String("wm-dev-DynamoDBtableF8E87752-HSV525WR7KN3"),
+		TableName:         aws.String(table),
 	}
 
 	for {
@@ -49,7 +51,7 @@ func main() {
 			log.Println(item)
 			output, err := svc.DeleteItem(&dynamodb.DeleteItemInput{
 				Key:       item,
-				TableName: aws.String("wm-dev-DynamoDBtableF8E87752-HSV525WR7KN3"),
+				TableName: aws.String(table),
 			})
 			if err != nil {
 				log.Printf("deleting failed %v\n", err)
@@ -61,10 +63,8 @@ func main() {
 		startKey = scan.LastEvaluatedKey
 		log.Println(startKey)
 
-		if len(startKey) == 0 {
-			continue
+		if len(scan.Items) == 0 {
+			return
 		}
 	}
-
-	log.Println("hi")
 }

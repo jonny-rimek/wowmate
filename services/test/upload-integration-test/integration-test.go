@@ -10,12 +10,25 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/aws/aws-sdk-go/service/lambda"
 )
 
-var lambdaSvc *lambda.Lambda
+type dynamodbDedup struct {
+	Pk string `json:"pk"`
+	Sk string `json:"sk"`
+}
 
-func invokeConvert(local bool) ([]string, error) {
+type convertOutput struct {
+	CombatlogUUIDs []string
+	Hashes         []uint64
+}
+
+var lambdaSvc *lambda.Lambda
+var ddbSvc *dynamodb.DynamoDB
+
+func invokeConvert(local bool) (*convertOutput, error) {
 	log.Println("invoked convert lambda")
 
 	var functionName, bucketName, objectKey string
@@ -57,16 +70,18 @@ func invokeConvert(local bool) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	// log.Printf("%s", response)
 
-	// parse output and convert to string array
-	var r []string
+	// parse output and convert
+	var r convertOutput
+
 	err = json.Unmarshal(response, &r)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal: %s", err.Error())
 	}
 
 	log.Println("convert finished")
-	return r, nil
+	return &r, nil
 }
 
 func invokeQueryKeys(combatlogUUID string, local bool) error {
@@ -265,12 +280,25 @@ func main() {
 	}
 	lambdaSvc = lambda.New(sess)
 
-	combatlogUUIDs, err := invokeConvert(local)
+	// i dont want to use a local ddb
+	sess2, err := session.NewSession(&aws.Config{Region: aws.String("us-east-1")})
+	ddbSvc = dynamodb.New(sess2)
+
+	c, err := invokeConvert(local)
+	if err != nil {
+		handleError(err)
+	}
+	combatlogUUID := c.CombatlogUUIDs[0]
+
+	// this is not an ideal solution, it only deletes the record inside the test
+	// if the same file is uploaded from somewhere else it will fail the test
+	// but that's a problem for future me
+	err = ddbDelete(c.Hashes, local)
 	if err != nil {
 		handleError(err)
 	}
 
-	err = invokeQueryKeys(combatlogUUIDs[0], local)
+	err = invokeQueryKeys(combatlogUUID, local)
 	if err != nil {
 		handleError(err)
 	}
@@ -280,7 +308,7 @@ func main() {
 		handleError(err)
 	}
 
-	err = invokeQueryPlayerDamageDone(combatlogUUIDs[0], local)
+	err = invokeQueryPlayerDamageDone(combatlogUUID, local)
 	if err != nil {
 		handleError(err)
 	}
@@ -289,6 +317,36 @@ func main() {
 	if err != nil {
 		handleError(err)
 	}
+}
+
+func ddbDelete(hashes []uint64, local bool) error {
+	var ddbTable string
+	if local == true {
+		ddbTable = "wm-dev-DynamoDBtableF8E87752-HSV525WR7KN3"
+	} else {
+		ddbTable = "wm-preprod-DynamoDBtableF8E87752-XIQBZHCM8YN4"
+	}
+
+	for _, hash := range hashes {
+
+		dd := dynamodbDedup{
+			Pk: fmt.Sprintf("DEDUP#%d", hash),
+			Sk: fmt.Sprintf("DEDUP#%d", hash),
+		}
+		d, err := dynamodbattribute.MarshalMap(dd)
+		if err != nil {
+			return fmt.Errorf("failed to marshal delete input %v", err)
+		}
+
+		_, err = ddbSvc.DeleteItem(&dynamodb.DeleteItemInput{
+			Key:       d,
+			TableName: &ddbTable,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to delete from ddb %v", err)
+		}
+	}
+	return nil
 }
 
 func handleError(err error) {

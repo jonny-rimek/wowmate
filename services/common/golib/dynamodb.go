@@ -27,7 +27,9 @@ func DynamoDBGetItem(ctx aws.Context, svc *dynamodb.DynamoDB, input *dynamodb.Ge
 	return result, err
 }
 
-// DynamoDBPutItem writes a single item to dynamodb and always returns consumed capacity
+// DynamoDBPutItem writes a single item to dynamodb and always returns consumed capacity.
+// just pass in a struct for record it will be converted to a ddb type, make sure the struct as
+// the json tags that reflect the name in ddb, such as pk and sk
 func DynamoDBPutItem(ctx aws.Context, svc *dynamodb.DynamoDB, ddbTableName *string, record interface{}) (*dynamodb.PutItemOutput, error) {
 	av, err := dynamodbattribute.MarshalMap(record)
 	if err != nil {

@@ -122,7 +122,13 @@ type logData struct {
 	TimestreamAPICalls int
 	Rcu                float64
 	Wcu                float64
-	DuplicateHashs     []uint64
+	DuplicateHashes    []uint64
+	AllHashes          []uint64
+}
+
+type handlerOutput struct {
+	CombatlogUUIDs []string
+	Hashes         []uint64
 }
 
 var s3Svc *s3.S3
@@ -136,8 +142,12 @@ var dynamodbSvc *dynamodb.DynamoDB
 // of the last 15minutes, so if I hardcode a combatlogUUID it would eventually result
 // in an empty query from timestream
 //goland:noinspection GoNilness
-func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
+func handler(ctx aws.Context, e golib.SQSEvent) (handlerOutput, error) {
 	logData, err := handle(ctx, e)
+	output := handlerOutput{
+		CombatlogUUIDs: logData.CombatlogUUIDs,
+		Hashes:         logData.AllHashes,
+	}
 	if err != nil {
 		// create custom error types https://blog.golang.org/error-handling-and-go
 		// TODO: deactivate everywhere but prod
@@ -169,11 +179,11 @@ func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
 			"timestream_api_calls": logData.TimestreamAPICalls,
 			"rcu":                  logData.Rcu,
 			"wcu":                  logData.Wcu,
-			"duplicate_hashs":      logData.DuplicateHashs,
+			"duplicate_hashs":      logData.DuplicateHashes,
 			"event":                e,
 			"err":                  err.Error(),
 		})
-		return logData.CombatlogUUIDs, err
+		return output, err
 	}
 
 	golib.CanonicalLog(map[string]interface{}{
@@ -187,9 +197,9 @@ func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
 		"timestream_api_calls": logData.TimestreamAPICalls,
 		"rcu":                  logData.Rcu,
 		"wcu":                  logData.Wcu,
-		"duplicate_hashs":      logData.DuplicateHashs,
+		"duplicate_hashs":      logData.DuplicateHashes,
 	})
-	return logData.CombatlogUUIDs, nil
+	return output, nil
 }
 
 func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
@@ -336,7 +346,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 // checkDuplicate creates a hash and checks if that hash is already in ddb, if not it writes it to ddb
 // if also returns the slice of hashes and which combatlogUUIDs to skip
 func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData, ddbTableName string) ([]string, error) {
-	var duplicateHashs []uint64
+	var duplicateHashes, allHashes []uint64
 	var skipCombatlogUUIDs []string
 
 	for combatlogUUID, record := range dedup {
@@ -344,6 +354,7 @@ func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData
 		if err != nil {
 			return nil, fmt.Errorf("failed to hash: %v", err.Error())
 		}
+		allHashes = append(allHashes, hash)
 
 		input := &dynamodb.GetItemInput{
 			TableName: &ddbTableName,
@@ -377,11 +388,12 @@ func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData
 			logData.Wcu = *r.ConsumedCapacity.CapacityUnits
 		} else {
 			// log.Printf("hash exists in db: %d", hash)
-			duplicateHashs = append(duplicateHashs, hash)
+			duplicateHashes = append(duplicateHashes, hash)
 			skipCombatlogUUIDs = append(skipCombatlogUUIDs, combatlogUUID)
 		}
 	}
-	logData.DuplicateHashs = duplicateHashs
+	logData.DuplicateHashes = duplicateHashes
+	logData.AllHashes = allHashes
 
 	return skipCombatlogUUIDs, nil
 }
