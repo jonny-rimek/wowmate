@@ -41,7 +41,7 @@
     "resourceSizes": [
       {
         "resourceType": "total",
-        "budget": 205
+        "budget": 220
       },
       {
         "resourceType": "image",
@@ -49,7 +49,7 @@
       },
       {
         "resourceType": "script",
-        "budget": 110
+        "budget": 120
       },
       {
         "resourceType": "document",

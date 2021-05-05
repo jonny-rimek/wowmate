@@ -27,7 +27,7 @@
       },
       {
         "metric": "speed-index",
-        "budget": 2000
+        "budget": 2400
       },
       {
         "metric": "largest-contentful-paint",
@@ -49,7 +49,7 @@
       },
       {
         "resourceType": "script",
-        "budget": 110
+        "budget": 120
       },
       {
         "resourceType": "document",

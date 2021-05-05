@@ -272,61 +272,10 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	}
 
 	// deduplication doesn't have a noticeable impact on performance or memory usage!
-
-	var duplicateHashs []uint64
-	var skipCombatlogUUIDs []string
-
-	for combatlogUUID, record := range dedup {
-		hash, err := hashstructure.Hash(record, hashstructure.FormatV2, nil)
-		if err != nil {
-			return logData, fmt.Errorf("failed to hash: %v", err.Error())
-		}
-		log.Println(combatlogUUID)
-		log.Println(hash)
-
-		input := &dynamodb.GetItemInput{
-			TableName: &ddbTableName,
-			Key: map[string]*dynamodb.AttributeValue{
-				"pk": {
-					S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
-				},
-				"sk": {
-					S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
-				},
-			},
-			ReturnConsumedCapacity: aws.String("TOTAL"),
-		}
-		response, err := golib.DynamoDBGetItem(ctx, dynamodbSvc, input)
-		if err != nil {
-			return logData, err
-		}
-		logData.Rcu = *response.ConsumedCapacity.CapacityUnits
-
-		if len(response.Item) == 0 {
-			dd := dynamodbDedup{
-				Pk:            fmt.Sprintf("DEDUP#%d", hash),
-				Sk:            fmt.Sprintf("DEDUP#%d", hash),
-				CombatlogUUID: combatlogUUID,
-			}
-
-			r, err := golib.DynamoDBPutItem(ctx, dynamodbSvc, &ddbTableName, dd)
-			if err != nil {
-				return logData, err
-			}
-			logData.Wcu = *r.ConsumedCapacity.CapacityUnits
-		} else {
-			// log.Printf("hash exists in db: %d", hash)
-			duplicateHashs = append(duplicateHashs, hash)
-			skipCombatlogUUIDs = append(skipCombatlogUUIDs, combatlogUUID)
-		}
+	skipCombatlogUUIDs, err := checkDuplicate(ctx, dedup, &logData, ddbTableName)
+	if err != nil {
+		return logData, err
 	}
-	logData.DuplicateHashs = duplicateHashs
-	/*
-		TODO:
-			- extract duplicate logic to func
-	*/
-
-	// return logData, nil
 
 	// can process single key log files with 26MB size and 1792 MB memory lambda in ~3sec once timestream is warm
 	maxGoroutines := 15
@@ -382,6 +331,59 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		}
 	}
 	return logData, nil
+}
+
+// checkDuplicate creates a hash and checks if that hash is already in ddb, if not it writes it to ddb
+// if also returns the slice of hashes and which combatlogUUIDs to skip
+func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData, ddbTableName string) ([]string, error) {
+	var duplicateHashs []uint64
+	var skipCombatlogUUIDs []string
+
+	for combatlogUUID, record := range dedup {
+		hash, err := hashstructure.Hash(record, hashstructure.FormatV2, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to hash: %v", err.Error())
+		}
+
+		input := &dynamodb.GetItemInput{
+			TableName: &ddbTableName,
+			Key: map[string]*dynamodb.AttributeValue{
+				"pk": {
+					S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
+				},
+				"sk": {
+					S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
+				},
+			},
+			ReturnConsumedCapacity: aws.String("TOTAL"),
+		}
+		response, err := golib.DynamoDBGetItem(ctx, dynamodbSvc, input)
+		if err != nil {
+			return nil, err
+		}
+		logData.Rcu = *response.ConsumedCapacity.CapacityUnits
+
+		if len(response.Item) == 0 {
+			dd := dynamodbDedup{
+				Pk:            fmt.Sprintf("DEDUP#%d", hash),
+				Sk:            fmt.Sprintf("DEDUP#%d", hash),
+				CombatlogUUID: combatlogUUID,
+			}
+
+			r, err := golib.DynamoDBPutItem(ctx, dynamodbSvc, &ddbTableName, dd)
+			if err != nil {
+				return nil, err
+			}
+			logData.Wcu = *r.ConsumedCapacity.CapacityUnits
+		} else {
+			// log.Printf("hash exists in db: %d", hash)
+			duplicateHashs = append(duplicateHashs, hash)
+			skipCombatlogUUIDs = append(skipCombatlogUUIDs, combatlogUUID)
+		}
+	}
+	logData.DuplicateHashs = duplicateHashs
+
+	return skipCombatlogUUIDs, nil
 }
 
 // probably also reasonably testable, but file handling is always weird
