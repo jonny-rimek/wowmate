@@ -105,6 +105,12 @@ CREATE TABLE IF NOT EXISTS combatlogs (
 */
 // https://mholt.github.io/json-to-go/ best tool EVER
 
+type dynamodbDedup struct {
+	Pk            string `json:"pk"`
+	Sk            string `json:"sk"`
+	CombatlogUUID string `json:"combatlog_uuid"`
+}
+
 type logData struct {
 	CombatlogUUIDs     []string
 	UploadUUID         string
@@ -114,7 +120,9 @@ type logData struct {
 	FileSize           int
 	Records            int
 	TimestreamAPICalls int
-	// TODO: wcu and rcu
+	Rcu                float64
+	Wcu                float64
+	DuplicateHashs     []uint64
 }
 
 var s3Svc *s3.S3
@@ -132,7 +140,7 @@ func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
 	logData, err := handle(ctx, e)
 	if err != nil {
 		// create custom error types https://blog.golang.org/error-handling-and-go
-		// TODO: reactivate to release, ruins my load tests
+		// TODO: deactivate everywhere but prod
 		// err2 := golib.RenameFileS3(
 		// 	ctx,
 		// 	s3Svc,
@@ -142,15 +150,9 @@ func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
 		// )
 		// if err2 != nil {
 		// 	golib.CanonicalLog(map[string]interface{}{
-		// 		"combatlog_uuid":  logData.CombatlogUUIDs,
-		// 		"file_size_in_kb": logData.FileSize,
-		// 		"file_type":       logData.FileType,
-		// 		"upload_uuid":     logData.UploadUUID,
-		// 		"object_key":      logData.ObjectKey,
-		// 		"bucket_name":     logData.BucketName,
+		//		TODO: get up to date content
 		// 		"err":             err.Error(),
 		// 		"err2":            err2.Error(),
-		// 		"records":         logData.Records, // printing record in case of error to better debug
 		// "timestream_api_calls": logData.TimestreamAPICalls,
 		// 		"event":           e,
 		// 	})
@@ -163,10 +165,13 @@ func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
 			"upload_uuid":          logData.UploadUUID,
 			"object_key":           logData.ObjectKey,
 			"bucket_name":          logData.BucketName,
-			"err":                  err.Error(),
 			"records":              logData.Records, // printing record in case of error to better debug
 			"timestream_api_calls": logData.TimestreamAPICalls,
+			"rcu":                  logData.Rcu,
+			"wcu":                  logData.Wcu,
+			"duplicate_hashs":      logData.DuplicateHashs,
 			"event":                e,
+			"err":                  err.Error(),
 		})
 		return logData.CombatlogUUIDs, err
 	}
@@ -180,6 +185,9 @@ func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
 		"bucket_name":          logData.BucketName,
 		"records":              logData.Records,
 		"timestream_api_calls": logData.TimestreamAPICalls,
+		"rcu":                  logData.Rcu,
+		"wcu":                  logData.Wcu,
+		"duplicate_hashs":      logData.DuplicateHashs,
 	})
 	return logData.CombatlogUUIDs, nil
 }
@@ -262,16 +270,18 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	if err != nil {
 		return logData, fmt.Errorf("normalizing failed: %v", err)
 	}
+
 	// deduplication doesn't have a noticeable impact on performance or memory usage!
+
+	var duplicateHashs []uint64
+
 	for combatlogUUID, record := range dedup {
 		hash, err := hashstructure.Hash(record, hashstructure.FormatV2, nil)
 		if err != nil {
 			return logData, fmt.Errorf("failed to hash: %v", err.Error())
 		}
-		log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 		log.Println(combatlogUUID)
 		log.Println(hash)
-		log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 		input := &dynamodb.GetItemInput{
 			TableName: &ddbTableName,
@@ -285,18 +295,32 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 			},
 			ReturnConsumedCapacity: aws.String("TOTAL"),
 		}
-		_, err = golib.DynamoDBGetItem(ctx, dynamodbSvc, input)
+		response, err := golib.DynamoDBGetItem(ctx, dynamodbSvc, input)
 		if err != nil {
 			return logData, err
 		}
+		logData.Rcu = *response.ConsumedCapacity.CapacityUnits
 
+		if len(response.Item) == 0 {
+			dd := dynamodbDedup{
+				Pk:            fmt.Sprintf("DEDUP#%d", hash),
+				Sk:            fmt.Sprintf("DEDUP#%d", hash),
+				CombatlogUUID: combatlogUUID,
+			}
+
+			r, err := golib.DynamoDBPutItem(ctx, dynamodbSvc, &ddbTableName, dd)
+			if err != nil {
+				return logData, err
+			}
+			logData.Wcu = *r.ConsumedCapacity.CapacityUnits
+		} else {
+			// log.Printf("hash exists in db: %d", hash)
+			duplicateHashs = append(duplicateHashs, hash)
+		}
 	}
+	logData.DuplicateHashs = duplicateHashs
 	/*
 		TODO:
-			- move GetItem code from per log dmg api call to golib
-			- ddb GetItem for existing hash pk and sk DEDUP#HASHVALUE + combatloguuid
-			- write to ddb if not exist
-			- save duplicate combatlogUUIDs
 			- skip timestream write and sns publish for duplicate combatlogUUIDs
 	*/
 
