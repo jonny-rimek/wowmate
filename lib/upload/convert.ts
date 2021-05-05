@@ -10,9 +10,11 @@ import {SqsEventSource} from '@aws-cdk/aws-lambda-event-sources';
 import * as iam from "@aws-cdk/aws-iam"
 import {Effect} from "@aws-cdk/aws-iam"
 import * as kms from '@aws-cdk/aws-kms';
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
 
 interface Props extends cdk.StackProps {
 	uploadBucket: s3.Bucket
+    dynamodb: dynamodb.Table
 	timestreamArn: string
 	queryTimestreamLambdas: lambda.Function[] //to get summary lambda array
 	envVars: {[key: string]: string}
@@ -86,16 +88,19 @@ export class Convert extends cdk.Construct {
 			// timestream write api has some sort of cold start, where at the beginning
 			// it's super slow, that's why the max duration needs to be way higher than
 			// the median duration
-			// for my example log the cold start is around 120sec and warm is 25-40sec
+			// for my example log with cold start it has a duration of ~120sec and warm it is 25-40sec
+			// synchronously making all the timestream api calls takes always around 120sec, 4-5x longer
 			environment: {
 				TOPIC_ARN: topic.topicArn,
+				DYNAMODB_TABLE_NAME: props.dynamodb.tableName,
 				...props.envVars,
 			},
 			reservedConcurrentExecutions: 15,
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
-			retryAttempts: 0, 	//0 in dev, but it has sqs as target, afaik this is only for async.
+			retryAttempts: 0, 	// it has sqs as target, this is only for async.
 								// sqs invokes would be retried via the sqs maxReceiveCount
+
 			/* the source is sqs, which invokes the lambda synchronously, ergo no onFailure or onSuccess =(
             onFailure
 			onSuccess:
@@ -106,9 +111,11 @@ export class Convert extends cdk.Construct {
 			//leave at one, simplifies the code and invocation costs of lambda are negligible compared to the rest
 		}))
 
+		props.dynamodb.grantReadWriteData(this.lambda)
         key.grantEncryptDecrypt(this.lambda)
 		topic.grantPublish(this.lambda)
 
+		// this would be a permission I need to give sqs access to the kms key to allow s3 to send encrypted messages to sqs
 		// props.uploadBucket.addToResourcePolicy(new iam.PolicyStatement({
 		// 	effect: Effect.ALLOW,
 		// 	actions: [

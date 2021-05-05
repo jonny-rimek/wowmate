@@ -9,16 +9,17 @@ import (
 )
 
 // Normalize converts the combatlog to a slice of Event structs
-// TODO: rename, we are not really normalizing the data anymore, because I'm not using a database tat needs it
-func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string][]*timestreamwrite.WriteRecordsInput, error) {
+// TODO: rename, we are not really normalizing the data anymore, because I'm not using a relational database anymore
+func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string][]*timestreamwrite.WriteRecordsInput, map[string][]string, error) {
 	var combatlogUUID string
 
 	rec := make(map[string]map[string][]*timestreamwrite.WriteRecordsInput)
+	dedup := make(map[string][]string)
 
 	pets := make(map[string]pet)
 
 	if uploadUUID == "" {
-		return nil, fmt.Errorf("can't provide an empty uploadUUID")
+		return nil, nil, fmt.Errorf("can't provide an empty uploadUUID")
 	}
 
 	// combatEvents2 = make([]Event, 0, 100000) //100.000 is an arbitrary value
@@ -52,7 +53,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 		case "COMBAT_LOG_VERSION":
 			err := combatLogVersion(params, uploadUUID, combatlogUUID, rec)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			// NOTE:
@@ -78,7 +79,7 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 		case "CHALLENGE_MODE_START":
 			timestamp, err := parseTimestamp(&row[0])
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			combatlogUUID = uuid.Must(uuid.NewV4()).String()
@@ -86,13 +87,13 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 
 			err = challengeModeStart(params, uploadUUID, combatlogUUID, rec, timestamp)
 			if err != nil {
-				return rec, err
+				return rec, nil, err
 			}
 
 		case "CHALLENGE_MODE_END":
 			err := challengeModeEnd(params, uploadUUID, combatlogUUID, rec)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 
 			combatlogUUID = ""
@@ -100,19 +101,27 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 		case "SPELL_DAMAGE", "SPELL_PERIODIC_DAMAGE", "RANGE_DAMAGE", "SWING_DAMAGE":
 			err := damage(params, &uploadUUID, &combatlogUUID, rec, pets)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
+			dedup[combatlogUUID] = append(dedup[combatlogUUID], params...)
 
 		case "SPELL_SUMMON":
 			err := summon(params, &uploadUUID, &combatlogUUID, rec, pets)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
+
+		case "COMBATANT_INFO":
+			// hash, err := hashstructure.Hash(params, hashstructure.FormatV2, nil)
+			// if err != nil {
+			// 	return nil, nil, fmt.Errorf("failed to hash combat info: %v", err.Error())
+			// }
+			dedup[combatlogUUID] = append(dedup[combatlogUUID], params...)
 
 		default:
 			// e.Unsupported = true
 		}
 	}
 
-	return rec, nil
+	return rec, dedup, nil
 }

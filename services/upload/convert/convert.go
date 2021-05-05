@@ -18,6 +18,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/sns"
@@ -25,6 +26,7 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 	"github.com/aws/aws-xray-sdk-go/xraylog"
 	"github.com/jonny-rimek/wowmate/services/common/golib"
+	"github.com/mitchellh/hashstructure/v2"
 	"golang.org/x/net/http2"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -45,14 +47,14 @@ CREATE TABLE IF NOT EXISTS combatlogs (
   advanced_log_enabled int,
   dungeon_name VARCHAR,
   dungeon_id int,
-  key_unkown_1 int,
+  key_unknown_1 int,
   key_level int,
   key_array VARCHAR,
   key_duration bigint,
   encounter_id int,
   encounter_name VARCHAR,
-  encounter_unkown_1 int,
-  encounter_unkown_2 int,
+  encounter_unknown_1 int,
+  encounter_unknown_2 int,
   killed int,
   caster_id VARCHAR,
   caster_name VARCHAR,
@@ -103,6 +105,12 @@ CREATE TABLE IF NOT EXISTS combatlogs (
 */
 // https://mholt.github.io/json-to-go/ best tool EVER
 
+type dynamodbDedup struct {
+	Pk            string `json:"pk"`
+	Sk            string `json:"sk"`
+	CombatlogUUID string `json:"combatlog_uuid"`
+}
+
 type logData struct {
 	CombatlogUUIDs     []string
 	UploadUUID         string
@@ -112,23 +120,37 @@ type logData struct {
 	FileSize           int
 	Records            int
 	TimestreamAPICalls int
+	Rcu                float64
+	Wcu                float64
+	DuplicateHashes    []uint64
+	AllHashes          []uint64
+}
+
+type handlerOutput struct {
+	CombatlogUUIDs []string
+	Hashes         []uint64
 }
 
 var s3Svc *s3.S3
 var snsSvc *sns.SNS
 var downloader *s3manager.Downloader
 var writeSvc *timestreamwrite.TimestreamWrite
+var dynamodbSvc *dynamodb.DynamoDB
 
 // I need an array of combatlog uuids for my integration test, because I need
 // a recently inserted combatlog uuid, because the timestream query only checks data
 // of the last 15minutes, so if I hardcode a combatlogUUID it would eventually result
 // in an empty query from timestream
 //goland:noinspection GoNilness
-func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
+func handler(ctx aws.Context, e golib.SQSEvent) (handlerOutput, error) {
 	logData, err := handle(ctx, e)
+	output := handlerOutput{
+		CombatlogUUIDs: logData.CombatlogUUIDs,
+		Hashes:         logData.AllHashes,
+	}
 	if err != nil {
 		// create custom error types https://blog.golang.org/error-handling-and-go
-		// TODO: reactivate to release, ruins my load tests
+		// TODO: deactivate everywhere but prod
 		// err2 := golib.RenameFileS3(
 		// 	ctx,
 		// 	s3Svc,
@@ -138,15 +160,9 @@ func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
 		// )
 		// if err2 != nil {
 		// 	golib.CanonicalLog(map[string]interface{}{
-		// 		"combatlog_uuid":  logData.CombatlogUUIDs,
-		// 		"file_size_in_kb": logData.FileSize,
-		// 		"file_type":       logData.FileType,
-		// 		"upload_uuid":     logData.UploadUUID,
-		// 		"object_key":      logData.ObjectKey,
-		// 		"bucket_name":     logData.BucketName,
+		//		TODO: get up to date content
 		// 		"err":             err.Error(),
 		// 		"err2":            err2.Error(),
-		// 		"records":         logData.Records, // printing record in case of error to better debug
 		// "timestream_api_calls": logData.TimestreamAPICalls,
 		// 		"event":           e,
 		// 	})
@@ -159,12 +175,15 @@ func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
 			"upload_uuid":          logData.UploadUUID,
 			"object_key":           logData.ObjectKey,
 			"bucket_name":          logData.BucketName,
-			"err":                  err.Error(),
 			"records":              logData.Records, // printing record in case of error to better debug
 			"timestream_api_calls": logData.TimestreamAPICalls,
+			"rcu":                  logData.Rcu,
+			"wcu":                  logData.Wcu,
+			"duplicate_hashs":      logData.DuplicateHashes,
 			"event":                e,
+			"err":                  err.Error(),
 		})
-		return logData.CombatlogUUIDs, err
+		return output, err
 	}
 
 	golib.CanonicalLog(map[string]interface{}{
@@ -176,8 +195,11 @@ func handler(ctx aws.Context, e golib.SQSEvent) ([]string, error) {
 		"bucket_name":          logData.BucketName,
 		"records":              logData.Records,
 		"timestream_api_calls": logData.TimestreamAPICalls,
+		"rcu":                  logData.Rcu,
+		"wcu":                  logData.Wcu,
+		"duplicate_hashs":      logData.DuplicateHashes,
 	})
-	return logData.CombatlogUUIDs, nil
+	return output, nil
 }
 
 func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
@@ -186,6 +208,11 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	topicArn := os.Getenv("TOPIC_ARN") // +deploy trigger
 	if topicArn == "" {
 		return logData, fmt.Errorf("arn topic env var is empty")
+	}
+
+	ddbTableName := os.Getenv("DYNAMODB_TABLE_NAME")
+	if ddbTableName == "" {
+		return logData, fmt.Errorf("dynamodb table name env var is empty")
 	}
 
 	if len(e.Records) != 1 {
@@ -249,9 +276,15 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 
 	s := bufio.NewScanner(bytes.NewReader(data))
 
-	nestedRecord, err := normalize.Normalize(s, uploadUUID)
+	nestedRecord, dedup, err := normalize.Normalize(s, uploadUUID)
 	if err != nil {
 		return logData, fmt.Errorf("normalizing failed: %v", err)
+	}
+
+	// deduplication doesn't have a noticeable impact on performance or memory usage!
+	skipCombatlogUUIDs, err := checkDuplicate(ctx, dedup, &logData, ddbTableName)
+	if err != nil {
+		return logData, err
 	}
 
 	// can process single key log files with 26MB size and 1792 MB memory lambda in ~3sec once timestream is warm
@@ -275,7 +308,11 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		}()
 	}
 
-	for _, record := range nestedRecord { // group by different keys
+	for combatlogUUID, record := range nestedRecord { // group by different keys
+		if golib.Contains(skipCombatlogUUIDs, combatlogUUID) {
+			continue
+		}
+
 		for _, writeRecordsInputs := range record { // grouped by key to use common attribute
 			logData.TimestreamAPICalls += len(writeRecordsInputs)
 			for _, e := range writeRecordsInputs { // array of TimestreamWriteInputs
@@ -294,6 +331,9 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	}
 
 	for combatlogUUID := range nestedRecord { // group by different keys
+		if golib.Contains(skipCombatlogUUIDs, combatlogUUID) {
+			continue
+		}
 		logData.CombatlogUUIDs = append(logData.CombatlogUUIDs, combatlogUUID)
 		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
 		if err != nil {
@@ -301,6 +341,61 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		}
 	}
 	return logData, nil
+}
+
+// checkDuplicate creates a hash and checks if that hash is already in ddb, if not it writes it to ddb
+// if also returns the slice of hashes and which combatlogUUIDs to skip
+func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData, ddbTableName string) ([]string, error) {
+	var duplicateHashes, allHashes []uint64
+	var skipCombatlogUUIDs []string
+
+	for combatlogUUID, record := range dedup {
+		hash, err := hashstructure.Hash(record, hashstructure.FormatV2, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to hash: %v", err.Error())
+		}
+		allHashes = append(allHashes, hash)
+
+		input := &dynamodb.GetItemInput{
+			TableName: &ddbTableName,
+			Key: map[string]*dynamodb.AttributeValue{
+				"pk": {
+					S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
+				},
+				"sk": {
+					S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
+				},
+			},
+			ReturnConsumedCapacity: aws.String("TOTAL"),
+		}
+		response, err := golib.DynamoDBGetItem(ctx, dynamodbSvc, input)
+		if err != nil {
+			return nil, err
+		}
+		logData.Rcu = *response.ConsumedCapacity.CapacityUnits
+
+		if len(response.Item) == 0 {
+			dd := dynamodbDedup{
+				Pk:            fmt.Sprintf("DEDUP#%d", hash),
+				Sk:            fmt.Sprintf("DEDUP#%d", hash),
+				CombatlogUUID: combatlogUUID,
+			}
+
+			r, err := golib.DynamoDBPutItem(ctx, dynamodbSvc, &ddbTableName, dd)
+			if err != nil {
+				return nil, err
+			}
+			logData.Wcu = *r.ConsumedCapacity.CapacityUnits
+		} else {
+			// log.Printf("hash exists in db: %d", hash)
+			duplicateHashes = append(duplicateHashes, hash)
+			skipCombatlogUUIDs = append(skipCombatlogUUIDs, combatlogUUID)
+		}
+	}
+	logData.DuplicateHashes = duplicateHashes
+	logData.AllHashes = allHashes
+
+	return skipCombatlogUUIDs, nil
 }
 
 // probably also reasonably testable, but file handling is always weird
@@ -401,8 +496,8 @@ func main() {
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
 			KeepAlive: 30 * time.Second,
-			DualStack: true,
-			Timeout:   30 * time.Second,
+			// DualStack: true, // deprecated
+			Timeout: 30 * time.Second,
 		}).DialContext,
 		MaxIdleConns:          100,
 		IdleConnTimeout:       90 * time.Second,
@@ -448,10 +543,11 @@ func main() {
 	}
 
 	writeSvc = timestreamwrite.New(sess)
-
 	if os.Getenv("LOCAL") == "false" {
 		xray.AWS(writeSvc.Client)
 	}
+
+	dynamodbSvc = dynamodb.New(sess)
 	// the aws docs recommend to set custom http settings see here:
 	// https://docs.aws.amazon.com/timestream/latest/developerguide/code-samples.write-client.html
 	// I'm choosing to ignore them and go with default, I'll observer if it leads to any problems

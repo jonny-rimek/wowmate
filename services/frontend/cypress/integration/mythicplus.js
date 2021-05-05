@@ -4,6 +4,7 @@ describe('Mythicplus Page - Desktop', () => {
       cy.viewport(1920, 1080)
     })
 
+    // TODO: stub out network response, so it works on an empty db as well
     it('is able to paginate', () => {
       cy.visit('/')
       cy.get('[data-cy=mythicplus]').click()

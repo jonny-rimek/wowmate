@@ -86,7 +86,7 @@ get-player-damage-done() {
   build_cdk
   cdk_synth
 
-  echo '{"pathParameters": {"combatlog_uuid": "06778555-45d4-404b-a79b-5f03ef2d6b37"}}' | \
+  echo '{"pathParameters": {"combatlog_uuid": "fff28fa9-10fb-4018-9486-c1a1f748862d"}}' | \
   sam local invoke ApiGetPlayerDamageDoneLambda7F052E98 \
     --template cdk.out/wm-dev.template.json \
     --event - \
