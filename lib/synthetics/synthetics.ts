@@ -144,6 +144,31 @@ export class Synthetics extends cdk.Construct {
                 };
 
                 await synthetics.executeHttpStep('Verify /combatlogs/keys/{combatlog_uuid}/player-damage-done', requestOptionsStep4, validateSuccessful, stepConfig4);
+                
+                // ----------------------------------------------------
+                // Set request option for Verify /
+                let requestOptionsStep5 = {
+                    hostname: hostname,
+                    method: 'GET',
+                    path: '/',
+                    port: '443',
+                    protocol: 'https:',
+                    body: "",
+                    headers: {}
+                };
+                requestOptionsStep4['headers']['User-Agent'] = [synthetics.getCanaryUserAgentString(), requestOptionsStep4['headers']['User-Agent']].join(' ');
+
+                // Set step config option for Verify /
+                let stepConfig5 = {
+                    includeRequestHeaders: false,
+                    includeResponseHeaders: false,
+                    includeRequestBody: false,
+                    includeResponseBody: false,
+                    restrictedHeaders: [],
+                    continueOnHttpStepFailure: true
+                };
+
+                await synthetics.executeHttpStep('Verify /', requestOptionsStep5, validateSuccessful, stepConfig5);
             };
             
             // neither fetch or XMLHttpRequest works and I can't install packages with inline code
