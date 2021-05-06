@@ -14,6 +14,7 @@ interface Props extends cdk.StackProps {
 	codePath: string
 	lambdaDescription: string
 	envVars: {[key: string]: string}
+	key: kms.Key
 }
 
 export class QueryTimestream extends cdk.Construct {
@@ -32,13 +33,10 @@ export class QueryTimestream extends cdk.Construct {
 			encryption: sqs.QueueEncryption.KMS_MANAGED,
 		})
 
-		const key = new kms.Key(this, 'SnsKmsKey', {
-			enableKeyRotation: true,
-		})
 		//the message to the topic is send inside the lambda via the SDK
 		//the topic in return is subscribed to by the insert summary lambdas
 		this.topic = new sns.Topic(this, 'Topic', {
-			masterKey: key
+			masterKey: props.key
 		})
 
 		this.lambda = new lambda.Function(this, 'Lambda', {
@@ -59,10 +57,10 @@ export class QueryTimestream extends cdk.Construct {
 			onFailure: new destinations.SqsDestination(this.lambdaDLQ),
 			//Fails will be retried twice without landing in the DLQ, if the last retry also fails the message
 			//lands in the DLQ
-			//TODO: on success destination doesn't work with xray DON'T USE until fixed
+			//on success destination doesn't work with xray DON'T USE until fixed
 		})
 
-		key.grantEncryptDecrypt(this.lambda)
+		props.key.grantEncryptDecrypt(this.lambda)
 		this.topic.grantPublish(this.lambda)
 
         //extract to function in timestream construct

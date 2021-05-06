@@ -8,6 +8,7 @@ import { EtlDashboard } from "./upload/etl-dashboard";
 import { ApiFrontendDashboard } from "./common/api-frontend-dashboard";
 import { DynamoDB } from "./common/dynamodb";
 import { Buckets } from "./common/buckets";
+import { Kms } from "./common/kms";
 import { Cloudtrail } from "./common/cloudtrail";
 import { Timestream } from "./common/timestream";
 import { Synthetics } from "./synthetics/synthetics";
@@ -35,6 +36,8 @@ export class Wowmate extends Stack {
 
 		const dynamoDB = new DynamoDB(this, 'DynamoDB-')
 
+		const kms = new Kms(this, 'Kms-')
+
 		const api = new Api(this, 'Api-', {
 			dynamoDB: dynamoDB.table,
 			uploadBucket: buckets.uploadBucket,
@@ -59,7 +62,8 @@ export class Wowmate extends Stack {
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
 				LOCAL: "false",
-			}
+			},
+			key: kms.key,
 		});
 
 		const insertKeysToDynamoDB = new InsertResult(this, "InsertKeysToDynamodb-", {
@@ -97,7 +101,8 @@ export class Wowmate extends Stack {
 			envVars: {
 				LOG_LEVEL: "info", //only info or debug are support
 				LOCAL: "false",
-			}
+			},
+			key: kms.key,
 		});
 
 		const insertPlayerDamageDoneToDynamodb = new InsertResult(this, "InsertPlayerDamageDoneToDynamodb-", {
@@ -125,6 +130,7 @@ export class Wowmate extends Stack {
 				LOCAL: "false",
 			},
 			dynamodb: dynamoDB.table,
+			key: kms.key,
 		});
 
 		new ApiFrontendDashboard(this, 'UserFacing-', {
@@ -166,6 +172,7 @@ export class Wowmate extends Stack {
 			errorMail: errorMail,
 			stage: props.stage,
 			apiUrl: api.api.url!,
+			key: kms.key,
 		})
 	}
 }
