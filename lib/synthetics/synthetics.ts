@@ -12,6 +12,7 @@ interface Props extends cdk.StackProps {
     errorMail: string
     stage: string
     apiUrl: string
+    key: kms.Key
 }
 
 export class Synthetics extends cdk.Construct {
@@ -211,11 +212,8 @@ export class Synthetics extends cdk.Construct {
             }
         }
 
-        const key = new kms.Key(this, 'SnsKmsKey', {
-        	enableKeyRotation: true,
-        })
         const errorTopic = new sns.Topic(this, 'errorTopic', {
-        	masterKey: key
+        	masterKey: props.key
         });
         errorTopic.addSubscription(new subscriptions.EmailSubscription(props.errorMail));
 

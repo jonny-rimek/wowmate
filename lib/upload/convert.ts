@@ -18,6 +18,7 @@ interface Props extends cdk.StackProps {
 	timestreamArn: string
 	queryTimestreamLambdas: lambda.Function[] //to get summary lambda array
 	envVars: {[key: string]: string}
+	key: kms.Key
 }
 
 export class Convert extends cdk.Construct {
@@ -55,11 +56,8 @@ export class Convert extends cdk.Construct {
 			}
 		}
 
-		const key = new kms.Key(this, 'SnsKmsKey', {
-			enableKeyRotation: true,
-		})
         const topic = new sns.Topic(this, 'Topic', {
-			masterKey: key,
+			masterKey: props.key,
 			// publishing encrypted messages to SNS doesn't work from SAM+CDK, I suspect that SAM uses an incomplete name
 			// CDK, auto generates a name, but those names aren't used locally
 			// e.g. wm-dev-DynamoDBtableF8E87752-HSV525WR7KN3 is the name of the ddb in the cloud
@@ -112,7 +110,7 @@ export class Convert extends cdk.Construct {
 		}))
 
 		props.dynamodb.grantReadWriteData(this.lambda)
-        key.grantEncryptDecrypt(this.lambda)
+        props.key.grantEncryptDecrypt(this.lambda)
 		topic.grantPublish(this.lambda)
 
 		// this would be a permission I need to give sqs access to the kms key to allow s3 to send encrypted messages to sqs
