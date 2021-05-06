@@ -1,0 +1,36 @@
+name: update
+
+on:
+  # TODO run on a weekly cron
+  push:
+    branches: [ update ]
+  workflow_dispatch:
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: "Configure git"
+        run: |
+          git config --global user.name 'Jonny Rimek'
+          git config --global user.email 'jimbo.db@protonmail.com'
+
+      - name: "Update all dependencies"
+        run: ./wm.sh update
+
+      - name: "Commit the changes"
+        run: git commit -am "Update all dependencies"
+
+      - name: "Create Pull Request to merge the updates"
+        uses: peter-evans/create-pull-request@v3
+        with:
+          delete-branch: true
+          title: "Update all dependencies"
+          body: |
+            Automatic PR to update all dependencies
+          assignees: jonny-rimek
+          reviewers: jonny-rimek
+          draft: false
+          base: prod # this is the target branch for the PR
