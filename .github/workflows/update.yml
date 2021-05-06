@@ -1,0 +1,70 @@
+name: update
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1' # runs every monday at midnight
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16.3'
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 15.x
+
+      # caches all go dependencies
+      - name: Cache go deps
+        uses: actions/cache@v2
+        id: go-cache
+        with:
+          path: ~/go/pkg/mod
+          key: go-${{ hashFiles('**/go.sum') }}
+          restore-keys: go-
+
+      # cache dependencies for nuxt frontend
+      - name: Cache frontend yarn
+        uses: actions/cache@v2
+        id: frontend-cache
+        with:
+          path: services/frontend/node_modules
+          key: frontend-${{ hashFiles('services/frontend/yarn.lock') }}
+          restore-keys: |
+            frontend-
+
+      # cache dependencies for cdk
+      - name: Cache CDK npm
+        uses: actions/cache@v2
+        id: cdk-cache
+        with:
+          path: node_modules
+          key: cdk-${{ hashFiles('package-lock.json') }}
+
+      - name: "Configure git"
+        run: |
+          git config --global user.name 'Jonny Rimek'
+          git config --global user.email 'jimbo.db@protonmail.com'
+
+      - name: "Update all dependencies"
+        run: ./wm.sh update
+
+      - name: "Commit the changes"
+        run: git commit -am "Update all dependencies"
+
+      - name: "Create Pull Request to merge the updates"
+        uses: peter-evans/create-pull-request@v3
+        with:
+          delete-branch: true
+          title: "Update all dependencies"
+          body: |
+            Automatic PR to update all dependencies
+          assignees: jonny-rimek
+          reviewers: jonny-rimek
+          draft: false
+          base: prod # this is the target branch for the PR
