@@ -1,10 +1,9 @@
 name: update
 
 on:
-  # TODO run on a weekly cron
-  push:
-    branches: [ update ]
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1' # runs every monday at midnight
 
 jobs:
   create-pr:
