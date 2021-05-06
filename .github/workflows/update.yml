@@ -20,6 +20,33 @@ jobs:
         with:
           node-version: 15.x
 
+      # caches all go dependencies
+      - name: Cache go deps
+        uses: actions/cache@v2
+        id: go-cache
+        with:
+          path: ~/go/pkg/mod
+          key: go-${{ hashFiles('**/go.sum') }}
+          restore-keys: go-
+
+      # cache dependencies for nuxt frontend
+      - name: Cache frontend yarn
+        uses: actions/cache@v2
+        id: frontend-cache
+        with:
+          path: services/frontend/node_modules
+          key: frontend-${{ hashFiles('services/frontend/yarn.lock') }}
+          restore-keys: |
+            frontend-
+
+      # cache dependencies for cdk
+      - name: Cache CDK npm
+        uses: actions/cache@v2
+        id: cdk-cache
+        with:
+          path: node_modules
+          key: cdk-${{ hashFiles('package-lock.json') }}
+
       - name: "Configure git"
         run: |
           git config --global user.name 'Jonny Rimek'
