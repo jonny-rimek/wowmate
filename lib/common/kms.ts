@@ -12,6 +12,8 @@ export class Kms extends cdk.Construct {
 
         this.key = new kms.Key(this, 'WowmateKey', {
             enableKeyRotation: true,
+            alias: "wowmate-key",
+            description: "this key is used to encrypt sns sqs etc"
         })
     }
 }
