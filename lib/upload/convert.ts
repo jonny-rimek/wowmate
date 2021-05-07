@@ -42,19 +42,9 @@ export class Convert extends cdk.Construct {
 				maxReceiveCount: 1, //no need during dev
 			},
 			visibilityTimeout: cdk.Duration.seconds(150*6), //6x lambda duration, it's an aws best practice
-			// encryption: sqs.QueueEncryption.KMS_MANAGED,
+			encryption: sqs.QueueEncryption.KMS,
+			encryptionMasterKey: props.key,
 		});
-		const cfnQueue = this.queue.node.defaultChild as sqs.CfnQueue
-		cfnQueue.cfnOptions.metadata = {
-			cfn_nag: {
-				rules_to_suppress: [
-					{
-						id: 'W48',
-						reason: "can't or at least don't know how to create s3 notification for encrypted sqs queue",
-					},
-				]
-			}
-		}
 
         const topic = new sns.Topic(this, 'Topic', {
 			masterKey: props.key,
@@ -64,6 +54,7 @@ export class Convert extends cdk.Construct {
 			// locally it the name it knows is wm-dev-DynamoDBtableF8E87752 the last bit is missing
             // the same is gonna be the problem for the KMS key, and I don't know how or if I can pass in the complete key
 			// my solution is to skip the sns publishing locally
+			// this will probably be fixed by sam for cdk which is in beta
 		})
         this.topic = topic
 
@@ -112,20 +103,6 @@ export class Convert extends cdk.Construct {
 		props.dynamodb.grantReadWriteData(this.lambda)
         props.key.grantEncryptDecrypt(this.lambda)
 		topic.grantPublish(this.lambda)
-
-		// this would be a permission I need to give sqs access to the kms key to allow s3 to send encrypted messages to sqs
-		// props.uploadBucket.addToResourcePolicy(new iam.PolicyStatement({
-		// 	effect: Effect.ALLOW,
-		// 	actions: [
-		// 		'kms:GenerateDataKey*',
-		// 		'kms:Decrypt',
-		// 		'kms:Encrypt',
-		// 		'kms:ReEncrypt*',
-		// 	],
-		// 	resources: ["*"],
-		// 	// resources: [this.queue.encryptionMasterKey?.keyArn!],
-		// 	principals: [new iam.ServicePrincipal('s3.amazonaws.com')],
-		// }))
 
 		//only trigger convert lambda if file end on one of these suffixes
         //in theory files with a wrong ending could linger in the bucket forever without being processed

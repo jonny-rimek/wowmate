@@ -105,12 +105,6 @@ CREATE TABLE IF NOT EXISTS combatlogs (
 */
 // https://mholt.github.io/json-to-go/ best tool EVER
 
-type dynamodbDedup struct {
-	Pk            string `json:"pk"`
-	Sk            string `json:"sk"`
-	CombatlogUUID string `json:"combatlog_uuid"`
-}
-
 type logData struct {
 	CombatlogUUIDs     []string
 	UploadUUID         string
@@ -375,10 +369,11 @@ func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData
 		logData.Rcu = *response.ConsumedCapacity.CapacityUnits
 
 		if len(response.Item) == 0 {
-			dd := dynamodbDedup{
+			dd := golib.DynamodbDedup{
 				Pk:            fmt.Sprintf("DEDUP#%d", hash),
 				Sk:            fmt.Sprintf("DEDUP#%d", hash),
 				CombatlogUUID: combatlogUUID,
+				CreatedAt:     fmt.Sprintf("%s", time.Now().UTC()),
 			}
 
 			r, err := golib.DynamoDBPutItem(ctx, dynamodbSvc, &ddbTableName, dd)
@@ -387,7 +382,6 @@ func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData
 			}
 			logData.Wcu = *r.ConsumedCapacity.CapacityUnits
 		} else {
-			// log.Printf("hash exists in db: %d", hash)
 			duplicateHashes = append(duplicateHashes, hash)
 			skipCombatlogUUIDs = append(skipCombatlogUUIDs, combatlogUUID)
 		}
