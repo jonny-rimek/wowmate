@@ -7,50 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-// DamagePerSpell is a part of PlayerDamageDone and contains the breakdown of damage per spell
-type DamagePerSpell struct {
-	SpellID   int    `json:"spell_id"`
-	SpellName string `json:"spell_name"`
-	Damage    int64  `json:"damage"`
-}
-
-// PlayerDamageDone contains player and damage per spell info for the log specific view
-type PlayerDamageDone struct {
-	Damage         int64            `json:"damage"`
-	DamagePerSpell []DamagePerSpell `json:"damage_per_spell"`
-	Name           string           `json:"player_name"`
-	PlayerID       string           `json:"player_id"`
-	Class          string           `json:"class"`
-	Specc          string           `json:"specc"`
-	/*
-	   TODO:
-	   	ItemLevel
-	   	Covenant
-	   	Traits
-	   	Conduits
-	   	Legendaries
-	   	Trinkets
-	   	Talents
-	*/
-}
-
-// DynamoDBPlayerDamageDone is used to save player damage done to dynamodb, log specific view
-type DynamoDBPlayerDamageDone struct {
-	Pk            string             `json:"pk"`
-	Sk            string             `json:"sk"`
-	Damage        []PlayerDamageDone `json:"player_damage"`
-	Duration      string             `json:"duration"`
-	Deaths        int                `json:"deaths"`
-	Affixes       string             `json:"affixes"`
-	Keylevel      int                `json:"keylevel"`
-	DungeonName   string             `json:"dungeon_name"`
-	DungeonID     int                `json:"dungeon_id"`
-	CombatlogUUID string             `json:"combatlog_uuid"`
-	Finished      bool               `json:"finished"`
-	Intime        int                `json:"intime"`
-	Date          int64              `json:"date"`
-}
-
 /*
 func PlayerDamageSimpleResponseToJson2(result *dynamodb2.QueryOutput, sorted, firstPage bool) (string, error) {
 	var items []DynamoDBPlayerDamageSimple

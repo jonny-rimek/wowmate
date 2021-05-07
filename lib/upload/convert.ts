@@ -54,6 +54,7 @@ export class Convert extends cdk.Construct {
 			// locally it the name it knows is wm-dev-DynamoDBtableF8E87752 the last bit is missing
             // the same is gonna be the problem for the KMS key, and I don't know how or if I can pass in the complete key
 			// my solution is to skip the sns publishing locally
+			// this will probably be fixed by sam for cdk which is in beta
 		})
         this.topic = topic
 

@@ -9,33 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// PlayerDamage contains player and damage info for the top keys view etc.
-type PlayerDamage struct {
-	Damage   int    `json:"damage"` // TODO: convert to int64
-	Name     string `json:"player_name"`
-	PlayerID string `json:"player_id"`
-	Class    string `json:"class"`
-	Specc    string `json:"specc"`
-}
-
-type DynamoDBKeys struct {
-	Pk            string         `json:"pk"`
-	Sk            string         `json:"sk"`
-	Damage        []PlayerDamage `json:"player_damage"`
-	Gsi1pk        string         `json:"gsi1pk"`
-	Gsi1sk        string         `json:"gsi1sk"`
-	Duration      string         `json:"duration"`
-	Deaths        int            `json:"deaths"`
-	Affixes       string         `json:"affixes"`
-	Keylevel      int            `json:"keylevel"`
-	DungeonName   string         `json:"dungeon_name"`
-	DungeonID     int            `json:"dungeon_id"`
-	CombatlogUUID string         `json:"combatlog_uuid"`
-	Finished      bool           `json:"finished"`
-	Intime        int            `json:"intime"`
-	Date          int64          `json:"date"`
-}
-
 type JSONKeysResponse struct {
 	Data      []JSONKeys `json:"data"`
 	FirstSK   string     `json:"first_sk"`

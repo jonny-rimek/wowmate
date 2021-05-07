@@ -185,6 +185,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		Finished:      finished != 0, // if 0 false, else true
 		Intime:        intime,
 		Date:          date,
+		CreatedAt:     fmt.Sprintf("%s", time.Now().UTC()),
 	}
 	return resp, err
 }
