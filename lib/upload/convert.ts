@@ -45,17 +45,6 @@ export class Convert extends cdk.Construct {
 			encryption: sqs.QueueEncryption.KMS,
 			encryptionMasterKey: props.key,
 		});
-		const cfnQueue = this.queue.node.defaultChild as sqs.CfnQueue
-		cfnQueue.cfnOptions.metadata = {
-			cfn_nag: {
-				rules_to_suppress: [
-					{
-						id: 'W48',
-						reason: "can't or at least don't know how to create s3 notification for encrypted sqs queue",
-					},
-				]
-			}
-		}
 
         const topic = new sns.Topic(this, 'Topic', {
 			masterKey: props.key,
@@ -113,20 +102,6 @@ export class Convert extends cdk.Construct {
 		props.dynamodb.grantReadWriteData(this.lambda)
         props.key.grantEncryptDecrypt(this.lambda)
 		topic.grantPublish(this.lambda)
-
-		// this would be a permission I need to give sqs access to the kms key to allow s3 to send encrypted messages to sqs
-		// props.uploadBucket.addToResourcePolicy(new iam.PolicyStatement({
-		// 	effect: Effect.ALLOW,
-		// 	actions: [
-		// 		'kms:GenerateDataKey*',
-		// 		'kms:Decrypt',
-		// 		'kms:Encrypt',
-		// 		'kms:ReEncrypt*',
-		// 	],
-		// 	resources: ["*"],
-		// 	// resources: [this.queue.encryptionMasterKey?.keyArn!],
-		// 	principals: [new iam.ServicePrincipal('s3.amazonaws.com')],
-		// }))
 
 		//only trigger convert lambda if file end on one of these suffixes
         //in theory files with a wrong ending could linger in the bucket forever without being processed
