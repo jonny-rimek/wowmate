@@ -42,7 +42,8 @@ export class Convert extends cdk.Construct {
 				maxReceiveCount: 1, //no need during dev
 			},
 			visibilityTimeout: cdk.Duration.seconds(150*6), //6x lambda duration, it's an aws best practice
-			// encryption: sqs.QueueEncryption.KMS_MANAGED,
+			encryption: sqs.QueueEncryption.KMS,
+			encryptionMasterKey: props.key,
 		});
 		const cfnQueue = this.queue.node.defaultChild as sqs.CfnQueue
 		cfnQueue.cfnOptions.metadata = {

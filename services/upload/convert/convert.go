@@ -387,7 +387,6 @@ func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData
 			}
 			logData.Wcu = *r.ConsumedCapacity.CapacityUnits
 		} else {
-			// log.Printf("hash exists in db: %d", hash)
 			duplicateHashes = append(duplicateHashes, hash)
 			skipCombatlogUUIDs = append(skipCombatlogUUIDs, combatlogUUID)
 		}
