@@ -107,7 +107,6 @@ CREATE TABLE IF NOT EXISTS combatlogs (
 // https://mholt.github.io/json-to-go/ best tool EVER
 
 type logData struct {
-	CombatlogUUIDs     []string
 	UploadUUID         string
 	BucketName         string
 	ObjectKey          string
@@ -140,8 +139,7 @@ var dynamodbSvc *dynamodb.DynamoDB
 func handler(ctx aws.Context, e golib.SQSEvent) (handlerOutput, error) {
 	logData, err := handle(ctx, e)
 	output := handlerOutput{
-		CombatlogUUIDs: logData.CombatlogUUIDs,
-		Hashes:         logData.AllHashes,
+		Hashes: logData.AllHashes,
 	}
 	if err != nil {
 		// create custom error types https://blog.golang.org/error-handling-and-go
@@ -164,7 +162,6 @@ func handler(ctx aws.Context, e golib.SQSEvent) (handlerOutput, error) {
 		// 	return err
 		// }
 		golib.CanonicalLog(map[string]interface{}{
-			"combatlog_uuid":       logData.CombatlogUUIDs,
 			"file_size_in_kb":      logData.FileSize,
 			"file_type":            logData.FileType,
 			"upload_uuid":          logData.UploadUUID,
@@ -182,7 +179,6 @@ func handler(ctx aws.Context, e golib.SQSEvent) (handlerOutput, error) {
 	}
 
 	golib.CanonicalLog(map[string]interface{}{
-		"combatlog_uuid":       logData.CombatlogUUIDs,
 		"file_size_in_kb":      logData.FileSize,
 		"file_type":            logData.FileType,
 		"upload_uuid":          logData.UploadUUID,
@@ -238,7 +234,7 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		return logData, err
 	}
 
-	uploadUUID, err := uploadUUID(objectKey)
+	uploadUUID, err := extractUploadUUID(objectKey)
 	if err != nil {
 		return logData, fmt.Errorf("failed to extract the uploadUUID: %v", err.Error())
 	}
@@ -292,9 +288,8 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		if golib.Contains(skipCombatlogs, combatlogUUID) {
 			continue
 		}
-		logData.CombatlogUUIDs = append(logData.CombatlogUUIDs, combatlogUUID)
 
-		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
+		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogMap[combatlogUUID], &topicArn)
 		if err != nil {
 			return logData, err
 		}
@@ -356,11 +351,6 @@ func concurrentTimestreamUpload(ctx aws.Context, nestedRecord map[string]map[str
 	return nil
 }
 
-type combatlogMap struct {
-	UUID string
-	hash string
-}
-
 // checkDuplicate creates a hash and checks if that hash is already in ddb, if not it writes it to ddb
 // if also returns the slice of hashes and which combatlogUUIDs to skip
 func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData, ddbTableName string) ([]string, map[string]string, error) {
@@ -396,10 +386,9 @@ func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData
 
 		if len(response.Item) == 0 {
 			dd := golib.DynamodbDedup{
-				Pk:            fmt.Sprintf("DEDUP#%d", hash),
-				Sk:            fmt.Sprintf("DEDUP#%d", hash),
-				CombatlogUUID: combatlogUUID,
-				CreatedAt:     fmt.Sprintf("%s", time.Now().UTC()),
+				Pk:        fmt.Sprintf("DEDUP#%d", hash),
+				Sk:        fmt.Sprintf("DEDUP#%d", hash),
+				CreatedAt: fmt.Sprintf("%s", time.Now().UTC()),
 			}
 
 			r, err := golib.DynamoDBPutItem(ctx, dynamodbSvc, &ddbTableName, dd)
@@ -418,7 +407,6 @@ func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData
 	return skipCombatlogs, combatlogMap, nil
 }
 
-// probably also reasonably testable, but file handling is always weird
 func readFileTypes(fileType string, fileContent *aws.WriteAtBuffer) ([]byte, error) {
 	var data []byte
 
@@ -443,8 +431,6 @@ func readFileTypes(fileType string, fileContent *aws.WriteAtBuffer) ([]byte, err
 		}
 
 		for _, zipFile := range zipReader.File {
-			// log.Printf("zip loop i = %v", i)
-			// log.Println("Reading file:", zipFile.Name)
 			unzippedFileBytes, err := readZipFile(zipFile)
 			if err != nil {
 				return nil, err
@@ -490,7 +476,8 @@ func readZipFile(zf *zip.File) (data []byte, err error) {
 	return ioutil.ReadAll(f)
 }
 
-func uploadUUID(s string) (string, error) {
+// extractUploadUUID gets the upload uuid from the s3 file name
+func extractUploadUUID(s string) (string, error) {
 	if s == "" {
 		return "", fmt.Errorf("input can't be empty")
 	}

@@ -151,10 +151,6 @@ func damage(params []string, uploadUUID *string, combatlogUUID *string, rec map[
 					Name:  aws.String("upload_uuid"),
 					Value: aws.String(*uploadUUID),
 				},
-				{
-					Name:  aws.String("combatlog_uuid"),
-					Value: aws.String(*combatlogUUID),
-				},
 			},
 			MeasureName:      aws.String("damage"),
 			MeasureValueType: aws.String("BIGINT"),

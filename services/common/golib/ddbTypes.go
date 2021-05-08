@@ -13,7 +13,7 @@ type DynamoDBPlayerDamageDone struct {
 	Keylevel      int                `json:"keylevel"`
 	DungeonName   string             `json:"dungeon_name"`
 	DungeonID     int                `json:"dungeon_id"`
-	CombatlogUUID string             `json:"combatlog_uuid"`
+	CombatlogHash string             `json:"combatlog_hash"`
 	Finished      bool               `json:"finished"`
 	Intime        int                `json:"intime"`
 	Date          int64              `json:"date"`
@@ -71,7 +71,7 @@ type DynamoDBKeys struct {
 	Keylevel      int            `json:"keylevel"`
 	DungeonName   string         `json:"dungeon_name"`
 	DungeonID     int            `json:"dungeon_id"`
-	CombatlogUUID string         `json:"combatlog_uuid"`
+	CombatlogHash string         `json:"combatlog_hash"`
 	Finished      bool           `json:"finished"`
 	Intime        int            `json:"intime"`
 	Date          int64          `json:"date"`
@@ -82,8 +82,7 @@ type DynamoDBKeys struct {
 // Pk:            fmt.Sprintf("DEDUP#%d", hash),
 // Sk:            fmt.Sprintf("DEDUP#%d", hash),
 type DynamodbDedup struct {
-	Pk            string `json:"pk"`
-	Sk            string `json:"sk"`
-	CombatlogUUID string `json:"combatlog_uuid"`
-	CreatedAt     string `json:"created_at"`
+	Pk        string `json:"pk"`
+	Sk        string `json:"sk"`
+	CreatedAt string `json:"created_at"`
 }

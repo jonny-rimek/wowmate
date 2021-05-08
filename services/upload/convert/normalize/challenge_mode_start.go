@@ -41,10 +41,6 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 					Name:  aws.String("upload_uuid"),
 					Value: aws.String(uploadUUID),
 				},
-				{
-					Name:  aws.String("combatlog_uuid"),
-					Value: aws.String(combatlogUUID),
-				},
 			},
 			MeasureName:      aws.String("dungeon_id"),
 			MeasureValue:     aws.String(strconv.FormatInt(dungeonID, 10)),
@@ -58,10 +54,6 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 					Name:  aws.String("upload_uuid"),
 					Value: aws.String(uploadUUID),
 				},
-				{
-					Name:  aws.String("combatlog_uuid"),
-					Value: aws.String(combatlogUUID),
-				},
 			},
 			MeasureName:      aws.String("key_level"),
 			MeasureValue:     aws.String(strconv.FormatInt(keyLevel, 10)),
@@ -74,10 +66,6 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 				{
 					Name:  aws.String("upload_uuid"),
 					Value: aws.String(uploadUUID),
-				},
-				{
-					Name:  aws.String("combatlog_uuid"),
-					Value: aws.String(combatlogUUID),
 				},
 			},
 			MeasureName:      aws.String("date"),
@@ -100,10 +88,6 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 					Name:  aws.String("upload_uuid"),
 					Value: aws.String(uploadUUID),
 				},
-				{
-					Name:  aws.String("combatlog_uuid"),
-					Value: aws.String(combatlogUUID),
-				},
 			},
 			MeasureName:      aws.String("two_affix_id"),
 			MeasureValue:     aws.String(strconv.FormatInt(twoAffixID, 10)),
@@ -124,10 +108,6 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 				{
 					Name:  aws.String("upload_uuid"),
 					Value: aws.String(uploadUUID),
-				},
-				{
-					Name:  aws.String("combatlog_uuid"),
-					Value: aws.String(combatlogUUID),
 				},
 			},
 			MeasureName:      aws.String("four_affix_id"),
@@ -150,10 +130,6 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 					Name:  aws.String("upload_uuid"),
 					Value: aws.String(uploadUUID),
 				},
-				{
-					Name:  aws.String("combatlog_uuid"),
-					Value: aws.String(combatlogUUID),
-				},
 			},
 			MeasureName:      aws.String("seven_affix_id"),
 			MeasureValue:     aws.String(strconv.FormatInt(sevenAffixID, 10)),
@@ -174,10 +150,6 @@ func challengeModeStart(params []string, uploadUUID string, combatlogUUID string
 				{
 					Name:  aws.String("upload_uuid"),
 					Value: aws.String(uploadUUID),
-				},
-				{
-					Name:  aws.String("combatlog_uuid"),
-					Value: aws.String(combatlogUUID),
 				},
 			},
 			MeasureName:      aws.String("ten_affix_id"),

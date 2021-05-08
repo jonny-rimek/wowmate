@@ -142,7 +142,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 		}
 	}
 
-	combatlogUUID := *queryResult.Rows[0].Data[3].ScalarValue
+	combatlogHash := *queryResult.Rows[0].Data[3].ScalarValue
 
 	dungeonName := *queryResult.Rows[0].Data[4].ScalarValue
 
@@ -200,15 +200,15 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	}
 
 	resp = golib.DynamoDBPlayerDamageDone{
-		Pk:            fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
-		Sk:            fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogUUID),
+		Pk:            fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogHash),
+		Sk:            fmt.Sprintf("LOG#KEY#%v#OVERALL_PLAYER_DAMAGE", combatlogHash),
 		Duration:      t.Format("04:05"), // formats to minutes:seconds
 		Deaths:        0,
 		Affixes:       golib.AffixIDsToString(twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
 		Keylevel:      keyLevel,
 		DungeonName:   dungeonName,
 		DungeonID:     dungeonID,
-		CombatlogUUID: combatlogUUID,
+		CombatlogHash: combatlogHash,
 		Finished:      finished != 0, // if 0 false, else 1
 		Intime:        intime,
 		Date:          date,
