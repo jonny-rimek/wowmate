@@ -22,10 +22,6 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 		return nil, nil, fmt.Errorf("can't provide an empty uploadUUID")
 	}
 
-	// combatEvents2 = make([]Event, 0, 100000) //100.000 is an arbitrary value
-	// initialising the slice with a capacity to reduce the amount reallocation
-	// the difference in a small log was <1sec -> not worth
-
 	for scanner.Scan() {
 		// 4/24 10:42:30.561  COMBAT_LOG_VERSION
 		// every line starts with the date followed by the rest separated with 2 spaces.
@@ -112,14 +108,9 @@ func Normalize(scanner *bufio.Scanner, uploadUUID string) (map[string]map[string
 			}
 
 		case "COMBATANT_INFO":
-			// hash, err := hashstructure.Hash(params, hashstructure.FormatV2, nil)
-			// if err != nil {
-			// 	return nil, nil, fmt.Errorf("failed to hash combat info: %v", err.Error())
-			// }
 			dedup[combatlogUUID] = append(dedup[combatlogUUID], params...)
 
 		default:
-			// e.Unsupported = true
 		}
 	}
 

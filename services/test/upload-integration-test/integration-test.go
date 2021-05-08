@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -21,8 +22,7 @@ type dynamodbDedup struct {
 }
 
 type convertOutput struct {
-	CombatlogUUIDs []string
-	Hashes         []uint64
+	Hashes []uint64
 }
 
 var lambdaSvc *lambda.Lambda
@@ -84,7 +84,7 @@ func invokeConvert(local bool) (*convertOutput, error) {
 	return &r, nil
 }
 
-func invokeQueryKeys(combatlogUUID string, local bool) error {
+func invokeQueryKeys(combatlogHash string, local bool) error {
 	log.Println("invoke query keys")
 	var functionName string
 	var logType *string
@@ -113,7 +113,7 @@ func invokeQueryKeys(combatlogUUID string, local bool) error {
 			}
 		  ]
 		}
-		`, combatlogUUID))
+		`, combatlogHash))
 
 	_, err := invokeLambda(local, functionName, payload, logType)
 	if err != nil {
@@ -151,7 +151,7 @@ func invokeInsertKeys(local bool) error {
 	return nil
 }
 
-func invokeQueryPlayerDamageDone(combatlogUUID string, local bool) error {
+func invokeQueryPlayerDamageDone(combatlogHash string, local bool) error {
 	log.Println("invoke query player damage")
 	var functionName string
 	var logType *string
@@ -180,7 +180,7 @@ func invokeQueryPlayerDamageDone(combatlogUUID string, local bool) error {
 			}
 		  ]
 		}
-		`, combatlogUUID))
+		`, combatlogHash))
 
 	_, err := invokeLambda(local, functionName, payload, logType)
 	if err != nil {
@@ -288,7 +288,7 @@ func main() {
 	if err != nil {
 		handleError(err)
 	}
-	combatlogUUID := c.CombatlogUUIDs[0]
+	hash := strconv.FormatUint(c.Hashes[0], 10)
 
 	// this is not an ideal solution, it only deletes the record inside the test
 	// if the same file is uploaded from somewhere else it will fail the test
@@ -298,7 +298,7 @@ func main() {
 		handleError(err)
 	}
 
-	err = invokeQueryKeys(combatlogUUID, local)
+	err = invokeQueryKeys(hash, local)
 	if err != nil {
 		handleError(err)
 	}
@@ -308,7 +308,7 @@ func main() {
 		handleError(err)
 	}
 
-	err = invokeQueryPlayerDamageDone(combatlogUUID, local)
+	err = invokeQueryPlayerDamageDone(hash, local)
 	if err != nil {
 		handleError(err)
 	}

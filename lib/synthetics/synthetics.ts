@@ -12,6 +12,7 @@ interface Props extends cdk.StackProps {
     errorMail: string
     stage: string
     apiUrl: string
+    domainName: string
     key: kms.Key
 }
 
@@ -25,6 +26,7 @@ export class Synthetics extends cdk.Construct {
 
             const apiCanaryBlueprint = async function () {
                 const hostname = process.env.API_URL
+                const domainName = process.env.DOMAIN_NAME
                 
                 // Handle validation for positive scenario
                 const validateSuccessful = async function(res) {
@@ -148,7 +150,7 @@ export class Synthetics extends cdk.Construct {
                 // ----------------------------------------------------
                 // Set request option for Verify /
                 let requestOptionsStep5 = {
-                    hostname: hostname,
+                    hostname: domainName,
                     method: 'GET',
                     path: '/',
                     port: '443',
@@ -208,6 +210,7 @@ export class Synthetics extends cdk.Construct {
         cfnCanary.addPropertyOverride('RunConfig.EnvironmentVariables', {
             API_URL: props.apiUrl.replace('https://','').replace('/',''),
             STAGE: props.stage,
+            DOMAIN_NAME: props.domainName,
         })
 
         const cfnBucket = canary.artifactsBucket.node.defaultChild as s3.CfnBucket

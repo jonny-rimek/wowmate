@@ -173,6 +173,7 @@ export class Wowmate extends Stack {
 			stage: props.stage,
 			apiUrl: api.api.url!,
 			key: kms.key,
+			domainName: props.domainName,
 		})
 	}
 }

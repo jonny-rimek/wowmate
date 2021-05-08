@@ -24,7 +24,7 @@ var querySvc *timestreamquery.TimestreamQuery
 type logData struct {
 	ScannedMegabytes int64
 	BilledMegabytes  int64
-	CombatlogUUID    string
+	CombatlogHash    string
 	QueryID          string
 }
 
@@ -33,7 +33,7 @@ func handler(ctx aws.Context, e events.SNSEvent) error {
 	if err != nil {
 		//goland:noinspection GoNilness
 		golib.CanonicalLog(map[string]interface{}{
-			"combatlog_uuid":    logData.CombatlogUUID,
+			"combatlog_hash":    logData.CombatlogHash,
 			"billed_megabytes":  logData.BilledMegabytes,
 			"scanned_megabytes": logData.ScannedMegabytes,
 			"query_id":          logData.QueryID,
@@ -44,7 +44,7 @@ func handler(ctx aws.Context, e events.SNSEvent) error {
 	}
 
 	golib.CanonicalLog(map[string]interface{}{
-		"combatlog_uuid":    logData.CombatlogUUID,
+		"combatlog_hash":    logData.CombatlogHash,
 		"billed_megabytes":  logData.BilledMegabytes,
 		"scanned_megabytes": logData.ScannedMegabytes,
 		"query_id":          logData.QueryID,
@@ -55,11 +55,11 @@ func handler(ctx aws.Context, e events.SNSEvent) error {
 func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	var logData logData
 
-	topicArn, combatlogUUID, err := validateInput(e)
+	topicArn, combatlogHash, err := validateInput(e)
 	if err != nil {
 		return logData, err
 	}
-	logData.CombatlogUUID = combatlogUUID
+	logData.CombatlogHash = combatlogHash
 
 	// NOTE: AND caster_id LIKE 'Player-%' doesnt work, sprintf tries to format the %
 	query := fmt.Sprintf(`
@@ -67,44 +67,44 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 		    SELECT
 				dungeon_name,
 		        measure_value::bigint AS dungeon_id,
-		        combatlog_uuid
+		        combatlog_hash
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '%v'  AND
+				combatlog_hash = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'dungeon_id'
 		),
 		key_level AS (
 		    SELECT
 		        measure_value::bigint AS key_level,
-		        combatlog_uuid
+		        combatlog_hash
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '%v'  AND
+				combatlog_hash = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'key_level'
 		),
 		duration AS (
 		    SELECT
 		        measure_value::bigint AS duration,
-		        combatlog_uuid
+		        combatlog_hash
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '%v'  AND
+				combatlog_hash = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'duration'
 		),
 		finished AS (
 		    SELECT
 		        measure_value::bigint AS finished,
-		        combatlog_uuid
+		        combatlog_hash
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '%v'  AND
+				combatlog_hash = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'finished' AND
 				measure_value::bigint != 0 -- don't add non finished keys to the top keys list'
@@ -112,66 +112,66 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
         two_affix_id AS (
 		    SELECT
 		        measure_value::bigint AS two_affix_id,
-		        combatlog_uuid
+		        combatlog_hash
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '%v'  AND
+				combatlog_hash = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'two_affix_id'
 		),
         four_affix_id AS (
 		    SELECT
 		        measure_value::bigint AS four_affix_id,
-		        combatlog_uuid
+		        combatlog_hash
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '%v'  AND
+				combatlog_hash = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'four_affix_id'
 		),
         seven_affix_id AS (
 		    SELECT
 		        measure_value::bigint AS seven_affix_id,
-		        combatlog_uuid
+		        combatlog_hash
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '%v'  AND
+				combatlog_hash = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'seven_affix_id'
 		),
         ten_affix_id AS (
 		    SELECT
 		        measure_value::bigint AS ten_affix_id,
-		        combatlog_uuid
+		        combatlog_hash
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '%v'  AND
+				combatlog_hash = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'ten_affix_id'
 		),        
         patch AS (
 		    SELECT
 		        measure_value::varchar AS patch,
-		        combatlog_uuid
+		        combatlog_hash
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '%v'  AND
+				combatlog_hash = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'patch'
 		),        
         date AS (
 		    SELECT
 		        measure_value::bigint AS date,
-		        combatlog_uuid
+		        combatlog_hash
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '%v'  AND
+				combatlog_hash = '%v'  AND
 		        time between ago(15m) and now() AND
 		        measure_name = 'date'
 		),        
@@ -180,16 +180,16 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 				SUM(measure_value::bigint) AS damage,
 				caster_name,
 				caster_id,
-				combatlog_uuid
+				combatlog_hash
 			FROM
 				"wowmate-analytics"."combatlogs"
 			WHERE
-				combatlog_uuid = '%v' AND
+				combatlog_hash = '%v' AND
 				(caster_type = '0x512' OR caster_type = '0x511') AND
 				caster_id != '0000000000000000' AND -- sometime the caster_id is empty, dunno why
 		  		time between ago(15m) and now()
 			GROUP BY
-				caster_name, caster_id, combatlog_uuid
+				caster_name, caster_id, combatlog_hash
 			ORDER BY
 				damage DESC
 		)
@@ -197,7 +197,7 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			damage, 
 			caster_name, 
 			caster_id, 
-			damage.combatlog_uuid, 
+			damage.combatlog_hash, 
 			dungeon_name, 
 			dungeon_id,
 			key_level, 
@@ -213,46 +213,46 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 			damage
 		JOIN
 			dungeon
-			ON damage.combatlog_uuid = dungeon.combatlog_uuid
+			ON damage.combatlog_hash = dungeon.combatlog_hash
 		JOIN
 			key_level
-		    ON key_level.combatlog_uuid = dungeon.combatlog_uuid
+		    ON key_level.combatlog_hash = dungeon.combatlog_hash
 		JOIN
 			duration
-		    ON duration.combatlog_uuid = dungeon.combatlog_uuid
+		    ON duration.combatlog_hash = dungeon.combatlog_hash
 		JOIN
 			finished
-		    ON finished.combatlog_uuid = dungeon.combatlog_uuid
+		    ON finished.combatlog_hash = dungeon.combatlog_hash
 		JOIN
 			two_affix_id
-		    ON two_affix_id.combatlog_uuid = dungeon.combatlog_uuid
+		    ON two_affix_id.combatlog_hash = dungeon.combatlog_hash
         JOIN
 			four_affix_id
-		    ON four_affix_id.combatlog_uuid = dungeon.combatlog_uuid
+		    ON four_affix_id.combatlog_hash = dungeon.combatlog_hash
         JOIN
 			seven_affix_id
-		    ON seven_affix_id.combatlog_uuid = dungeon.combatlog_uuid
+		    ON seven_affix_id.combatlog_hash = dungeon.combatlog_hash
         JOIN
 			ten_affix_id
-		    ON ten_affix_id.combatlog_uuid = dungeon.combatlog_uuid            
+		    ON ten_affix_id.combatlog_hash = dungeon.combatlog_hash            
         JOIN
 			patch
-		    ON patch.combatlog_uuid = dungeon.combatlog_uuid            
+		    ON patch.combatlog_hash = dungeon.combatlog_hash            
         JOIN
 			date
-		    ON date.combatlog_uuid = dungeon.combatlog_uuid            
+		    ON date.combatlog_hash = dungeon.combatlog_hash            
 		`,
-		combatlogUUID,
-		combatlogUUID,
-		combatlogUUID,
-		combatlogUUID,
-		combatlogUUID,
-		combatlogUUID,
-		combatlogUUID,
-		combatlogUUID,
-		combatlogUUID,
-		combatlogUUID,
-		combatlogUUID,
+		combatlogHash,
+		combatlogHash,
+		combatlogHash,
+		combatlogHash,
+		combatlogHash,
+		combatlogHash,
+		combatlogHash,
+		combatlogHash,
+		combatlogHash,
+		combatlogHash,
+		combatlogHash,
 	)
 
 	queryResult, err := golib.TimestreamQuery(ctx, &query, querySvc)
@@ -285,19 +285,19 @@ func handle(ctx aws.Context, e events.SNSEvent) (logData, error) {
 	return logData, nil
 }
 
-func validateInput(e events.SNSEvent) (topicArn string, combatlogUUID string, err error) {
+func validateInput(e events.SNSEvent) (topicArn string, combatlogHash string, err error) {
 	topicArn = os.Getenv("TOPIC_ARN")
 	if topicArn == "" {
 		return "", "", fmt.Errorf("arn topic env var is empty")
 	}
 	logrus.Debug("topicArn: " + topicArn)
 
-	combatlogUUID = e.Records[0].SNS.Message
-	if combatlogUUID == "" {
-		return topicArn, "", fmt.Errorf("combatlog uuid is empty")
+	combatlogHash = e.Records[0].SNS.Message
+	if combatlogHash == "" {
+		return topicArn, "", fmt.Errorf("combatlog hash is empty")
 	}
 
-	return topicArn, combatlogUUID, nil
+	return topicArn, combatlogHash, nil
 }
 
 func main() {

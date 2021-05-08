@@ -105,7 +105,7 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 
 		summaries = append(summaries, d)
 	}
-	combatlogUUID := *queryResult.Rows[0].Data[3].ScalarValue
+	combatlogHash := *queryResult.Rows[0].Data[3].ScalarValue
 
 	dungeonName := *queryResult.Rows[0].Data[4].ScalarValue
 
@@ -167,21 +167,21 @@ func convertQueryResult(queryResult *timestreamquery.QueryOutput) (golib.DynamoD
 	resp = golib.DynamoDBKeys{
 		// hardcoding the patch like that might be too granular, maybe it makes more sense that e.g. 9.0.2 and 9.0.5 are both S1
 		Pk: fmt.Sprintf("LOG#KEY#%s", patch),
-		Sk: fmt.Sprintf("%02d#%3.6f#%v", keyLevel, durAsPercent, combatlogUUID),
+		Sk: fmt.Sprintf("%02d#%3.6f#%v", keyLevel, durAsPercent, combatlogHash),
 		// sorting in dynamoDB is achieved via the sort key, in order to sort by key level and within the key level by
 		// time I'm printing the value as string and sort the string.
 		// As I'm sorting descending I can't just print the duration in milliseconds.
 		// instead I print the duration as percent in relation to the intime duration
 		Damage:        summaries,
 		Gsi1pk:        fmt.Sprintf("LOG#KEY#%s#%v", patch, dungeonID),
-		Gsi1sk:        fmt.Sprintf("%02d#%3.6f#%v", keyLevel, durAsPercent, combatlogUUID),
+		Gsi1sk:        fmt.Sprintf("%02d#%3.6f#%v", keyLevel, durAsPercent, combatlogHash),
 		Duration:      t.Format("04:05"), // formats to minutes:seconds
 		Deaths:        0,                 // TODO:
 		Affixes:       golib.AffixIDsToString(twoAffixID, fourAffixID, sevenAffixID, tenAffixID),
 		Keylevel:      keyLevel,
 		DungeonName:   dungeonName,
 		DungeonID:     dungeonID,
-		CombatlogUUID: combatlogUUID,
+		CombatlogHash: combatlogHash,
 		Finished:      finished != 0, // if 0 false, else true
 		Intime:        intime,
 		Date:          date,
