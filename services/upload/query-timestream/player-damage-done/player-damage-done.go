@@ -110,7 +110,7 @@ func validateInput(e events.SNSEvent) (topicArn string, combatlogHash string, er
 // NOTE: AND caster_id LIKE 'Player-%' doesnt work, sprintf tries to format the %
 func query(combatlogHash string) *string {
 	return aws.String(fmt.Sprintf(`
-		WITH dungeon AS (
+			WITH dungeon AS (
 		    SELECT
 				dungeon_name,
 		        measure_value::bigint AS dungeon_id,
