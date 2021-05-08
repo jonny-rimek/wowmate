@@ -121,8 +121,7 @@ type logData struct {
 }
 
 type handlerOutput struct {
-	CombatlogUUIDs []string
-	Hashes         []uint64
+	Hashes []uint64
 }
 
 var s3Svc *s3.S3
