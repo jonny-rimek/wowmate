@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -276,14 +277,35 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 	}
 
 	// deduplication doesn't have a noticeable impact on performance or memory usage!
-	skipCombatlogUUIDs, err := checkDuplicate(ctx, dedup, &logData, ddbTableName)
+	skipCombatlogs, combatlogMap, err := checkDuplicate(ctx, dedup, &logData, ddbTableName)
 	if err != nil {
 		return logData, err
 	}
 
+	// pass combatlogMap into timestream upload and add hash to dimensions array
+	err = concurrentTimestreamUpload(ctx, nestedRecord, skipCombatlogs, combatlogMap, &logData)
+	if err != nil {
+		return logData, err
+	}
+
+	for combatlogUUID := range nestedRecord { // group by different keys
+		if golib.Contains(skipCombatlogs, combatlogUUID) {
+			continue
+		}
+		logData.CombatlogUUIDs = append(logData.CombatlogUUIDs, combatlogUUID)
+
+		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
+		if err != nil {
+			return logData, err
+		}
+	}
+	return logData, nil
+}
+
+func concurrentTimestreamUpload(ctx aws.Context, nestedRecord map[string]map[string][]*timestreamwrite.WriteRecordsInput, skipCombatlogUUIDs []string, combatlogMap map[string]string, logData *logData) error {
 	// can process single key log files with 26MB size and 1792 MB memory lambda in ~3sec once timestream is warm
 	maxGoroutines := 15
-	var ch = make(chan *timestreamwrite.WriteRecordsInput, 300) // This number 200 can be anything as long as it's larger than maxGoroutines
+	var ch = make(chan *timestreamwrite.WriteRecordsInput, 300) // This number can be anything as long as it's larger than maxGoroutines
 	var wg sync.WaitGroup
 
 	var writeErr error
@@ -310,45 +332,49 @@ func handle(ctx aws.Context, e golib.SQSEvent) (logData, error) {
 		for _, writeRecordsInputs := range record { // grouped by key to use common attribute
 			logData.TimestreamAPICalls += len(writeRecordsInputs)
 			for _, e := range writeRecordsInputs { // array of TimestreamWriteInputs
+
+				// go through all the records and add a dimension with combatlog hash
+				for _, r := range e.Records {
+					r.Dimensions = append(r.Dimensions, &timestreamwrite.Dimension{
+						Name:  aws.String("combatlog_hash"),
+						Value: aws.String(combatlogMap[combatlogUUID]),
+					})
+				}
+
 				ch <- e                           // add i to the queue
 				logData.Records += len(e.Records) // not sure if this is problematic or I should use channels
 			}
 		}
 	}
 
-	// close(errorChannel)
 	close(ch) // This tells the goroutines there's nothing else to do
 	wg.Wait() // Wait for the threads to finish
 
 	if writeErr != nil {
-		return logData, writeErr
+		return writeErr
 	}
+	return nil
+}
 
-	for combatlogUUID := range nestedRecord { // group by different keys
-		if golib.Contains(skipCombatlogUUIDs, combatlogUUID) {
-			continue
-		}
-		logData.CombatlogUUIDs = append(logData.CombatlogUUIDs, combatlogUUID)
-		err = golib.SNSPublishMsg(ctx, snsSvc, combatlogUUID, &topicArn)
-		if err != nil {
-			return logData, err
-		}
-	}
-	return logData, nil
+type combatlogMap struct {
+	UUID string
+	hash string
 }
 
 // checkDuplicate creates a hash and checks if that hash is already in ddb, if not it writes it to ddb
 // if also returns the slice of hashes and which combatlogUUIDs to skip
-func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData, ddbTableName string) ([]string, error) {
+func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData, ddbTableName string) ([]string, map[string]string, error) {
 	var duplicateHashes, allHashes []uint64
-	var skipCombatlogUUIDs []string
+	var skipCombatlogs []string
+	combatlogMap := make(map[string]string)
 
 	for combatlogUUID, record := range dedup {
 		hash, err := hashstructure.Hash(record, hashstructure.FormatV2, nil)
 		if err != nil {
-			return nil, fmt.Errorf("failed to hash: %v", err.Error())
+			return nil, nil, fmt.Errorf("failed to hash: %v", err.Error())
 		}
 		allHashes = append(allHashes, hash)
+		combatlogMap[combatlogUUID] = strconv.FormatUint(hash, 10)
 
 		input := &dynamodb.GetItemInput{
 			TableName: &ddbTableName,
@@ -364,7 +390,7 @@ func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData
 		}
 		response, err := golib.DynamoDBGetItem(ctx, dynamodbSvc, input)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		logData.Rcu = *response.ConsumedCapacity.CapacityUnits
 
@@ -378,18 +404,18 @@ func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData
 
 			r, err := golib.DynamoDBPutItem(ctx, dynamodbSvc, &ddbTableName, dd)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			logData.Wcu = *r.ConsumedCapacity.CapacityUnits
 		} else {
 			duplicateHashes = append(duplicateHashes, hash)
-			skipCombatlogUUIDs = append(skipCombatlogUUIDs, combatlogUUID)
+			skipCombatlogs = append(skipCombatlogs, combatlogUUID)
 		}
 	}
 	logData.DuplicateHashes = duplicateHashes
 	logData.AllHashes = allHashes
 
-	return skipCombatlogUUIDs, nil
+	return skipCombatlogs, combatlogMap, nil
 }
 
 // probably also reasonably testable, but file handling is always weird
