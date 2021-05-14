@@ -53,41 +53,13 @@ export default {
       dungeons: [
         { name: 'All Dungeons', pathName: 'mythicplus' },
         { name: "De Other Site", pathName: 'mythicplus-id', id: 2291 },
-        { name: 'Freehold', pathName: 'mythicplus-id', id: 2145 },
-        { name: "Kings'Rest", pathName: 'mythicplus-id', id: 2146 },
-        {
-          name: 'Shrine of the Storm',
-          pathName: 'mythicplus-id',
-          id: 2147
-        },
-        {
-          name: 'Siege of Boralus',
-          pathName: 'mythicplus-id',
-          id: 2148
-        },
-        {
-          name: 'Temple of Sethraliss',
-          pathName: 'mythicplus-id',
-          id: 2149
-        },
-        {
-          name: 'The MOTHERLODE!!',
-          pathName: 'mythicplus-id',
-          id: 2154
-        },
-        { name: 'The Underrot', pathName: 'mythicplus-id', id: 2164 },
-        { name: 'Tol Dagor', pathName: 'mythicplus-id', id: 2174 },
-        { name: 'Waycrest Manor', pathName: 'mythicplus-id', id: 2184 },
-        {
-          name: 'Operation: Mechagon - Junkyard',
-          pathName: 'mythicplus-id',
-          id: 2194
-        },
-        {
-          name: 'Operation: Mechagon - Workshop',
-          pathName: 'mythicplus-id',
-          id: 2104
-        }
+        { name: "Plaguefall", pathName: 'mythicplus-id', id: 2289 },
+        { name: "Sanguine Depths", pathName: 'mythicplus-id', id: 2284 },
+        { name: "Halls of Atonement", pathName: 'mythicplus-id', id: 2287 },
+        { name: "Mists of Tirna Scithe", pathName: 'mythicplus-id', id: 2290 },
+        { name: "Spires of Ascension", pathName: 'mythicplus-id', id: 2285 },
+        { name: "Necrotic Wake", pathName: 'mythicplus-id', id: 2286 },
+        { name: "Theater of Pain", pathName: 'mythicplus-id', id: 2293 },
       ]
     }
   }
