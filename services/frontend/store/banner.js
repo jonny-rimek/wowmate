@@ -17,6 +17,7 @@ export const getters = {
 
 // showBanner checks the localStorage for the banner item, if it exists, the banner is not shown
 // if it doesn't it is
+// doesn't work with SSR
 function showBanner() {
   const banner = localStorage.getItem("banner")
   if (banner === null) {
