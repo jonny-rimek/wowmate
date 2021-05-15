@@ -1,8 +1,12 @@
 name: CI/CD
 
 on:
+  pull_request:
+    branches: [ "prod" ]
   push:
-    branches: [ "**" ] # one * doesn't trigger branches with /
+    # with the automatic pr that updates everything, no pipeline is triggered, that's
+    # why I need to add the branch manually
+    branches: [ "update" ]
   workflow_dispatch:
 
 jobs:

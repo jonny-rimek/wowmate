@@ -61,6 +61,7 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           delete-branch: true
+          branch: "update"
           title: "Update all dependencies"
           body: |
             Automatic PR to update all dependencies
