@@ -4,22 +4,23 @@ describe('Mythicplus Page - Desktop', () => {
       cy.viewport(1920, 1080)
     })
 
-    // TODO: stub out network response, so it works on an empty db as well
     it('is able to paginate', () => {
       cy.visit('/')
       cy.get('[data-cy=mythicplus]').click()
+      cy.get('[data-cy=dungeon]').first().should("have.class", "data-cy-active")
       cy.get('[data-cy=prev]').should('not.exist')
       cy.get('[data-cy=next]').should('exist').click()
+      cy.get('[data-cy=dungeon]').first().should("have.class", "data-cy-active")
       cy.get('[data-cy=prev]').should('exist').click()
       cy.get('[data-cy=prev]').should('not.exist')
+      cy.get('[data-cy=dungeon]').first().should("have.class", "data-cy-active")
     })
 
     it('can check a logs for a specific dungeon', () => {
-      cy.visit('/mythicplus')
+      cy.visit('/mythicplus/all')
       cy.get('[data-cy=dungeon]').first().click()
       cy.get('[data-cy=log]').first().click()
     })
-
   })
 })
 
@@ -47,7 +48,8 @@ describe('Mythicplus Page - Mobile', () => {
   })
 
   it('can check a logs for a specific dungeon', () => {
-    cy.visit('/mythicplus')
+    cy.visit('/mythicplus/all')
     cy.get('[data-cy=log]').first().click()
+    // TODO: check content of page e.g. title
   })
 })
