@@ -16,6 +16,7 @@ type JSONKeysResponse struct {
 	FirstPage bool       `json:"first_page"`
 	LastPage  bool       `json:"last_page"`
 }
+
 type JSONKeys struct {
 	Damage        []PlayerDamage `json:"player_damage"`
 	Duration      string         `json:"duration"`
@@ -25,7 +26,9 @@ type JSONKeys struct {
 	DungeonName   string         `json:"dungeon_name"`
 	DungeonID     int            `json:"dungeon_id"`
 	CombatlogUUID string         `json:"combatlog_uuid"`
-	Date          int64          `json:"date"`
+	Intime        int            `json:"intime"`
+	// don't need date atm, readd if needed
+	// Date          int64          `json:"date"`
 }
 
 // KeysResponseToJson takes a dynamodb query output and converts it to be consumed by the frontend
@@ -70,8 +73,7 @@ func KeysResponseToJson(result *dynamodb.QueryOutput, sorted, firstPage bool) (s
 			DungeonName:   el.DungeonName,
 			DungeonID:     el.DungeonID,
 			CombatlogUUID: el.CombatlogHash,
-			// TODO: format for what is needed. probably just 1924-12-29, atm it is unix timestamp
-			Date: el.Date,
+			Intime:        el.Intime,
 		}
 		r = append(r, resp)
 	}

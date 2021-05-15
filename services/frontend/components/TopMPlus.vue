@@ -7,7 +7,6 @@
         <h2
           class="text-xl font-bold leading-7 text-gray-200 sm:text-2xl sm:leading-9 sm:truncate"
         >
-          <!-- TODO: dynamic depending on page -->
           {{ title }}
         </h2>
       </div>
@@ -56,18 +55,16 @@
                       <div
                         class="text-sm leading-5 font-medium text-gray-200"
                       >
-                        <!--
-                        TODO:
-                        <span class="sm:hidden">
-                          {{ log.dungeonShort }}
-                        </span>
-                        -->
                         <span class="hidden sm:inline">
                           {{ log.dungeon_name }}
                         </span>
                         <span class="text-gray-400">
                             +{{ log.keylevel }}
                         </span>
+                        <span v-if="log.intime === 1">*</span>
+                        <span v-else-if="log.intime === 2">**</span>
+                        <span v-else-if="log.intime === 3">***</span>
+                        <span v-else></span>
                       </div>
                       <div
                         class="text-sm leading-5 text-gray-400"
@@ -109,7 +106,6 @@
                 <td
                   class="pr-4 sm:px-4 md:px-6 py-4 whitespace-no-wrap text-right border-b border-gray-500  text-sm leading-5 font-medium"
                 >
-                  <!-- TODO: add real combatlog uuid -->
                   <nuxt-link
                     :to="{
                       name: 'mythicplus-log-id-damage',
