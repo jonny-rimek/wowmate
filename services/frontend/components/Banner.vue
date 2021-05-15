@@ -3,6 +3,7 @@
     <div
       v-if="visible"
       class="pointer-events-none fixed bottom-0 inset-x-0 pb-2 sm:pb-5"
+      data-cy="banner"
     >
       <div class="pointer-events-auto max-w-3xl mx-auto px-2 sm:px-6 lg:px-8 ">
         <div
@@ -27,10 +28,10 @@
               </span>
               <p class="ml-3 font-medium text-gray-600 truncate">
                 <span class="md:hidden">
-                  Wowmate is in pre alpha!
+                  Wowmate is in alpha!
                 </span>
                 <span class="hidden md:inline">
-                  Wowmate is in pre alpha and under active development
+                  Wowmate is in alpha and under active development
                 </span>
               </p>
             </div>
@@ -55,6 +56,7 @@
                 type="button"
                 class="-mr-1 flex p-2 rounded-md hover:text-red-600 focus:outline-none transition ease-in-out duration-150"
                 aria-label="Dismiss"
+                data-cy="hide-banner"
               >
                 <svg
                   class="h-6 w-6 text-text-gray-600"
