@@ -119,7 +119,7 @@ func query(combatlogHash string) *string {
 				"wowmate-analytics"."combatlogs"
 			WHERE
 				combatlog_hash = '%v'  AND
-		        time between ago(15m) and now() AND
+		        time between ago(3m) and now() AND
 		        measure_name = 'dungeon_id'
 		),
 		key_level AS (
@@ -130,7 +130,7 @@ func query(combatlogHash string) *string {
 				"wowmate-analytics"."combatlogs"
 			WHERE
 				combatlog_hash = '%v'  AND
-		        time between ago(15m) and now() AND
+		        time between ago(3m) and now() AND
 		        measure_name = 'key_level'
 		),
 		duration AS (
@@ -141,7 +141,7 @@ func query(combatlogHash string) *string {
 				"wowmate-analytics"."combatlogs"
 			WHERE
 				combatlog_hash = '%v'  AND
-		        time between ago(15m) and now() AND
+		        time between ago(3m) and now() AND
 		        measure_name = 'duration'
 		),
 		finished AS (
@@ -152,7 +152,7 @@ func query(combatlogHash string) *string {
 				"wowmate-analytics"."combatlogs"
 			WHERE
 				combatlog_hash = '%v'  AND
-		        time between ago(15m) and now() AND
+		        time between ago(3m) and now() AND
 		        measure_name = 'finished'
 		),
         two_affix_id AS (
@@ -163,7 +163,7 @@ func query(combatlogHash string) *string {
 				"wowmate-analytics"."combatlogs"
 			WHERE
 				combatlog_hash = '%v'  AND
-		        time between ago(15m) and now() AND
+		        time between ago(3m) and now() AND
 		        measure_name = 'two_affix_id'
 		),
         four_affix_id AS (
@@ -174,7 +174,7 @@ func query(combatlogHash string) *string {
 				"wowmate-analytics"."combatlogs"
 			WHERE
 				combatlog_hash = '%v'  AND
-		        time between ago(15m) and now() AND
+		        time between ago(3m) and now() AND
 		        measure_name = 'four_affix_id'
 		),
         seven_affix_id AS (
@@ -185,7 +185,7 @@ func query(combatlogHash string) *string {
 				"wowmate-analytics"."combatlogs"
 			WHERE
 				combatlog_hash = '%v'  AND
-		        time between ago(15m) and now() AND
+		        time between ago(3m) and now() AND
 		        measure_name = 'seven_affix_id'
 		),
         ten_affix_id AS (
@@ -196,7 +196,7 @@ func query(combatlogHash string) *string {
 				"wowmate-analytics"."combatlogs"
 			WHERE
 				combatlog_hash = '%v'  AND
-		        time between ago(15m) and now() AND
+		        time between ago(3m) and now() AND
 		        measure_name = 'ten_affix_id'
 		),        
         date AS (
@@ -207,7 +207,7 @@ func query(combatlogHash string) *string {
 				"wowmate-analytics"."combatlogs"
 			WHERE
 				combatlog_hash = '%v'  AND
-		        time between ago(15m) and now() AND
+		        time between ago(3m) and now() AND
 		        measure_name = 'date'
 		),        
 		damage as (
@@ -224,7 +224,7 @@ func query(combatlogHash string) *string {
 				combatlog_hash = '%v' AND
 				(caster_type = '0x512' OR caster_type = '0x511') AND
 				caster_id != '0000000000000000' AND -- sometime the caster_id is empty, dunno why
-		  		time between ago(15m) and now()
+		  		time between ago(3m) and now()
 		-- TODO: I should only group by spell name, but I need one of the spell ids, to show an icon, might be easier to do in golang
 			GROUP BY
 				caster_name, 
