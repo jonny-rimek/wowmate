@@ -13,7 +13,7 @@
               >
                 <img
                   class="h-12 focus:outline-none w-auto"
-                  src="/wowmate_logo_only_transparent.png"
+                  src="/wowmate_logo_only_transparent.webp"
                   alt=""
                 />
               </nuxt-link>
@@ -25,7 +25,7 @@
               >
                 <img
                   class="h-8 w-auto"
-                  src="/wowmate_logo_only_transparent.png"
+                  src="/wowmate_logo_only_transparent.webp"
                   alt=""
                 />
               </nuxt-link>
