@@ -51,7 +51,7 @@ export default {
   data() {
     return {
       dungeons: [
-        { name: 'All Dungeons', pathName: 'mythicplus' },
+        { name: 'All Dungeons', pathName: 'mythicplus-all' },
         { name: "De Other Site", pathName: 'mythicplus-id', id: 2291 },
         { name: "Plaguefall", pathName: 'mythicplus-id', id: 2289 },
         { name: "Sanguine Depths", pathName: 'mythicplus-id', id: 2284 },
