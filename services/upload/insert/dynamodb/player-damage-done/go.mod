@@ -6,8 +6,8 @@ replace github.com/jonny-rimek/wowmate/services/common/golib => ./../../../../co
 
 require (
 	github.com/aws/aws-lambda-go v1.23.0
-	github.com/aws/aws-sdk-go v1.38.36
+	github.com/aws/aws-sdk-go v1.38.34
 	github.com/aws/aws-xray-sdk-go v1.4.0
-	github.com/jonny-rimek/wowmate/services/common/golib v0.0.0-20210508172143-e8e5a2a594df
+	github.com/jonny-rimek/wowmate/services/common/golib v0.0.0-20210505192330-927229c4ea83
 	github.com/sirupsen/logrus v1.8.1
 )
