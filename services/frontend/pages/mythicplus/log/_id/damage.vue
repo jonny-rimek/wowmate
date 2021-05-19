@@ -8,6 +8,7 @@
             <div></div>
             <h3
               class="text-lg lg:text-xl leading-6 font-medium text-gray-200"
+              data-cy="dungeon-name"
             >
               {{ log.dungeon_name }}
               <span

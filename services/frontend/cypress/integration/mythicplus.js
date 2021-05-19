@@ -50,6 +50,6 @@ describe('Mythicplus Page - Mobile', () => {
   it('can check a logs for a specific dungeon', () => {
     cy.visit('/mythicplus/all')
     cy.get('[data-cy=log]').first().click()
-    // TODO: check content of page e.g. title
+    cy.get('[data-cy=dungeon-name]').should('exist')
   })
 })
