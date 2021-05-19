@@ -25,7 +25,7 @@ type JSONKeys struct {
 	Keylevel      int            `json:"keylevel"`
 	DungeonName   string         `json:"dungeon_name"`
 	DungeonID     int            `json:"dungeon_id"`
-	CombatlogUUID string         `json:"combatlog_uuid"`
+	CombatlogHash string         `json:"combatlog_hash"`
 	Intime        int            `json:"intime"`
 	// don't need date atm, readd if needed
 	// Date          int64          `json:"date"`
@@ -72,7 +72,7 @@ func KeysResponseToJson(result *dynamodb.QueryOutput, sorted, firstPage bool) (s
 			Keylevel:      el.Keylevel,
 			DungeonName:   el.DungeonName,
 			DungeonID:     el.DungeonID,
-			CombatlogUUID: el.CombatlogHash,
+			CombatlogHash: el.CombatlogHash,
 			Intime:        el.Intime,
 		}
 		r = append(r, resp)

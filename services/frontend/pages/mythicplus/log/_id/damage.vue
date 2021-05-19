@@ -121,6 +121,7 @@
                   v-for="entry in log.player_damage"
                   :key="entry.player_id"
                 >
+                  <!-- TODO: add dmg breakdown here somewhere -->
                   <td
                     class="px-2 sm:px-6 py-4 whitespace-no-wrap text-sm capitalize leading-5 font-medium text-gray-200 "
                   >
