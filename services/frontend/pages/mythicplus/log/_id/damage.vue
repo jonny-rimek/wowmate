@@ -8,6 +8,7 @@
             <div></div>
             <h3
               class="text-lg lg:text-xl leading-6 font-medium text-gray-200"
+              data-cy="dungeon-name"
             >
               {{ log.dungeon_name }}
               <span
@@ -121,6 +122,7 @@
                   v-for="entry in log.player_damage"
                   :key="entry.player_id"
                 >
+                  <!-- TODO: add dmg breakdown here somewhere -->
                   <td
                     class="px-2 sm:px-6 py-4 whitespace-no-wrap text-sm capitalize leading-5 font-medium text-gray-200 "
                   >

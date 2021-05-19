@@ -109,7 +109,7 @@
                   <nuxt-link
                     :to="{
                       name: 'mythicplus-log-id-damage',
-                      params: { id: log.combatlog_uuid }
+                      params: { id: log.combatlog_hash }
                     }"
                     class="text-2xl text-red-600 hover:text-red-800"
                     data-cy='log'
