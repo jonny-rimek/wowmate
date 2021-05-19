@@ -355,7 +355,6 @@ func concurrentTimestreamUpload(ctx aws.Context, nestedRecord map[string]map[str
 func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData, ddbTableName string) ([]string, map[string]string, error) {
 	var duplicateHashes, allHashes []uint64
 	var skipCombatlogs []string
-	var deactivated []string
 	combatlogMap := make(map[string]string)
 
 	for combatlogUUID, record := range dedup {
@@ -366,45 +365,44 @@ func checkDuplicate(ctx aws.Context, dedup map[string][]string, logData *logData
 		allHashes = append(allHashes, hash)
 		combatlogMap[combatlogUUID] = strconv.FormatUint(hash, 10)
 
-		// input := &dynamodb.GetItemInput{
-		// 	TableName: &ddbTableName,
-		// 	Key: map[string]*dynamodb.AttributeValue{
-		// 		"pk": {
-		// 			S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
-		// 		},
-		// 		"sk": {
-		// 			S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
-		// 		},
-		// 	},
-		// }
-		// response, err := golib.DynamoDBGetItem(ctx, dynamodbSvc, input)
-		// if err != nil {
-		// 	return nil, nil, err
-		// }
-		// logData.Rcu = *response.ConsumedCapacity.CapacityUnits
+		input := &dynamodb.GetItemInput{
+			TableName: &ddbTableName,
+			Key: map[string]*dynamodb.AttributeValue{
+				"pk": {
+					S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
+				},
+				"sk": {
+					S: aws.String(fmt.Sprintf("DEDUP#%v", hash)),
+				},
+			},
+		}
+		response, err := golib.DynamoDBGetItem(ctx, dynamodbSvc, input)
+		if err != nil {
+			return nil, nil, err
+		}
+		logData.Rcu = *response.ConsumedCapacity.CapacityUnits
 
-		// if len(response.Item) == 0 {
-		// 	dd := golib.DynamodbDedup{
-		// 		Pk:        fmt.Sprintf("DEDUP#%d", hash),
-		// 		Sk:        fmt.Sprintf("DEDUP#%d", hash),
-		// 		CreatedAt: fmt.Sprintf("%s", time.Now().UTC()),
-		// 	}
-		//
-		// 	r, err := golib.DynamoDBPutItem(ctx, dynamodbSvc, &ddbTableName, dd)
-		// 	if err != nil {
-		// 		return nil, nil, err
-		// 	}
-		// 	logData.Wcu = *r.ConsumedCapacity.CapacityUnits
-		// } else {
-		duplicateHashes = append(duplicateHashes, hash)
-		skipCombatlogs = append(skipCombatlogs, combatlogUUID)
-		// }
+		if len(response.Item) == 0 {
+			dd := golib.DynamodbDedup{
+				Pk:        fmt.Sprintf("DEDUP#%d", hash),
+				Sk:        fmt.Sprintf("DEDUP#%d", hash),
+				CreatedAt: fmt.Sprintf("%s", time.Now().UTC()),
+			}
+
+			r, err := golib.DynamoDBPutItem(ctx, dynamodbSvc, &ddbTableName, dd)
+			if err != nil {
+				return nil, nil, err
+			}
+			logData.Wcu = *r.ConsumedCapacity.CapacityUnits
+		} else {
+			duplicateHashes = append(duplicateHashes, hash)
+			skipCombatlogs = append(skipCombatlogs, combatlogUUID)
+		}
 	}
 	logData.DuplicateHashes = duplicateHashes
 	logData.AllHashes = allHashes
 
-	return deactivated, combatlogMap, nil
-	// return skipCombatlogs, combatlogMap, nil
+	return skipCombatlogs, combatlogMap, nil
 }
 
 func readFileTypes(fileType string, fileContent *aws.WriteAtBuffer) ([]byte, error) {
