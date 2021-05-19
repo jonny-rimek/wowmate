@@ -39,7 +39,7 @@ export class InsertResult extends cdk.Construct {
 				DYNAMODB_TABLE_NAME: props.dynamoDB.tableName,
 				...props.envVars
 			},
-			reservedConcurrentExecutions: 30,
+			reservedConcurrentExecutions: 150,
 			logRetention: RetentionDays.ONE_MONTH,
 			tracing: lambda.Tracing.ACTIVE,
 			retryAttempts: 2, //default

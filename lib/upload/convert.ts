@@ -84,7 +84,7 @@ export class Convert extends cdk.Construct {
 				DYNAMODB_TABLE_NAME: props.dynamodb.tableName,
 				...props.envVars,
 			},
-			reservedConcurrentExecutions: 15,
+			reservedConcurrentExecutions: 150,
 			logRetention: RetentionDays.ONE_WEEK,
 			tracing: lambda.Tracing.ACTIVE,
 			retryAttempts: 0, 	// it has sqs as target, this is only for async.
