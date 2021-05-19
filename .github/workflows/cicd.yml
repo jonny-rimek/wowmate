@@ -6,7 +6,7 @@ on:
   push:
     # with the automatic pr that updates everything, no pipeline is triggered, that's
     # why I need to add the branch manually
-    branches: [ "update" ]
+    branches: [ "update", "prod" ]
   workflow_dispatch:
 
 jobs:
