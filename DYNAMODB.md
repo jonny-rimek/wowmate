@@ -2,13 +2,17 @@
 
 this document describes all the access patterns in dynamodb and how they are modelled.
 
-[comment]: <> (TODO: ERD)
+
 
 #### access patterns:
 
-1. access m+ log over all damage by CombatlogHash
+1. access m+ log overall damage/overall healing by CombatlogHash
    - PK: LOG#KEY#__<combatlog_hash>__#OVERALL_PLAYER_DAMAGE
    - SK: LOG#KEY#__<combatlog_hash>__#OVERALL_PLAYER_DAMAGE
+   - healing  
+   - PK: LOG#KEY#__<combatlog_hash>__#OVERALL_PLAYER_HEALING
+   - SK: LOG#KEY#__<combatlog_hash>__#OVERALL_PLAYER_HEALING
+   - same pattern for every other type
 1. sort m+ log by highest key and by time
    - PK: LOG#KEY#__<season>__
    - SK: __<key_level>__#__<time_as_percent>__#__<combatlog_hash>__
@@ -23,18 +27,31 @@ this document describes all the access patterns in dynamodb and how they are mod
    - PK: DEDUP#__<combatlog_hash>__
    - SK: DEDUP#__<combatlog_hash>__
 1. get best m+ log from each dungeon for a player
-1. sort player m+ logs by most recent
+   - PK: DUNGEON#PLAYER#__<player_id>__
+   - SK: __<dungeon_id>__#__<time_per_cent>__
+   - limit 1 and do for every dungeon
+   - do it in parallel in go and fuse result back together
 1. get all m+ logs for a dungeon for a player per season
+   - PK: DUNGEON#PLAYER#__<player_id>__
+   - SK: __<dungeon_id>__#__<time_per_cent>__
+   - paginate to get all keys in 1 request 
+1. sort player m+ logs by most recent
+   - PK: PLAYER_ID#__<player_id>__
+   - SK: __<created_at>__
 1. get player via player_id
+   - PK: PLAYER_ID#__<player_id>__
+   - SK: PLAYER_ID#__<player_id>__
 1. search by player name
+   - PK: PLAYER#SEARCH
+   - SK: __<player_name>__
+   - add player id as attribute, so the follow-up requests can search by player id and not player name, to avoid rename problems
 
 | Patterns | PK | SK | GSI1PK | GSI1SK | GSI2PK | GSI2SK | GSI3PK | GSI3SK | GSI4PK | GSI4SK |
 --- | --- | --- | --- | --- | --- | --- | --- | ---| --- | ---
 | 1. | LOG#KEY#__<combatlog_hash>__#OVERALL_PLAYER_DAMAGE| LOG#KEY#__<combatlog_hash>__#OVERALL_PLAYER_DAMAGE|  |  | - |  |  |  |  |
 | 2-4 | LOG#KEY#__season__ | __<key_level>__#__<time_as_percent>__#__<combatlog_hash>__ | LOG#KEY#__<season>__#__<dungeon_id>__ | __<key_level>__#__<time_as_percent>__#__<combatlog_hash>__ | - |  |  |  |  |
-| 4. | DEDUP#__<combatlog_hash>__ | DEDUP#__<combatlog_hash>__ |  |  | - |  |  |  |  |
-| 5. |  |  |  |  | - |  |  |  |  |
-| 6. |  |  |  |  | - |  |  |  |  |
-| 7. |  |  |  |  | - |  |  |  |  |
-| 8. |  |  |  |  | - |  |  |  |  |
-| 9. |  |  |  |  | - |  |  |  |  |    
+| 6. | DEDUP#__<combatlog_hash>__ | DEDUP#__<combatlog_hash>__ |  |  | - |  |  |  |  |
+| 7+8 | DUNGEON#PLAYER#__<player_id>__ | DUNGEON#PLAYER#__<player_id>__ |  |  | - |  |  |  |  |
+| 9. | PLAYER_ID#__<player_id>__ | __<created_at>__ |  |  | - |  |  |  |  |
+| 10. | PLAYER_ID#__<player_id>__ | PLAYER_ID#__<player_id>__ |  |  | - |  |  |  |  |
+| 11. | PLAYER | __<player_name>__  |  |  | - |  |  |  |  |    
