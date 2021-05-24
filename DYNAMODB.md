@@ -4,7 +4,8 @@ this document describes all the access patterns in dynamodb and how they are mod
 
 #### ERD:
 
-GitHub has no mermaid support =(
+GitHub has no mermaid support =( install this plugin to fix [it](https://addons.mozilla.org/en-US/firefox/addon/extensions-for-mermaid/?utm_source=addons.mozilla.org&utm_medium=referral&utm_content=search)
+
 
 ```mermaid
 erDiagram
