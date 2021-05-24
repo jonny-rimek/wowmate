@@ -2,14 +2,25 @@
 
 this document describes all the access patterns in dynamodb and how they are modelled.
 
-[comment]: <> (TODO: ERD)
-
 #### ERD:
-erDiagram
-CUSTOMER ||--o{ ORDER : places
-ORDER ||--|{ LINE-ITEM : contains
-CUSTOMER }|..|{ DELIVERY-ADDRESS : uses
 
+GitHub has no mermaid support =(
+
+```mermaid
+erDiagram
+    Mythicplus-Log }o--o{ Player : has
+    Player ||..|{ Class : has
+    Class ||..|{ Active-Specc : has
+    Mythicplus-Log ||--|{ Mythicplus-Dungeon : has
+    Mythicplus-Dungeon ||..o{ Level-2-Affix : has
+    Mythicplus-Dungeon |o..o{ Level-5-Affix : has
+    Mythicplus-Dungeon |o..o{ Level-7-Affix : has
+    Mythicplus-Dungeon |o..o{ Level-10-Affix : has
+    Level-2-Affix {
+      int id
+      string name
+    }
+```
 
 #### access patterns:
 
@@ -61,4 +72,5 @@ CUSTOMER }|..|{ DELIVERY-ADDRESS : uses
 | 7+8 | DUNGEON#PLAYER#__<player_id>__ | DUNGEON#PLAYER#__<player_id>__ |  |  | - |  |  |  |  |
 | 9. | PLAYER_ID#__<player_id>__ | __<created_at>__ |  |  | - |  |  |  |  |
 | 10. | PLAYER_ID#__<player_id>__ | PLAYER_ID#__<player_id>__ |  |  | - |  |  |  |  |
-| 11. | PLAYER | __<player_name>__  |  |  | - |  |  |  |  |    
+| 11. | PLAYER | __<player_name>__  |  |  | - |  |  |  |  |
+
