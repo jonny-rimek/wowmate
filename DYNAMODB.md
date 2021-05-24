@@ -2,6 +2,13 @@
 
 this document describes all the access patterns in dynamodb and how they are modelled.
 
+[comment]: <> (TODO: ERD)
+
+#### ERD:
+erDiagram
+CUSTOMER ||--o{ ORDER : places
+ORDER ||--|{ LINE-ITEM : contains
+CUSTOMER }|..|{ DELIVERY-ADDRESS : uses
 
 
 #### access patterns:
