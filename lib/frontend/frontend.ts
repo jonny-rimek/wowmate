@@ -32,16 +32,17 @@ export class Frontend extends cdk.Construct {
 			hostedZone,
 		});
 
-		//if the bucket would be private we can't make it a website bucket
-		//which results in strange behaviour
-		//e.g. you have to call the file exactly /page.html simply /page won't work
-		//the disadvantage is that people could access the bucket directly which would
-		//result in a slower website, but more importantly it could be used as a denial of wallet
-		//as it doesn't get cached and data transfer out is billed every time. as the bucket name
-		//is random and not having smart redirect seems worse, I'm going with a public website bucket
+		// if the bucket would be private we can't make it a website bucket
+		// which results in strange behaviour
+		// e.g. you have to call the file exactly /page.html simply /page won't work
+		// the disadvantage is that people could access the bucket directly which would
+		// result in a slower website, but more importantly it could be used as a denial of wallet
+		// as it doesn't get cached and data transfer out is billed every time. as the bucket name
+		// is random and not having smart redirect seems worse, I'm going with a public website bucket
+		//
+        // because I have a SPA, I don't need to page/ to resolve to page/index.html, the routing is done
+		// client side, as a result I can use a private bucket
 		this.bucket = new s3.Bucket(this, 'Bucket', {
-			// websiteIndexDocument: 'index.html',
-			// publicReadAccess: true,
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			metrics: [{
@@ -58,27 +59,12 @@ export class Frontend extends cdk.Construct {
 				rules_to_suppress: [
 					{
 						id: 'W35',
+                        // could set up tracking, but it's not sensitive data (it's public via CF), so why bother
 						reason: "this is a website bucket, so there is no point tracking access to it",
-					},
-					{
-						id: 'W41',
-						reason: "this is a website bucket, it needs to be public, so there is no point in encrypting it",
 					},
 				]
 			}
 		}
-
-		// const cfnBucketPolicy = this.bucket.policy?.node.defaultChild as iam.CfnPolicy
-		// cfnBucketPolicy.cfnOptions.metadata = {
-		// 	cfn_nag: {
-		// 		rules_to_suppress: [
-		// 			{
-		// 				id: 'F16',
-		// 				reason: "this is a website bucket, it needs to be public",
-		// 			},
-		// 		]
-		// 	}
-		// }
 
 		//make sure enhanced metrics is enabled via the GUI no CF support =(
 		//https://console.aws.amazon.com/cloudfront/v2/home#/monitoring
