@@ -41,7 +41,7 @@ export class Frontend extends cdk.Construct {
 		//is random and not having smart redirect seems worse, I'm going with a public website bucket
 		this.bucket = new s3.Bucket(this, 'Bucket', {
 			websiteIndexDocument: 'index.html',
-			publicReadAccess: true,
+            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			metrics: [{
 				id: 'metric',
@@ -83,7 +83,10 @@ export class Frontend extends cdk.Construct {
 		//https://console.aws.amazon.com/cloudfront/v2/home#/monitoring
 		this.cloudfront = new cloudfront.Distribution(this, 'Distribution', {
 			defaultBehavior: {
-				origin: new origins.S3Origin(this.bucket),
+				origin: new origins.S3Origin(this.bucket, {
+					// originAccessIdentity:
+                    // originPath
+				}),
 				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
 				originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
 				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
