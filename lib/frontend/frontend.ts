@@ -67,17 +67,17 @@ export class Frontend extends cdk.Construct {
 			}
 		}
 
-		const cfnBucketPolicy = this.bucket.policy?.node.defaultChild as iam.CfnPolicy
-		cfnBucketPolicy.cfnOptions.metadata = {
-			cfn_nag: {
-				rules_to_suppress: [
-					{
-						id: 'F16',
-						reason: "this is a website bucket, it needs to be public",
-					},
-				]
-			}
-		}
+		// const cfnBucketPolicy = this.bucket.policy?.node.defaultChild as iam.CfnPolicy
+		// cfnBucketPolicy.cfnOptions.metadata = {
+		// 	cfn_nag: {
+		// 		rules_to_suppress: [
+		// 			{
+		// 				id: 'F16',
+		// 				reason: "this is a website bucket, it needs to be public",
+		// 			},
+		// 		]
+		// 	}
+		// }
 
 		//make sure enhanced metrics is enabled via the GUI no CF support =(
 		//https://console.aws.amazon.com/cloudfront/v2/home#/monitoring
