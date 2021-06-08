@@ -63,6 +63,10 @@ export class Frontend extends cdk.Construct {
 						id: 'W41',
 						reason: "this is a website bucket, it needs to be public, so there is no point in encrypting it",
 					},
+					{
+						id: 'W51',
+						reason: "this is a website bucket, it doesn't need a bucket policy",
+					},
 				]
 			}
 		}
