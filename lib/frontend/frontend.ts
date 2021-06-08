@@ -40,8 +40,9 @@ export class Frontend extends cdk.Construct {
 		//as it doesn't get cached and data transfer out is billed every time. as the bucket name
 		//is random and not having smart redirect seems worse, I'm going with a public website bucket
 		this.bucket = new s3.Bucket(this, 'Bucket', {
-			websiteIndexDocument: 'index.html',
-			publicReadAccess: true,
+			// websiteIndexDocument: 'index.html',
+			// publicReadAccess: true,
+            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			metrics: [{
 				id: 'metric',
@@ -67,17 +68,17 @@ export class Frontend extends cdk.Construct {
 			}
 		}
 
-		const cfnBucketPolicy = this.bucket.policy?.node.defaultChild as iam.CfnPolicy
-		cfnBucketPolicy.cfnOptions.metadata = {
-			cfn_nag: {
-				rules_to_suppress: [
-					{
-						id: 'F16',
-						reason: "this is a website bucket, it needs to be public",
-					},
-				]
-			}
-		}
+		// const cfnBucketPolicy = this.bucket.policy?.node.defaultChild as iam.CfnPolicy
+		// cfnBucketPolicy.cfnOptions.metadata = {
+		// 	cfn_nag: {
+		// 		rules_to_suppress: [
+		// 			{
+		// 				id: 'F16',
+		// 				reason: "this is a website bucket, it needs to be public",
+		// 			},
+		// 		]
+		// 	}
+		// }
 
 		//make sure enhanced metrics is enabled via the GUI no CF support =(
 		//https://console.aws.amazon.com/cloudfront/v2/home#/monitoring
@@ -88,12 +89,20 @@ export class Frontend extends cdk.Construct {
 				originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
 				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
 			},
-            errorResponses: [{
-				httpStatus: 404,
-				responseHttpStatus: 200,
-				responsePagePath: '/index.html',
-				ttl: cdk.Duration.seconds(0),
-			}],
+            errorResponses: [
+            	{
+					httpStatus: 404,
+					responseHttpStatus: 200,
+					responsePagePath: '/index.html',
+					ttl: cdk.Duration.seconds(0),
+				},
+				{
+					httpStatus: 403,
+					responseHttpStatus: 200,
+					responsePagePath: '/index.html',
+					ttl: cdk.Duration.seconds(0),
+				}
+			],
 			certificate: cert,
 			domainNames: [props.domainName],
 			comment: "wowmate.io frontend",
