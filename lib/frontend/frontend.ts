@@ -37,12 +37,12 @@ export class Frontend extends cdk.Construct {
 		// e.g. you have to call the file exactly /page.html simply /page won't work
 		// the disadvantage is that people could access the bucket directly which would
 		// result in a slower website, but more importantly it could be used as a denial of wallet
-		// as it doesn't get cached and data transfer out is billed every time. as the bucket name
-		// is random and not having smart redirect seems worse, I'm going with a public website bucket
+		// as it doesn't get cached and data transfer out is billed every time.
 		//
         // because I have a SPA, I don't need to page/ to resolve to page/index.html, the routing is done
 		// client side, as a result I can use a private bucket
 		this.bucket = new s3.Bucket(this, 'Bucket', {
+			websiteIndexDocument: "index.html",
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			metrics: [{
@@ -71,23 +71,17 @@ export class Frontend extends cdk.Construct {
 		this.cloudfront = new cloudfront.Distribution(this, 'Distribution', {
 			defaultBehavior: {
 				origin: new origins.S3Origin(this.bucket),
-				cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-				originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
-				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+				// originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
+				// viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
 			},
             errorResponses: [
             	{
+            	    // this is needed to make SPAs work in S3, because the routing is done client side
 					httpStatus: 404,
 					responseHttpStatus: 200,
 					responsePagePath: '/index.html',
 					ttl: cdk.Duration.seconds(0),
 				},
-				{
-					httpStatus: 403,
-					responseHttpStatus: 200,
-					responsePagePath: '/index.html',
-					ttl: cdk.Duration.seconds(0),
-				}
 			],
 			certificate: cert,
 			domainNames: [props.domainName],
@@ -97,6 +91,9 @@ export class Frontend extends cdk.Construct {
 		})
 
 		const cfnDist = this.cloudfront.node.defaultChild as cloudfront.CfnDistribution;
+		cfnDist.addPropertyOverride('DistributionConfig.Origins.0', {
+			DomainName: this.bucket.bucketDomainName,
+		});
 		cfnDist.addPropertyOverride('DistributionConfig.Origins.0.OriginShield', {
 			Enabled: true,
 			OriginShieldRegion: 'us-east-1',
