@@ -42,6 +42,7 @@ export class Frontend extends cdk.Construct {
         // because I have a SPA, I don't need to page/ to resolve to page/index.html, the routing is done
 		// client side, as a result I can use a private bucket
 		this.bucket = new s3.Bucket(this, 'Bucket', {
+			websiteIndexDocument: "index.html",
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			metrics: [{
