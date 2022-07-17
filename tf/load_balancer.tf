@@ -36,3 +36,14 @@ resource "aws_alb_listener" "http" {
     target_group_arn = aws_alb_target_group.main.arn
   }
 }
+
+#resource "aws_alb_listener" "https" {
+#  load_balancer_arn = aws_lb.main.arn
+#  port              = 433
+#  protocol          = "HTTPS"
+#
+#  default_action {
+#    type = "forward"
+#    target_group_arn = aws_alb_target_group.main.arn
+#  }
+#}

@@ -7,6 +7,7 @@ https://github.com/silinternational/ecs-deploy
 https://github.com/finleap/tf-ecs-fargate-tmpl
 
 TODO:
+- [ ] add domain
 - [ ] server traffic via TLS
 - [ ] build own image and server it
 - [ ] add dynamodb and add data
