@@ -1,6 +1,14 @@
 resource "aws_security_group" "alb" {
-  name   = "allow all port 80 inbound and all outbound"
+  name   = "allow all port 80 & 443 inbound and all outbound"
   vpc_id = aws_vpc.main.id
+
+  ingress {
+    protocol         = "tcp"
+    from_port        = 443
+    to_port          = 443
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
 
   ingress {
     protocol         = "tcp"
