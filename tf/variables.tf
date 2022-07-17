@@ -1,10 +1,10 @@
 
-variable "app_count" {
+variable "number_of_containers" {
   type = number
-  default = 1
+  default = 2
 }
 
 variable "container_port" {
   type = number
-  default = 8080
+  default = 80
 }

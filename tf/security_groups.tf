@@ -1,19 +1,11 @@
 resource "aws_security_group" "alb" {
-  name   = "test-sg-alb"
+  name   = "allow all port 80 inbound and all outbound"
   vpc_id = aws_vpc.main.id
 
   ingress {
     protocol         = "tcp"
     from_port        = 80
     to_port          = 80
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
-
-  ingress {
-    protocol         = "tcp"
-    from_port        = 443
-    to_port          = 443
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }
@@ -28,7 +20,7 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_security_group" "ecs_tasks" {
-  name   = "test-sg-task"
+  name   = "allow all outbount for ecs and all inbound on container port"
   vpc_id = aws_vpc.main.id
 
   ingress {
