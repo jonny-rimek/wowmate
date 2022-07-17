@@ -7,6 +7,11 @@ https://github.com/silinternational/ecs-deploy
 https://github.com/finleap/tf-ecs-fargate-tmpl
 
 TODO:
-- server traffic via TLS
-- build own image and server it
-- add dynamodb and add data
+- [ ] server traffic via TLS
+- [ ] build own image and server it
+- [ ] add dynamodb and add data
+- [ ] improve tf code
+  - [ ] use s3 state
+  - [ ] break out state
+  - [ ] refactor in reusable modules
+  - [ ] tests
